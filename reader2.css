@@ -89,3 +89,27 @@ body[data-layout="mobile"] #tab-reader #readerTopbar{z-index:12}
 body[data-layout="mobile"] #readerFooter{z-index:12}
 body[data-layout="mobile"] #tab-reader.active{padding-top:.9rem}
 body[data-layout="mobile"]:has(#readerDrawer.open) #readerTopbar,body[data-layout="mobile"]:has(#readerDrawer.open) #readerFooter{visibility:hidden}
+
+/* ===== المرحلة 2: تابات سفلية 3 فقط + هيدر رفيع + مكتبة أنضف (موبايل) ===== */
+body[data-layout="mobile"] .tabbar button:not([data-tab="home"]):not([data-tab="library"]):not(#btnNavMore){display:none}
+body[data-layout="mobile"] .tabbar{height:auto;justify-content:space-around;padding-top:.15rem}
+body[data-layout="mobile"] .tabbar button{min-height:50px;margin:.15rem .4rem;font-size:1.2rem;flex:1}
+body[data-layout="mobile"] .tabbar button span{font-size:.7rem}
+body[data-layout="mobile"] .topbar{display:flex;align-items:center;gap:.5rem;min-height:0;height:48px;padding:0 .6rem;flex-wrap:nowrap}
+body[data-layout="mobile"] .topbar .top-actions,
+body[data-layout="mobile"] .topbar .tagline,
+body[data-layout="mobile"] .topbar .toolbar-msg:empty{display:none}
+body[data-layout="mobile"] .topbar .brand{font-size:1.05rem;margin:0;flex:1;text-align:center}
+body[data-layout="mobile"] .topbar #btnNavBack{padding:0 .5rem;height:40px;font-size:1rem;background:none;border:none;box-shadow:none}
+body[data-layout="mobile"] #tab-library h1{font-size:1.3rem;margin:.4rem 0}
+body[data-layout="mobile"] #tab-library .freelib-entry{padding:.55rem .8rem;display:flex;align-items:center;gap:.6rem;border-radius:.8rem}
+body[data-layout="mobile"] #tab-library .freelib-entry span{display:none}
+body[data-layout="mobile"] #tab-library .freelib-entry strong{font-size:.9rem}
+body[data-layout="mobile"] #tab-library #shelfChips{flex-wrap:nowrap;overflow-x:auto;gap:.4rem;padding-bottom:.2rem;scrollbar-width:none}
+body[data-layout="mobile"] #tab-library #shelfChips .chip{white-space:nowrap;flex:none;padding:.35rem .8rem;font-size:.85rem}
+body[data-layout="mobile"] #tab-library:not(.add-open) > .card:has(#bookTitle){display:none}
+#libAddFab{display:none}
+body[data-layout="mobile"] #libAddFab{display:flex;position:fixed;inset-inline-start:16px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:29;width:52px;height:52px;border-radius:50%;border:none;background:var(--accent);color:#241a05;font-size:1.7rem;line-height:1;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+body[data-layout="mobile"]:not(.on-library) #libAddFab,body[data-layout="mobile"].in-reader #libAddFab{display:none}
+body[data-layout="mobile"] #tab-library.add-open ~ #libAddFab{transform:rotate(45deg)}
+body:not(.in-reader) #readerDrawerFab{display:none!important}

@@ -56,6 +56,21 @@
       if(tc) sTools.b.appendChild(tc);
       rdBody.appendChild(sTr.d); rdBody.appendChild(sAi.d); rdBody.appendChild(sTools.d);
     }
+    /* ===== المرحلة 2 ===== */
+    var lib=$("#tab-library");
+    if(lib){
+      var fab=document.createElement("button"); fab.id="libAddFab"; fab.type="button"; fab.textContent="+"; fab.title="ضيف كتاب"; fab.setAttribute("aria-label","ضيف كتاب");
+      document.body.appendChild(fab);
+      fab.addEventListener("click",function(){ var o=lib.classList.toggle("add-open"); fab.textContent=o?"×":"+"; if(o){ var c=lib.querySelector(".card:has(#bookTitle)"); if(c) c.scrollIntoView({behavior:"smooth",block:"start"}); } });
+      function syncLib(){ document.body.classList.toggle("on-library",lib.classList.contains("active")); }
+      new MutationObserver(syncLib).observe(lib,{attributes:true,attributeFilter:["class"]}); syncLib();
+    }
+    /* التابات السفلية: الرئيسية/المكتبة/المزيد بس — خانة المزيد بتنشط لأي تاب تاني */
+    window.syncMoreBtn=function(){ var mb=$("#btnNavMore"); if(!mb||typeof currentTabName==="undefined")return; var slots=document.body.dataset.layout==="mobile"?["home","library"]:["home","library","reader","glossary","quick","files","install","settings","freelib"]; mb.classList.toggle("active",slots.indexOf(currentTabName)===-1); };
+    var bnm=$("#btnNavMore"); if(bnm) bnm.addEventListener("click",function(e){ if(document.body.dataset.layout!=="mobile")return; if(bnm._lpFired)return; e.stopImmediatePropagation(); var sh=$("#moreSheet"); if(sh&&sh.classList.contains("sheet-open")) closeMoreSheet(); else openMoreSheet(); },true);
+    /* صفوف الهيدر اللي اتشالت (تحديث) تتحط في المزيد */
+    var ms=$("#moreSheetList");
+    if(ms){ new MutationObserver(function(){ if(document.body.dataset.layout!=="mobile"||ms.querySelector(".more-upd")||!ms.querySelector(".more-row"))return; var tb=$("#moreSheet .more-sheet-head"); if(tb&&/درج/.test(tb.textContent))return; var r=document.createElement("button"); r.type="button"; r.className="more-row more-upd"; r.innerHTML='<span class="mi">⟳</span><span class="mt"><span class="ml">تحديث التطبيق</span></span>'; r.addEventListener("click",function(){var u=$("#btnNavUpdate"); if(window.closeMoreSheet)closeMoreSheet(); if(u)u.click();}); ms.appendChild(r); }).observe(ms,{childList:true}); }
     /* منطقة لمس علوية/سفلية بتظهر وتخفي الكروم حتى لو الكلام كله كلمات قابلة للضغط */
     document.addEventListener("click",function(e){
       if(document.body.dataset.layout!=="mobile"||!document.body.classList.contains("in-reader")) return;
