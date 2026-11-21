@@ -1598,7 +1598,7 @@ document.addEventListener("DOMContentLoaded", async()=>{
   /* أرفف المكتبة: فلاتر */
   $$("#shelfChips button").forEach(b=>b.addEventListener("click",()=>{ shelfFilter=b.dataset.filter; renderLibrary(); }));
   /* 💬 اسأل الكتاب */
-  $("#btnAskBook").addEventListener("click",()=>{ const p=$("#askPanel"); p.classList.toggle("hidden"); if(!p.classList.contains("hidden")){ renderAskPanel(); const inp=$("#askInput"); if(inp) inp.focus(); } });
+  $("#btnAskBook").addEventListener("click",()=>{ const p=$("#askPanel"); p.classList.toggle("hidden"); if(!p.classList.contains("hidden")){ closeReaderPanels(); renderAskPanel(); const inp=$("#askInput"); if(inp) inp.focus(); } });
   $("#askSend").addEventListener("click", sendAsk);
   $("#askInput").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); sendAsk(); } });
   $("#askClear").addEventListener("click",async()=>{ const b=currentBook(); if(!b) return; if(!confirm("تمسح محادثة «اسأل الكتاب» للكتاب ده؟")) return; const oldChat=b.chat; b.chat=[]; try{ await idbPut(b); }catch(e){ b.chat=oldChat; logError("حفظ", e); const m=$("#askMsg"); if(m){ m.textContent="مسح المحادثة فشل — جرّب تاني."; m.classList.add("err"); } } renderAskPanel(b); });
