@@ -1041,6 +1041,63 @@ async function shareQuote(book, quote, msgEl){
     bad(); return false;
   }
 }
+/* ---------- 🖼 كروت مشاركة الاقتباسات: صورة مربعة بهوية كُتُبِي الذهبية ---------- */
+function renderQuoteCard(book, quote){
+  const W = 1080, cv = document.createElement("canvas"); cv.width = W; cv.height = W;
+  const x = cv.getContext("2d");
+  const g = x.createLinearGradient(0, 0, 0, W);
+  g.addColorStop(0, "#241806"); g.addColorStop(0.55, "#1a1108"); g.addColorStop(1, "#0f0a04");
+  x.fillStyle = g; x.fillRect(0, 0, W, W);
+  /* إطار دهبي مزدوج */
+  x.strokeStyle = "#c47b2a"; x.lineWidth = 6; x.strokeRect(36, 36, W-72, W-72);
+  x.strokeStyle = "rgba(196,123,42,.35)"; x.lineWidth = 2; x.strokeRect(56, 56, W-112, W-112);
+  /* علامة اقتباس زخرفية */
+  x.fillStyle = "rgba(196,123,42,.28)"; x.font = "bold 220px Georgia,serif"; x.textAlign = "center"; x.direction = "rtl";
+  x.fillText("❝", W/2, 300);
+  /* لف النص على سطور حسب العرض */
+  const wrap = (text, maxW)=>{
+    const words = String(text||"").split(/\s+/).filter(Boolean); const lines = []; let cur = "";
+    words.forEach(wd=>{ const t = cur ? cur + " " + wd : wd; if(x.measureText(t).width > maxW && cur){ lines.push(cur); cur = wd; } else cur = t; });
+    if(cur) lines.push(cur);
+    return lines;
+  };
+  let size = 52, lines = [];
+  for(let tries = 0; tries < 6; tries++){
+    x.font = "bold " + size + "px Tajawal,'Segoe UI',Tahoma,Arial,sans-serif";
+    lines = wrap(quote, W - 240);
+    if(lines.length * (size * 1.55) <= 520 || size <= 28) break;
+    size -= 6;
+  }
+  const lh = size * 1.55; let y = 420 - ((lines.length - 1) * lh) / 2;
+  x.fillStyle = "#f5e8d5";
+  lines.forEach(l=>{ x.fillText(l, W/2, y); y += lh; });
+  /* اسم الكتاب */
+  x.font = "600 36px Tajawal,'Segoe UI',Tahoma,Arial,sans-serif"; x.fillStyle = "#c47b2a";
+  const ttl = "— من كتاب «" + String(book.title||"").slice(0, 60) + "»";
+  x.fillText(ttl, W/2, Math.min(y + 30, 900));
+  /* توقيع العلامة */
+  x.font = "bold 34px Tajawal,'Segoe UI',Tahoma,Arial,sans-serif"; x.fillStyle = "#8a6a3a";
+  x.fillText("كُتُبِي 📖 Don Eslam", W/2, 980);
+  return new Promise(res=>cv.toBlob(res, "image/png"));
+}
+async function shareQuoteImage(book, quote, msgEl){
+  try{
+    const blob = await renderQuoteCard(book, quote);
+    if(!blob) throw new Error("no blob");
+    const file = new File([blob], "kutubi-quote.png", {type:"image/png"});
+    if(navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], title:"اقتباس من «" + book.title + "»"}); return true; }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "kutubi-quote-" + Date.now() + ".png";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    if(msgEl){ msgEl.textContent = "اتحفظ كارت الاقتباس كصورة ✔"; msgEl.classList.remove("err"); }
+    return true;
+  }catch(e){
+    if(e && e.name === "AbortError") return false; /* المستخدم لغى المشاركة */
+    return shareQuote(book, quote, msgEl); /* رجوع للنسخ النصي */
+  }
+}
+
 function buildHlEditor(book, i, sec){
   const wrap = document.createElement("div"); wrap.className = "hl-editor hidden"; wrap.dataset.role = "hledit";
   wrap.innerHTML =
