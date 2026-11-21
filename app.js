@@ -105,7 +105,7 @@ function autoMatchVoiceForTone(toneKey){
 let dbPromise = null;
 /* حارس نسخة المخطط الوحيد: أي تغيير مستقبلي في شكل البيانات بيعدي من migrateSchema بس */
 const IDB_VERSION = 2;
-const APP_VERSION_TAG = "motarjem-v58"; /* بيتطابق مع اسم كاش الـ Service Worker */
+const APP_VERSION_TAG = "motarjem-v59"; /* بيتطابق مع اسم كاش الـ Service Worker */
 function migrateSchema(db, oldVersion, newVersion){ /* حاليًا المخطط ثابت من النسخة ٢ — مفيش ترحيلات، والخطّاف جاهز لأي تغيير جاي */
 }
 function idb(){

@@ -83,7 +83,7 @@ async function recipeStuck(){
 }
 
 /* ---------- وصفة ٧: الإعدادات — قيم برّه النطاق أو بايظة بتتظبط لحدود صالحة ---------- */
-const HEALTH_THEMES = ["light", "sepia", "dark", "black"];
+const HEALTH_THEMES = ["light","sepia","dark","black","royal","modern"];
 function sanitizeSettingsValues(){
   const corr = [];
   const num = (v)=> (typeof v === "number" && !isNaN(v)) ? v : null;
