@@ -778,3 +778,58 @@ body.reader-empty #readerDrawer #readerBottomBar, body.reader-locked #readerDraw
 .achv .hint{ font-size:.7rem; }
 .achv .progress-wrap{ height:5px; margin-top:.15rem; }
 .stat-box.weekly{ grid-column:1/-1; }
+
+/* ================= نظام التصميم الموحّد (D-15): صقل احترافي A-Z =================
+   طبقة تهذيب فوق القواعد الموجودة: راديس موحّد، تركيز واضح، أزرار وكروت وبطاقات بنفس الروح في كل التبويبات */
+:root{
+  --r-sm:.55rem; --r-md:.75rem; --r-lg:1rem; --r-xl:1.35rem;
+  --ring:0 0 0 3px color-mix(in srgb, var(--accent) 26%, transparent);
+}
+/* تركيز لوحة المفاتيح واضح في كل مكان */
+:focus{ outline:none; }
+:focus-visible{ outline:none; box-shadow:var(--ring); border-color:var(--accent)!important; }
+/* أزرار: راديس موحّد + أساسية بتدرج دهبي رايق وظل ثابت */
+button{ border-radius:var(--r-md); }
+button.primary{
+  background:linear-gradient(180deg, color-mix(in srgb, var(--accent) 88%, #ffffff 12%), var(--accent));
+  border-color:transparent; box-shadow:var(--elev-1), inset 0 1px 0 rgba(255,255,255,.18);
+}
+@media (hover:hover){
+  button.primary:hover{ filter:brightness(1.07); transform:translateY(-1px); box-shadow:var(--elev-2), inset 0 1px 0 rgba(255,255,255,.18); }
+  button.ghost:hover{ background:color-mix(in srgb, var(--accent) 8%, transparent); }
+  .book-card:hover{ box-shadow:var(--elev-2); transform:translateY(-1px); }
+}
+button:active{ transform:translateY(0) scale(.985); }
+/* كروت: ظل من نظام الارتفاعات + راديس موحّد */
+.card{ border-radius:var(--r-lg); box-shadow:var(--elev-1); padding:1rem; }
+.book-card{ border-radius:var(--r-lg); box-shadow:var(--elev-1); transition:box-shadow var(--dur-2) var(--ease), transform var(--dur-1) var(--ease); }
+/* مدخلات: راديس موحّد + حالة تركيز ذهبية */
+input[type=text],input[type=url],input[type=password],input[type=search],input[type=month],textarea,select{
+  border-radius:var(--r-md); transition:border-color var(--dur-1) var(--ease), box-shadow var(--dur-1) var(--ease), background-color var(--dur-1) var(--ease);
+}
+input[type=text]:focus,input[type=url]:focus,input[type=password]:focus,input[type=search]:focus,input[type=month]:focus,textarea:focus,select:focus{
+  border-color:var(--accent); box-shadow:var(--ring); background:var(--card);
+}
+select{ appearance:none; -webkit-appearance:none; padding-inline-end:2rem;
+  background-image:linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position:calc(0% + 1rem) 55%, calc(0% + 1.4rem) 55%; background-size:.4rem .4rem; background-repeat:no-repeat; }
+/* عناوين التبويبات: وزن واضح + خط تمييز صغير */
+h1{ font-weight:800; position:relative; padding-inline-start:.7rem; }
+h1::before{ content:""; position:absolute; inset-inline-start:0; top:.35em; bottom:.35em; width:4px; border-radius:99px; background:linear-gradient(180deg, var(--accent2), var(--accent)); }
+h2{ font-weight:700; }
+/* شريط التبويبات: مؤشر نشط بحبة دهبية */
+.tabbar{ box-shadow:0 -6px 20px rgba(0,0,0,.06); }
+.tabbar button{ position:relative; border-radius:0; transition:color var(--dur-1) var(--ease); }
+.tabbar button.active{ color:var(--accent); }
+.tabbar button.active::after{ content:""; position:absolute; top:0; inset-inline:22%; height:3px; border-radius:0 0 99px 99px; background:linear-gradient(90deg, var(--accent2), var(--accent)); }
+/* صناديق الإحصائيات: نفس روح الكروت */
+.stat-box{ border-radius:var(--r-md); box-shadow:var(--elev-1); }
+/* سكرول بار رفيع متناسق مع الهوية */
+*::-webkit-scrollbar{ width:8px; height:8px; }
+*::-webkit-scrollbar-thumb{ background:color-mix(in srgb, var(--accent) 35%, transparent); border-radius:99px; }
+*::-webkit-scrollbar-track{ background:transparent; }
+/* تفاصيل (details) بملمس موحّد */
+details summary{ cursor:pointer; font-weight:700; color:var(--accent); }
+/* سويتشات وشارات */
+.badge{ border-radius:99px; }
+html[data-theme="dark"] .tabbar, html[data-theme="black"] .tabbar{ box-shadow:0 -6px 20px rgba(0,0,0,.35); }
