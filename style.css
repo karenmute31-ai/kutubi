@@ -752,3 +752,17 @@ body.chrome-off #readerDrawerFab, body.chrome-scroll-hidden #readerDrawerFab{opa
   .chunk .btns button, .btns.ask-sugs button{ min-height:42px; padding:.42rem .7rem; font-size:.9rem; }
   .btns{ gap:.45rem; }
 }
+
+/* ---------- الشريط السفلي جوه درج القارئ (D-13): كل الاختصارات في الدرج، صفحة القراءة صافية ---------- */
+#readerDrawer #readerBottomBar{ display:block!important; position:static; inset-inline:auto; bottom:auto; left:auto; right:auto; z-index:auto; width:auto; max-width:none; margin:0 0 .8rem; padding:.45rem .6rem .5rem; border-radius:.9rem; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
+#readerDrawer #readerBottomBar .rbb-row1{ gap:.45rem; }
+#readerDrawer #readerBottomBar #readScrubber{ height:22px; }
+#readerDrawer #readerBottomBar #scrubPos{ font-size:.82rem; font-weight:700; } /* تاب «جزء X من Y» اتصغّر */
+#readerDrawer #readerBottomBar #scrubMeta{ font-size:.72rem; }
+#readerDrawer #readerBottomBar .rbb-row2{ display:grid!important; grid-template-columns:repeat(4,1fr); gap:.35rem; margin-top:.35rem; }
+#readerDrawer #readerBottomBar .rbb-btn{ min-height:38px; font-size:.72rem; padding:.3rem .1rem; }
+#readerDrawer #readerBottomBar .rbb-credit{ font-size:.62rem; margin-top:.3rem; text-align:center; opacity:.7; }
+body.reader-empty #readerDrawer #readerBottomBar, body.reader-locked #readerDrawer #readerBottomBar{ display:none!important; }
+@media (pointer:coarse){
+  #readerDrawer #readerBottomBar .rbb-btn{ min-height:44px; font-size:.78rem; }
+}

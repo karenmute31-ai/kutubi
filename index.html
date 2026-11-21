@@ -244,6 +244,21 @@
         <button id="readerDrawerClose" class="icon-btn" type="button" title="قفل الدرج">✕</button>
       </div>
       <div class="rd-body">
+      <!-- المنطقة ٠: شريط التنقل والاختصارات (كان الشريط السفلي — بقى جوه الدرج بكل أزراره) -->
+    <div id="readerBottomBar" class="hidden rbb-in-drawer">
+      <div class="rbb-row1">
+        <input id="readScrubber" type="range" min="0" max="0" step="1" value="0" aria-label="التنقل بين أجزاء الكتاب">
+        <span id="scrubPos">—</span>
+        <span id="scrubMeta" class="hint"></span>
+      </div>
+      <div class="rbb-row2">
+        <button id="btnBarIndex" class="rbb-btn" type="button">📑<span>الفهرس</span></button>
+        <button id="btnBarAppearance" class="rbb-btn" type="button">🎨<span>المظهر</span></button>
+        <button id="btnBarVoice" class="rbb-btn" type="button">🔊<span>الصوت</span></button>
+        <button id="btnBarTheme" class="rbb-btn" type="button">🌙<span>الثيم</span></button>
+      </div>
+      <div class="rbb-credit">كُتُبِي — تطوير Don Eslam ©</div>
+    </div>
 	      <!-- المنطقة ١: شريط الإجراءات (ثابت تحت الهيدر) + شريط الحالة -->
 	      <div id="readerActionBar" class="reader-actionbar reader-hide">
 	        <div class="row action-row">
@@ -452,20 +467,6 @@
     <div id="pdfPages" class="hidden" dir="ltr"></div>
     <div id="chunks" class="reader-hide"></div>
     <!-- شريط تحكم سفلي (أسلوب أبجد): سكرولر تقدّم + فهرس/مظهر/صوت/ثيم سريع -->
-    <div id="readerBottomBar" class="hidden">
-      <div class="rbb-row1">
-        <input id="readScrubber" type="range" min="0" max="0" step="1" value="0" aria-label="التنقل بين أجزاء الكتاب">
-        <span id="scrubPos">—</span>
-        <span id="scrubMeta" class="hint"></span>
-      </div>
-      <div class="rbb-row2">
-        <button id="btnBarIndex" class="rbb-btn" type="button">📑<span>الفهرس</span></button>
-        <button id="btnBarAppearance" class="rbb-btn" type="button">🎨<span>المظهر</span></button>
-        <button id="btnBarVoice" class="rbb-btn" type="button">🔊<span>الصوت</span></button>
-        <button id="btnBarTheme" class="rbb-btn" type="button">🌙<span>الثيم</span></button>
-      </div>
-      <div class="rbb-credit">كُتُبِي — تطوير Don Eslam ©</div>
-    </div>
   </section>
 
   <!-- القاموس -->
