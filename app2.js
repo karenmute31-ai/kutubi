@@ -612,6 +612,8 @@ function syncMoreTrans(){
 
 function renderMoreSheet(){
   const list = $("#moreSheetList"); if(!list) return;
+  const head0 = document.querySelector("#moreSheet .more-sheet-head"); if(head0) head0.textContent = "☰ المزيد — كل الأقسام";
+  ["moreReaderTools","moreTransTools","ownerCard"].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display=""; });
   list.innerHTML = "";
   const open = (typeof currentBook === "function") ? currentBook() : null;
   let lastG = "";
@@ -638,6 +640,51 @@ function renderMoreSheet(){
   });
   try{ syncMoreTrans(); }catch(e){}
 }
+/* ================= [T1] درج خاص لكل تاب — كل تاب له درج فيه زرايره بس، مرتبة أبجديًا ================= */
+const TAB_DRAWER_TITLES = { home:"الرئيسية", library:"المكتبة", freelib:"الكتب المجانية", reader:"القارئ", glossary:"القاموس", quick:"مترجم سريع", install:"التثبيت", settings:"الإعدادات", files:"ملفاتي", admin:"الإدارة" };
+function collectTabButtons(tab){
+  const sec = document.getElementById("tab-"+tab); if(!sec) return [];
+  return Array.from(sec.querySelectorAll("button")).filter(b=>{
+    if(b.closest(".hidden")) return false;
+    const label = (b.textContent || "").replace(/\s+/g," ").trim();
+    return !!label;
+  });
+}
+function renderTabDrawer(tab){
+  const list = $("#moreSheetList"); if(!list) return;
+  list.innerHTML = "";
+  const head = document.querySelector("#moreSheet .more-sheet-head");
+  if(head) head.textContent = "☰ درج «" + (TAB_DRAWER_TITLES[tab] || tab) + "»";
+  /* الدرج الخاص: زراير التاب بس — من غير أدوات القارئ ولا الترجمة ولا كارت المالك */
+  ["moreReaderTools","moreTransTools","ownerCard"].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display="none"; });
+  const rows = collectTabButtons(tab).map(b=>({ b:b, label:(b.textContent || "").replace(/\s+/g," ").trim() }));
+  rows.sort((x,y)=> x.label.localeCompare(y.label, "ar"));
+  rows.forEach(r=>{
+    const row = document.createElement("button"); row.type = "button"; row.className = "more-row";
+    const sp = document.createElement("span"); sp.textContent = r.label; row.appendChild(sp);
+    if(r.b.classList.contains("primary") || r.b.getAttribute("aria-pressed") === "true") row.classList.add("active");
+    row.disabled = !!r.b.disabled;
+    row.addEventListener("click", ()=>{ closeMoreSheet(); r.b.click(); });
+    list.appendChild(row);
+  });
+  if(!rows.length){ const d = document.createElement("div"); d.className = "hint"; d.style.padding = "12px"; d.textContent = "مفيش زراير في التاب ده"; list.appendChild(d); }
+}
+function openTabDrawer(tab){
+  if(tab === "reader"){ const fab = $("#readerDrawerFab"); if(fab){ fab.click(); return; } }
+  closeReaderPanels();
+  renderTabDrawer(tab);
+  const s = $("#moreSheet"); if(s) s.classList.add("sheet-open");
+  showBackdrop(true);
+}
+/* تريجر الدرج: ضغطة مطوّلة (لمس) أو كليك يمين (ديسكتوب) على أي زرار تاب */
+function wireTabDrawerTrigger(btn, tab){
+  let t = null, sx = 0, sy = 0;
+  btn.addEventListener("touchstart", (e)=>{ const tt = e.touches[0]; sx = tt.clientX; sy = tt.clientY; t = setTimeout(()=>{ btn._lpFired = true; if(tab === "__full__"){ closeMoreSheet(); openMoreSheet(); } else openTabDrawer(tab); }, 550); }, { passive:true });
+  btn.addEventListener("touchmove", (e)=>{ const tt = e.touches[0]; if(Math.abs(tt.clientX - sx) > 12 || Math.abs(tt.clientY - sy) > 12){ clearTimeout(t); t = null; } }, { passive:true });
+  ["touchend","touchcancel"].forEach(ev=> btn.addEventListener(ev, ()=>{ if(t){ clearTimeout(t); t = null; } }, { passive:true }));
+  btn.addEventListener("contextmenu", (e)=>{ e.preventDefault(); if(tab === "__full__"){ closeMoreSheet(); openMoreSheet(); } else openTabDrawer(tab); });
+}
+
 function openMoreSheet(){
   closeReaderPanels();
   renderMoreSheet();
@@ -1491,8 +1538,14 @@ document.addEventListener("DOMContentLoaded", async()=>{
     const sp=t.closest(".tapword");
     if(sp){ const b=currentBook(); if(b) openWordSheet(b, sp.dataset.w); }
   });
-  $$(".tabbar button[data-tab]").forEach(b=>b.addEventListener("click",()=>switchTab(b.dataset.tab)));
-  const bnm=$("#btnNavMore"); if(bnm) bnm.addEventListener("click",()=>{ const s=$("#moreSheet"); if(s && s.classList.contains("sheet-open")) closeMoreSheet(); else openMoreSheet(); });
+  $$(".tabbar button[data-tab]").forEach(b=>{
+    b.addEventListener("click",()=>{ if(b._lpFired){ b._lpFired=false; return; } switchTab(b.dataset.tab); });
+    wireTabDrawerTrigger(b, b.dataset.tab);
+  });
+  const bnm=$("#btnNavMore"); if(bnm){
+    bnm.addEventListener("click",()=>{ if(bnm._lpFired){ bnm._lpFired=false; return; } const s=$("#moreSheet"); if(s && s.classList.contains("sheet-open")) closeMoreSheet(); else openTabDrawer(currentTabName); });
+    wireTabDrawerTrigger(bnm, "__full__");
+  }
   $("#backToLib").addEventListener("click",()=>switchTab("library"));
   const relBtn=$("#readerEmptyLib"); if(relBtn) relBtn.addEventListener("click",()=>switchTab("library"));
   const lsi=$("#libSearchInput"); if(lsi) lsi.addEventListener("input",()=>{ libSearchQuery=lsi.value.trim().toLowerCase(); renderLibrary(); });
