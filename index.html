@@ -656,7 +656,22 @@
       <p class="privacy">🔒 مفتاح ElevenLabs بيتحفظ على جهازك بس وبيتبعت لـ api.elevenlabs.io بس. الصوت المولّد بيتحفظ على جهازك فمش بيتخصم من رصيدك مرتين.</p>
     </div>
     <div class="card">
-      <h2 id="cloudSetupHeading" tabindex="-1">🔊 تفعيل الصوت السحابي</h2>
+      <section id="geminiTtsPreview" class="card" aria-label="معاينة Gemini المصرية الاختيارية">
+<h3>Gemini TTS — معاينة مصرية اختيارية للبالغين</h3>
+<p>مش المصدر الافتراضي ومش قراءة تلقائية لكتابك. تجربة نص عام قصير فقط، بلا مفتاح على جهازك؛ المفتاح يظل في الخادم. التشغيل متوقف حتى التحقق من الحصة المجانية وحدود الخادم. المجاني محدود وقد لا يكون متاحًا لحساب التطبيق.</p>
+<p><strong>قبل الإرسال:</strong> Google قد تستخدم نص ومخرجات الطبقة المجانية لتحسين نماذجها، وقد يراجعها أشخاص. ما تبعتش كتابًا خاصًا أو أي معلومات شخصية أو سرية. هذه التجربة 18+ فقط، وليست مخصصة لمن دون 18. غير متاحة هنا لسكان الاتحاد/المنطقة الاقتصادية الأوروبية أو سويسرا أو المملكة المتحدة لأن شروطهم تحتاج خدمة مدفوعة.</p>
+<p><a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noopener noreferrer">شروط Google</a> · <a href="https://aistudio.google.com/docs/pricing" target="_blank" rel="noopener noreferrer">الحصص والتسعير</a></p>
+<label>صوت استوديو قياسي <select data-gtts="voice" aria-label="صوت Gemini القياسي"></select></label>
+<label>نص عام للمعاينة، حتى ٤٠٠ حرف <textarea data-gtts="text" rows="4" maxlength="400" style="width:100%;box-sizing:border-box" placeholder="اكتب نصًا عامًا فقط، لا ننسخ كتابك هنا"></textarea></label>
+<div><label><input type="checkbox" data-gtts="adult"> عمري 18 سنة أو أكثر</label></div>
+<div><label><input type="checkbox" data-gtts="publicText"> النص عام وليس كتابًا خاصًا، ولا بيانات شخصية أو سرية</label></div>
+<div><label><input type="checkbox" data-gtts="privacy"> فاهم معالجة Google المجانية وموافق على إرسال هذه العينة</label></div>
+<div><label><input type="checkbox" data-gtts="eligibleRegion"> لست في المنطقة الاقتصادية الأوروبية أو سويسرا أو المملكة المتحدة</label></div>
+<div class="toolrow row wrap"><button type="button" data-gtts="sample">استخدم عينة مصرية عامة</button><button type="button" data-gtts="check">افحص الإتاحة بدون إرسال نص</button><button type="button" data-gtts="play">أرسل العينة واسمعها</button><button type="button" data-gtts="stop">أوقف العينة</button></div>
+<p data-gtts="status" role="status" aria-live="polite">لم يُرسل أي نص. أكّد الشروط لكل عينة. فحص الإتاحة لا يولّد صوتًا.</p>
+<audio data-gtts="audio" controls preload="none" style="width:100%"></audio>
+</section>
+<h2 id="cloudSetupHeading" tabindex="-1">🔊 تفعيل الصوت السحابي</h2>
       <ol class="hint"><li>اختار مزودًا وافتح حسابك عنده. للمصري: Azure فيه شاكر وسلمى. راجع الحصة والتكلفة قبل التشغيل.</li><li>من لوحة المزود انسخ مفتاح الصوت والصقه في الخانة الخاصة به هنا. Azure يحتاج كمان اسم المنطقة من نفس المورد، مثل eastus.</li><li>اضغط احفظ المفتاح، ثم اجلب الأصوات لعرض كل ما يتيحه حسابك. اختار «الكل» في فلتر النوع لو عايز تشوفها كلها.</li><li>ارجع للقارئ واختار المزود من «مصدر الصوت»، ثم شغّل القراءة. حفظ المفتاح لا يثبت صلاحيته؛ نجاح الجلب يثبت الاتصال، والتشغيل قد يستهلك رصيدًا.</li></ol>
       <p class="hint">ما تبعتش مفتاحك في شات أو صورة. يُحفظ في متصفح الجهاز؛ مسح بيانات التطبيق يحذفه. عند التشغيل يُرسل نص القراءة للمزود لإنتاج الصوت. الحصة المجانية ليست استخدامًا بلا حدود.</p>
       <p class="hint">كل مزود يحتاج حسابك ومفتاحك. بعض الحسابات لها حصة مجانية، وبعدها قد تُحسب رسوم حسب خطة حسابك. اختار المزود بعد مراجعة خطته.</p>
@@ -871,6 +886,7 @@
 <script src="app8.js"></script>
 <script src="app9.js"></script>
 <script src="read-aloud.js"></script>
+<script src="gemini-tts.js" defer></script>
 </body>
 </html>
 

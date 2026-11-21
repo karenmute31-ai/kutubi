@@ -1,0 +1,13 @@
+(function(){
+ const root=document.getElementById('geminiTtsPreview');if(!root)return;
+ const q=id=>root.querySelector('[data-gtts="'+id+'"]');let controller,url;const audio=q('audio');
+ const voices=['Zephyr','Puck','Charon','Kore','Fenrir','Leda','Orus','Aoede','Callirrhoe','Autonoe','Enceladus','Iapetus','Umbriel','Algieba','Despina','Erinome','Algenib','Rasalgethi','Laomedeia','Achernar','Alnilam','Schedar','Gacrux','Pulcherrima','Achird','Zubenelgenubi','Vindemiatrix','Sadachbia','Sadaltager','Sulafat'];for(const name of voices){const o=document.createElement('option');o.value=o.textContent=name;q('voice').appendChild(o);}q('voice').value='Kore';
+ const sample='إزيك؟ خلينا نفهمها واحدة واحدة. الشبكة بتوصل الأجهزة ببعض عشان تتبادل البيانات. البروتوكول بينظم شكل الرسالة وطريقة تبادلها. دلوقتي جرّب تشرح الفكرة بكلامك.';
+ q('sample').addEventListener('click',()=>{q('text').value=sample;});
+ q('check').addEventListener('click',async()=>{try{const r=await fetch('/api/tts/gemini');const j=await r.json();q('status').textContent=j.message||'تعذر معرفة الإتاحة';}catch{q('status').textContent='تعذر فحص الإتاحة. لم يُرسل أي نص.';}});
+ q('stop').addEventListener('click',()=>{if(controller)controller.abort();audio.pause();q('status').textContent='تم إيقاف التشغيل. الإلغاء قد لا يلغي احتساب طلب وصل للمزود.';});
+ q('play').addEventListener('click',async()=>{const text=q('text').value.trim();if(!['adult','publicText','privacy','eligibleRegion'].every(x=>q(x).checked)){q('status').textContent='أكد الشروط الأربعة قبل إرسال العينة.';return;}if(!text||text.length>400){q('status').textContent='اكتب نصًا عامًا من حرف حتى ٤٠٠ حرف، أو استخدم العينة الجاهزة.';return;}
+ q('play').disabled=true;controller=new AbortController();q('status').textContent='جاري طلب عينة مصرية من Google، النص سيُرسل الآن.';
+ try{const r=await fetch('/api/tts/gemini',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,voice:q('voice').value,adult:true,publicText:true,privacy:true,eligibleRegion:true}),signal:controller.signal});if(!r.ok){const j=await r.json().catch(()=>({}));throw Error(j.error||'تعذر التوليد');}const b=await r.blob();if(!b.size||!b.type.startsWith('audio/'))throw Error('لا يوجد صوت صالح');if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(b);audio.src=url;await audio.play();q('status').textContent='العينة جاهزة. دعم المصري معلن، لكن جودة النطق تتقيّم بالسماع، مش ضمان.';}catch(e){q('status').textContent=e.name==='AbortError'?'تم إلغاء الطلب. قد يُحسب إن وصل للمزود.':e.message;}finally{q('play').disabled=false;controller=null;for(const x of ['adult','publicText','privacy','eligibleRegion'])q(x).checked=false;}
+ });
+})();

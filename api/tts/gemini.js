@@ -1,0 +1,21 @@
+const VOICES=['Zephyr','Puck','Charon','Kore','Fenrir','Leda','Orus','Aoede','Callirrhoe','Autonoe','Enceladus','Iapetus','Umbriel','Algieba','Despina','Erinome','Algenib','Rasalgethi','Laomedeia','Achernar','Alnilam','Schedar','Gacrux','Pulcherrima','Achird','Zubenelgenubi','Vindemiatrix','Sadachbia','Sadaltager','Sulafat'];
+const blocked='معاينة Gemini غير مفعلة: يلزم تحقق المالك من الحصة والخصوصية والقيود الإقليمية، وحدود خادم محفوظة. لا تم إرسال النص.';
+export default async function handler(req,res){
+ res.setHeader('Cache-Control','no-store');
+ const enabled=process.env.GEMINI_TTS_ENABLED==='true'&&process.env.GEMINI_TTS_FREE_TIER_VERIFIED==='true'&&process.env.GEMINI_TTS_KEY&&process.env.KV_REST_API_URL&&process.env.KV_REST_API_TOKEN;
+ if(req.method==='GET'){res.status(200).json({available:!!enabled,message:enabled?'الحصة مفعلة بحدود. لا ترسل نصًا خاصًا.':blocked});return;}
+ if(req.method!=='POST'){res.status(405).json({error:'method'});return;}
+ if(!enabled){res.status(503).json({error:blocked});return;}
+ const origin=req.headers.origin;const allowed=(process.env.ALLOWED_ORIGINS||'').split(',').map(x=>x.trim());
+ if(!origin||!allowed.includes(origin)){res.status(403).json({error:'مصدر غير مسموح'});return;}
+ if(Number(req.headers['content-length']||0)>4096){res.status(413).json({error:'استخدم عينة قصيرة فقط'});return;}
+ let b=req.body;try{if(typeof b==='string')b=JSON.parse(b);}catch{b=null;}
+ if(!b||b.adult!==true||b.publicText!==true||b.privacy!==true||b.eligibleRegion!==true){res.status(400).json({error:'أكد شروط العمر والخصوصية والمنطقة لكل تجربة'});return;}
+ const text=typeof b.text==='string'?b.text.trim():'';
+ if(!text||text.length>400||!VOICES.includes(b.voice)){res.status(400).json({error:'نص حتى ٤٠٠ حرف وصوت قياسي مطلوبان'});return;}
+ const day=new Date().toISOString().slice(0,10);const ip=String(req.headers['x-forwarded-for']||'unknown').split(',')[0].trim();
+ try{const q=await fetch(process.env.KV_REST_API_URL.replace(/\/+$/,'')+'/pipeline',{method:'POST',headers:{Authorization:'Bearer '+process.env.KV_REST_API_TOKEN,'Content-Type':'application/json'},body:JSON.stringify([['INCR','tts:global:'+day],['EXPIRE','tts:global:'+day,90000],['INCR','tts:ip:'+ip+':'+day],['EXPIRE','tts:ip:'+ip+':'+day,90000]])});const counts=await q.json();if(!q.ok||!Array.isArray(counts)||!Number.isFinite(counts[0]?.result)||!Number.isFinite(counts[2]?.result))throw Error();if(counts[0].result>10||counts[2].result>3){res.status(429).json({error:'انتهى حد المعاينة اليومية. لم تُرسل العينة للمزود.'});return;}}catch{res.status(503).json({error:'تعذر التحقق من الحد اليومي. لم يُرسل النص.'});return;}
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),45000);
+ try{const r=await fetch('https://generativelanguage.googleapis.com/v1beta/interactions',{method:'POST',headers:{'x-goog-api-key':process.env.GEMINI_TTS_KEY,'Content-Type':'application/json'},body:JSON.stringify({model:'gemini-3.8-flash-tts',store:false,input:[{type:'user_input',content:[{type:'text',text,annotations:[{type:'speech_metadata',style:'Speak in natural Egyptian Arabic, clear friendly educational delivery. Read exactly the transcript without adding words.'}]}]}],response_format:{type:'audio',mime_type:'audio/wav'},generation_config:{speech_config:[{voice:b.voice}]}}),signal:controller.signal});if(!r.ok){res.status(r.status===429?429:502).json({error:r.status===429?'حصة Gemini غير متاحة الآن. لا يوجد تحويل تلقائي لخدمة مدفوعة.':'تعذر توليد الصوت من Gemini. راجع إتاحة النموذج والحساب.'});return;}const j=await r.json();const parts=(j.steps||[]).flatMap(s=>s.content||[]);const audio=parts.find(p=>p.type==='audio'&&p.data);if(!audio)throw Error();const bytes=Buffer.from(audio.data,'base64');if(!bytes.length||bytes.length>5000000)throw Error();res.setHeader('Content-Type','audio/wav');res.status(200).send(bytes);}catch{res.status(502).json({error:'لم يكتمل توليد الصوت. لا تُعد المحاولة تلقائيًا.'});}finally{clearTimeout(timer);}
+}
+export const config={maxDuration:60};

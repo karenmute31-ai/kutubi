@@ -1027,3 +1027,11 @@ html[data-theme="black"] #readerDrawer .tool-date input,
 html[data-theme="royal"] #readerDrawer .tool-date input{ color-scheme:dark; }
 #readerDrawer #bookToolsCard .hint{ font-size:.72rem; margin:.25rem 0 0; }
 
+/* Optional public-text TTS preview: touch targets and consent labels. */
+#geminiTtsPreview label:has(input[type="checkbox"]) { display:flex; align-items:flex-start; gap:10px; padding:8px 0; min-height:44px; box-sizing:border-box; }
+#geminiTtsPreview input[type="checkbox"] { width:20px; height:20px; flex:0 0 20px; margin:2px 0 0; }
+#geminiTtsPreview button { min-height:44px; padding:10px 14px; font:inherit; cursor:pointer; }
+#geminiTtsPreview select, #geminiTtsPreview textarea { font:inherit; }
+#geminiTtsPreview .toolrow { display:flex; flex-wrap:wrap; gap:8px; }
+#geminiTtsPreview { scroll-margin-top:76px; }
+#geminiTtsPreview a { color:inherit; text-decoration:underline; text-underline-offset:3px; }
