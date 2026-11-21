@@ -1909,7 +1909,7 @@ function speakItems(items, label){
 }
 function nextUtter(){
   if(!playChain) return;
-  if(playChain.idx>=playChain.items.length){ setAudioStatus("خلصت القراية الصوتية ✔"); playChain=null; return; }
+  if(playChain.idx>=playChain.items.length){ playChain=null; setAudioStatus("خلصت القراية الصوتية ✔"); return; }
   const it=playChain.items[playChain.idx];
   const u=new SpeechSynthesisUtterance(it.text);
   const tone=TONES[settings.tone]||TONES.calm;
