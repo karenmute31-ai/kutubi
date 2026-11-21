@@ -8,7 +8,7 @@ function stripMd(s){return String(s==null?"":s).replace(/\*\*([^*]+)\*\*/g,"$1")
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
 
 /* ---------- الإعدادات (localStorage بس) ---------- */
-const DEFSET = {key:"", base:"/api/ai", model:"gemini-3.5-flash-lite", tone:"calm", voiceURI:"", speed:1, dark:false, font:17, theme:"dark", fontFamily:"system", lineHeight:1.9, targetLang:"ar-EG", tStyle:"fusha", dailyGoalMin:15, ruler:false, userWpm:0, elKey:"", elVoiceId:"", elModel:"eleven_multilingual_v2", elStability:0.5, elSimilarity:0.75, elSpeed:1, ttsProvider:"device", azKey:"", azRegion:"", azVoice:"", gKey:"", gVoice:""};
+const DEFSET = {key:"", base:"/api/ai", model:"gemini-3.5-flash-lite", tone:"calm", voiceURI:"", speed:1, dark:false, font:17, theme:"dark", fontFamily:"system", lineHeight:1.9, targetLang:"ar-EG", tStyle:"fusha", dailyGoalMin:15, ruler:false, userWpm:0, elKey:"", elVoiceId:"", elModel:"eleven_multilingual_v2", elStability:0.5, elSimilarity:0.75, elSpeed:1, ttsProvider:"device", azKey:"", azRegion:"", azVoice:"", gKey:"", gVoice:"", oKey:"", oVoice:"", oModel:"gpt-4o-mini-tts"};
 let settings = Object.assign({}, DEFSET);
 try{ Object.assign(settings, JSON.parse(localStorage.getItem("motarjem-settings")||"{}")); }catch(e){}
 /* ترحيل: اللي كان عنده dark بس من غير theme — الثيم بيتبني منها */
@@ -20,7 +20,7 @@ if(typeof settings.ruler !== "boolean") settings.ruler = !!settings.ruler;
 if(typeof settings.elStability !== "number" || isNaN(settings.elStability)) settings.elStability = 0.5;
 if(typeof settings.elSimilarity !== "number" || isNaN(settings.elSimilarity)) settings.elSimilarity = 0.75;
 if(typeof settings.elSpeed !== "number" || isNaN(settings.elSpeed)) settings.elSpeed = 1;
-if(["device","eleven","azure","google"].indexOf(settings.ttsProvider) < 0) settings.ttsProvider = "device";
+if(["device","eleven","azure","google","openai"].indexOf(settings.ttsProvider) < 0) settings.ttsProvider = "device";
 /* أسلوب الترجمة للعربي: «فصحى» هي الأساس والافتراضي للكل، و«مصري» اختيار — أي قيمة غريبة مخزّنة بترجع لفصحى */
 if(settings.tStyle !== "egyptian") settings.tStyle = "fusha";
 function saveSettings(){ localStorage.setItem("motarjem-settings", JSON.stringify(settings)); }
@@ -60,7 +60,8 @@ function isBuiltinAI(){ const b=(settings.base||"").trim().replace(/\/+$/,""); r
 function hasKey(){ return !!(settings.key && settings.key.trim()) || isBuiltinAI(); }
 
 const TONES = {
-  calm:{label:"هادية للتركيز", rate:0.92, pitch:1.0, style:"بأسلوب هادي وجُمل قصيرة وواضحة للتركيز"},
+  /* النبرة الافتراضية: سرعة 1x حقيقية — القيم الأقل من 1 محجوزة للأساليب اللي طبيعتها أبطأ عمدًا */
+  calm:{label:"هادية للتركيز", rate:1.0, pitch:1.0, style:"بأسلوب هادي وجُمل قصيرة وواضحة للتركيز"},
   enthusiastic:{label:"حماسية شيّقة", rate:1.08, pitch:1.15, style:"بأسلوب حماسي شيّق يشدّ الانتباه"},
   serious:{label:"جادّة رسمية", rate:0.98, pitch:0.9, style:"بأسلوب جاد ورسمي ومباشر"},
   teacher:{label:"شرح معلّم صبور", rate:0.95, pitch:1.05, style:"بأسلوب معلّم صبور بيشرح خطوة خطوة ويربط الأفكار"},
@@ -72,14 +73,27 @@ const TONES = {
   news:{label:"مذيع نشرة أخبار", rate:1.0, pitch:0.9, style:"بأسلوب مذيع نشرة أخبار: رسمي وواضح ومباشر، جمل خبرية مرتبة"},
   documentary:{label:"راوي وثائقي", rate:0.88, pitch:0.8, style:"بأسلوب راوي وثائقي: هادي وعميق وفضولي، كأنه بيحكي فيلم وثائقي"},
   podcaster:{label:"بودكاستر مصري", rate:1.05, pitch:1.05, style:"بكلام مصري خفيف وودود كأنه بودكاست حواري"},
-  creator:{label:"صانع محتوى", rate:1.1, pitch:1.1, style:"بأسلوب فيديوهات السوشيال: بداية تجذب الانتباه، جمل قصيرة سريعة وحماسية، كلام مصري شبابي من غير إسفاف"}
+  creator:{label:"صانع محتوى", rate:1.1, pitch:1.1, style:"بأسلوب فيديوهات السوشيال: بداية تجذب الانتباه، جمل قصيرة سريعة وحماسية، كلام مصري شبابي من غير إسفاف"},
+  /* «الهندسة العكسية — أسلوب المهندس بهنسي»: منقول حرفيًا من تطبيق الراوي بنفس الاسم والبرومبت والسلوك.
+     fullInstr معناها إن style هنا برومبت شرح كامل بيستبدل صياغة الشرح العادية في makeExplanation (مش مجرد وصف نبرة بيتحقق في جملة) */
+  reverse:{label:"الهندسة العكسية — أسلوب المهندس بهنسي ⭐", rate:0.95, pitch:0.95, temp:0.5, fullInstr:true,
+    desc:"⭐ الأساسي القوي — مستوحى من أسلوب المهندس أحمد بهنسي (مدرّس برمجة وذكاء اصطناعي — «سلسلة الهندسة العكسية»): بنفكّك مفهوم الجزء من النتيجة النهائية لأصغر وحدة طبقة طبقة، وكل طبقة مربوطة سببيًا بالمشكلة اللي حلّتها، مع توقّعات سقراطية وشجرة تفكيك مرئية، وبنختم بقانون الدرس وأرقامه الحقيقية من النص وسؤال «لو عكسناها؟» واختبار ذاتي — تفكير نقدي بدل الحفظ.",
+    style:"اشرح بالمصرية بأسلوب «الهندسة العكسية» — تفكيك عكسي من الكل لأصغر وحدة، وبالترتيب الإلزامي ده حرفيًا:\n(١) «الصورة الكاملة»: ابدأ من النتيجة النهائية/المفهوم الكلي اللي الجزء بيوصّله — إيه اللي بيحصل في الآخر كله على بعضه — في فقرة قصيرة واضحة.\n(٢) «التفكيك طبقة طبقة»: فكّك المفهوم طبقة فوق طبقة لحد أصغر وحدة شغالة، وكل طبقة بعنوان واضح. وقبل ما تكشف كل طبقة جديدة حط نقطة توقّع سقراطية قصيرة بسطر مستقل يبدأ بـ«توقّع: » وسؤال يدعو القارئ يخمّن أصغر حتة جوه اللي قبله (زي: «توقّع: إيه أصغر حتة شغالة جوه دي؟»)، وبعدين اكشف الطبقة وفسّرها.\n(٣) «ليه الطبقة دي موجودة؟»: مع كل طبقة اربطها سببيًا بالمشكلة اللي جت تحلّها من الطبقة اللي قبلها — مفيش طبقة بتتشرح من غير سبب وجودها.\n(٤) «شجرة التفكيك»: في نص الشرح حط شجرة تفكيك نصية منظمة للمفهوم الرئيسي (عناوين متدرجة بمسافات/فروع زي ├── و└──) تلخّص الكل وطبقاته في نظرة واحدة.\n(٥) «القانون: » اختم جسم الشرح بسطر مستقل يبدأ بـ«القانون: » فيه قاعدة الدرس الحاكمة في سطر واحد، ومعاه الأرقام الحقيقية الواردة في نص الجزء نفسه فقط — ممنوع منعًا باتًا اختراع أو استنتاج أي رقم مش مكتوب في النص، ولو النص مفيهوش أرقام اكتب القاعدة من غير أرقام وقول صراحة «النص مفيهوش أرقام».\n(٦) «لو عكسناها؟»: سؤال واحد أخير بهذا العنوان — ماذا لو انعكس السبب والنتيجة في المفهوم ده؟ — وإجابة قصيرة من منطق النص نفسه.\n(٧) «اختبر نفسك»: ٣ أسئلة سريعة مرقمة من محتوى الجزء (من غير إجاباتها)، وبعدها سطر دعوة: «ودلوقتي اشرحها بكلامك انت من غير ما تبص — لو عرفت تفكّكها بصوتك يبقى فهمتها فعلًا».\nقواعد صارمة: الشرح بالمصرية الطبيعية، والمصطلحات التقنية بالإنجليزية عند أول ورود جنب مقابلها العربي، وكل الحقائق والأرقام والمفاهيم من نص الجزء فقط — التفكير النقدي في الربط والتساؤل، مش في إضافة معلومة من برّه النص."}
 };
+
+/* وصف نبرة/أسلوب الشرح المختار — بيظهر تحت قايمة النبرة لما يكون للأسلوب وصف (زي الهندسة العكسية) */
+function syncToneDesc(){
+  const d=$("#toneDesc"); if(!d) return;
+  const t=TONES[settings.tone]||TONES.calm;
+  if(t.desc){ d.textContent=t.desc; d.classList.remove("hidden"); }
+  else { d.textContent=""; d.classList.add("hidden"); }
+}
 
 /* ---------- مطابقة صوت مقترحة حسب أسلوب الأداء (بتتطبق لحظة تغيير الأسلوب بس) ---------- */
 function voiceGenderHint(v){
   const n = ((v && v.name) || "").toLowerCase();
-  if(/female|woman|girl|أنثى|امرأة/.test(n)) return "female";
-  if(/male|man|boy|ذكر|رجل/.test(n)) return "male";
+  if(/female|woman|girl|أنثى|امرأة|salma|zariyah|amany|laila|layla|hoda|maryam|mariam|noura|nora|fatima|asmaa|mona|heba|dina|rania|sara/.test(n)) return "female";
+  if(/male|man|boy|ذكر|رجل|shakir|hamed|naayf|nayef|tarik|tarek|maged|majed|taim|hamdan|omar|amar|ali|hassan|karim|mostafa/.test(n)) return "male";
   return "";
 }
 function autoMatchVoiceForTone(toneKey){
@@ -1719,19 +1733,25 @@ async function makeExplanation(book, i, signal){
   const ch=book.chunks[i]; if(!ch) return "";
   const origMode = bookTargetLang(book)==="orig"; /* وضع النص الأصلي: الشرح بيتبني من الأصل نفسه — الجزء مش محتاج يبقى «مترجم» */
   if(!origMode && ch.status!=="done") return "";
-  if(ch.explanation && ch.explTone===settings.tone && ch.explDialect===sanitizeExplDialect(settings.explDialect||"egyptian")) return ch.explanation;
   const tone=TONES[settings.tone]||TONES.calm;
+  /* أساليب البرومبت الكامل (زي الهندسة العكسية) بتفرض لهجتها بنفسها (مصرية) — اللهجة المختارة مبتتأثرش بيها */
+  const effDialect = tone.fullInstr ? "egyptian" : sanitizeExplDialect(settings.explDialect||"egyptian");
+  if(ch.explanation && ch.explTone===settings.tone && ch.explDialect===effDialect) return ch.explanation;
   let text="";
   if(hasKey()){
     const srcBlock = origMode ? "\n\nالمحتوى (النص الأصلي كما هو):\n"+ch.orig : "\n\nالمحتوى المترجم:\n"+ch.trans+"\n\nالأصل:\n"+ch.orig;
-    const dl = explDialect();
-    text = await aiChat(dl.sys, dl.ask+tone.style+"، شرح منفصل للتعلّم (ده مش ترجمة — الترجمة موجودة لوحدها). ركّز على المفاهيم والمصطلحات المهمة وأهم المعلومات، من غير ما تزوّد معلومات مش في المحتوى."+srcBlock, 0.5, signal, {maxTokens: 4096});
+    if(tone.fullInstr){
+      text = await aiChat(EXPL_SYS, tone.style+srcBlock, (tone.temp!=null?tone.temp:0.5), signal, {maxTokens: 4096});
+    } else {
+      const dl = explDialect();
+      text = await aiChat(dl.sys, dl.ask+tone.style+"، شرح منفصل للتعلّم (ده مش ترجمة — الترجمة موجودة لوحدها). ركّز على المفاهيم والمصطلحات المهمة وأهم المعلومات، من غير ما تزوّد معلومات مش في المحتوى."+srcBlock, 0.5, signal, {maxTokens: 4096});
+    }
   } else if(ch.keyPoints && ch.keyPoints.length){
     text = "أهم اللي في الجزء ده: "+ch.keyPoints.join(". ")+".";
   } else {
     text = "الجزء ده بيقول: "+String(origMode ? ch.orig : ch.trans).slice(0,600);
   }
-  ch.explanation=String(text).trim(); ch.explTone=settings.tone; ch.explDialect=sanitizeExplDialect(settings.explDialect||"egyptian");
+  ch.explanation=String(text).trim(); ch.explTone=settings.tone; ch.explDialect=effDialect;
   await idbPut(book); renderChunk(book,i);
   return ch.explanation;
 }
@@ -1894,11 +1914,15 @@ function stopAllAudio(msg){
   if("speechSynthesis" in window){ try{ speechSynthesis.resume(); }catch(e){} }
   setAudioStatus(msg == null ? "الصوت وقف." : msg);
 }
-function pickVoice(langPrefix){
+function pickVoice(langKey){
   const vs = window.speechSynthesis ? speechSynthesis.getVoices() : [];
-  /* الصوت المحفوظ بيتاخد بس لو لغته مطابقة للغة النص — غير كده كلمة إنجليزي كانت بتتنطق بصوت عربي محفوظ */
-  if(settings.voiceURI){ const v=vs.find(v=>v.voiceURI===settings.voiceURI); if(v && v.lang && v.lang.toLowerCase().startsWith(langPrefix)) return v; }
-  return vs.find(v=>v.lang && v.lang.toLowerCase().startsWith(langPrefix)) || null;
+  /* langKey ممكن يبقى لغة بس («ar») أو لغة+لهجة («ar-EG»): الصوت المحفوظ الأول لو لغته مطابقة،
+     بعدين مطابقة اللهجة بالظبط (شرح مصري بصوت مصري)، وبعدين أي صوت بنفس اللغة */
+  const full=String(langKey||"ar").toLowerCase();
+  const prefix=full.split("-")[0];
+  if(settings.voiceURI){ const v=vs.find(v=>v.voiceURI===settings.voiceURI); if(v && v.lang && v.lang.toLowerCase().startsWith(prefix)) return v; }
+  if(full.indexOf("-")>0){ const reg=vs.find(v=>v.lang && v.lang.toLowerCase().startsWith(full)); if(reg) return reg; }
+  return vs.find(v=>v.lang && v.lang.toLowerCase().startsWith(prefix)) || null;
 }
 function speakItems(items, label){
   if(!("speechSynthesis" in window)){ setAudioStatus("جهازك مش بيدعم نطق النصوص في المتصفح.", true); return; }
@@ -1914,7 +1938,7 @@ function nextUtter(){
   const u=new SpeechSynthesisUtterance(it.text);
   const tone=TONES[settings.tone]||TONES.calm;
   u.lang = it.langFull || (it.lang==="en" ? "en-US" : "ar-EG");
-  const v=pickVoice((it.langFull || it.lang || "ar").split("-")[0]); if(v){ u.voice=v; u.lang=v.lang; }
+  const v=pickVoice(it.langFull || it.lang || "ar"); if(v){ u.voice=v; u.lang=v.lang; }
   u.rate=(settings.speed||1)*tone.rate; u.pitch=tone.pitch;
   nextUtterStatus();
   u.onend=utterAdvanced;
@@ -1938,25 +1962,101 @@ function stopSpeaking(){ if("speechSynthesis" in window) speechSynthesis.cancel(
    المفتاح (settings.elKey) بيتبعت لـ api.elevenlabs.io بس، ومش بيتلوج ولا بيترسم في أي مكان.
    أصوات الجهاز بتفضل هي الافتراضي المجاني؛ ElevenLabs اختيار صريح من المستخدم. */
 const EL_API = "https://api.elevenlabs.io";
-const PROVIDER_NAMES = {eleven: "ElevenLabs", azure: "Microsoft Azure", google: "Google Cloud"};
+const PROVIDER_NAMES = {eleven: "ElevenLabs", azure: "Microsoft Azure", google: "Google Cloud", openai: "OpenAI"};
+/* أصوات ElevenLabs الجاهزة المعروفة (premade): بتظهر في القايمة قبل أي جلب وتشتغل فور حفظ المفتاح —
+   وجلب الأصوات من الحساب بيستبدلها بأصوات حساب المستخدم كلها (بما فيها أصوات المكتبة والنسخ الصوتي).
+   مفيش فيها صوت عربي رسمي متخصص — العربي بيشتغل عن طريق موديل eleven_multilingual_v2 بجودة متفاوتة */
+const EL_SEED = [
+  {id:"21m00Tcm4TlvDq8ikWAM", name:"Rachel — ست هادية وواضحة", cat:"premade"},
+  {id:"pNInz6obpgDQGcFmaJgB", name:"Adam — راجل بصوت عميق", cat:"premade"},
+  {id:"ErXwobaYiN019PkySvjV", name:"Antoni — راجل بصوت دافي", cat:"premade"},
+  {id:"TxGEqnHWrfWFTfGW9XjX", name:"Josh — راجل شاب", cat:"premade"},
+  {id:"VR6AewLTigWG4xSOukaG", name:"Arnold — راجل بصوت قوي", cat:"premade"},
+  {id:"yoZ06aMxZJJ28mfd3POQ", name:"Sam — راجل هادي", cat:"premade"},
+  {id:"EXAVITQu4vr4xnSDxMaL", name:"Bella — ست بصوت ناعم", cat:"premade"},
+  {id:"AZnzlk1XvdvUeBnXmlld", name:"Domi — ست واثقة", cat:"premade"},
+  {id:"MF3mGyEYCl7XYWbV9V6O", name:"Elli — ست شابة", cat:"premade"}
+];
+/* أصوات OpenAI TTS الثابتة (مفيش API لجلب القايمة — دي القايمة الرسمية الكاملة) */
+const OPENAI_SEED = [
+  {id:"alloy", name:"Alloy — متوازن محايد"},
+  {id:"ash", name:"Ash — رجالي واضح"},
+  {id:"ballad", name:"Ballad — رجالي دافي"},
+  {id:"coral", name:"Coral — نسائي مشرق"},
+  {id:"echo", name:"Echo — رجالي هادي"},
+  {id:"fable", name:"Fable — حكائي بريطاني"},
+  {id:"nova", name:"Nova — نسائي ودود"},
+  {id:"onyx", name:"Onyx — رجالي عميق"},
+  {id:"sage", name:"Sage — نسائي رصين"},
+  {id:"shimmer", name:"Shimmer — نسائي ناعم"},
+  {id:"verse", name:"Verse — رجالي تعبيري"}
+];
+/* ---------- أصوات عربية/مصرية جاهزة بالاسم (Azure وGoogle) ----------
+   بتظهر في قوائم اختيار الصوت قبل أي جلب، وتشتغل فور حفظ المفتاح من غير ما المستخدم يجلب القايمة الكاملة —
+   وجلب الأصوات من الحساب بيستبدلها بالقايمة الحقيقية الكاملة */
+const AZURE_AR_SEED = [
+  {id:"ar-EG-ShakirNeural", name:"شاكر 🇪🇬 مصري راجل — ar-EG-ShakirNeural"},
+  {id:"ar-EG-SalmaNeural", name:"سلمى 🇪🇬 مصرية ست — ar-EG-SalmaNeural"},
+  {id:"ar-SA-HamedNeural", name:"حامد 🌴 عربي راجل (فصحى/خليجي) — ar-SA-HamedNeural"},
+  {id:"ar-SA-ZariyahNeural", name:"زارية 🌴 عربية ست (فصحى/خليجي) — ar-SA-ZariyahNeural"}
+];
+const GOOGLE_AR_SEED = [
+  {id:"ar-XA-Standard-B", name:"عربي رجالي ١ — ar-XA-Standard-B"},
+  {id:"ar-XA-Standard-A", name:"عربي نسائي ١ — ar-XA-Standard-A"},
+  {id:"ar-XA-Standard-C", name:"عربي رجالي ٢ — ar-XA-Standard-C"},
+  {id:"ar-XA-Standard-D", name:"عربي نسائي ٢ — ar-XA-Standard-D"},
+  {id:"ar-XA-Wavenet-B", name:"عربي رجالي ١ (Wavenet) — ar-XA-Wavenet-B"},
+  {id:"ar-XA-Wavenet-A", name:"عربي نسائي ١ (Wavenet) — ar-XA-Wavenet-A"}
+];
+/* لهجة الشرح → اللهجة الصوتية المفضلة: مصري→ar-EG، خليجي→ar-SA (أقرب صوت خليجي متاح عند المزوّدين)، فصحى→أي عربي غير مصري */
+function explDialectKey(){ return sanitizeExplDialect(settings.explDialect||"egyptian"); }
+function explLocaleOf(dk){ return dk==="egyptian" ? "ar-EG" : dk==="gulf" ? "ar-SA" : "ar"; }
+/* الصوت السحابي الفعلي وقت التشغيل: اختيار المستخدم بإيده بيكسب دايمًا؛
+   لو الصوت اتظبط تلقائيًا (لسه ماختارش بنفسه) بنطابق لهجة نص الشرح مع أنسب صوت عربي ليها —
+   شرح مصري يتقرا بصوت مصري، وشرح فصحى/خليجي بصوت عربي فصيح مش مصري */
+function effectiveCloudVoice(prov, item){
+  if(prov === "azure"){
+    const cur = settings.azVoice || "";
+    if(settings.azVoiceManual) return cur;
+    if(!item || item.kind !== "explain") return cur;
+    const want = explLocaleOf(item.explDialect || explDialectKey());
+    const pool = ((Array.isArray(settings.azVoices) && settings.azVoices.length) ? settings.azVoices : AZURE_AR_SEED).map(v=>v.id);
+    if(want === "ar"){ /* فصحى: نفضّل صوت عربي غير مصري عشان النبرة تطلع فصيحة */
+      if(cur.indexOf("ar-")===0 && cur.indexOf("ar-EG")!==0) return cur;
+      return pool.find(id=>id.indexOf("ar-")===0 && id.indexOf("ar-EG")!==0) || cur;
+    }
+    if(cur.indexOf(want)===0) return cur;
+    return pool.find(id=>id.indexOf(want)===0) || cur;
+  }
+  if(prov === "google"){ /* أصوات Google العربية كلها ar-XA من غير تفرقة لهجات — الصوت المختار هو المناسب دايمًا */
+    return settings.gVoice || "";
+  }
+  if(prov === "openai"){ /* أصوات OpenAI متعددة اللغات من غير نسخ عربية متخصصة — الصوت المختار هو المناسب */
+    return settings.oVoice || "";
+  }
+  return providerVoiceId(prov);
+}
 function elKeySet(){ return !!(settings.elKey && settings.elKey.trim()); }
 function azKeySet(){ return !!(settings.azKey && settings.azKey.trim() && settings.azRegion && settings.azRegion.trim()); }
 function gKeySet(){ return !!(settings.gKey && settings.gKey.trim()); }
+function oKeySet(){ return !!(settings.oKey && settings.oKey.trim()); }
 function providerReady(p){
   if(p === "eleven") return elKeySet();
   if(p === "azure") return azKeySet();
   if(p === "google") return gKeySet();
+  if(p === "openai") return oKeySet();
   return true;
 }
 /* المزوّد الفعّال: الاختيار المحفوظ لو مفتاحه جاهز، وإلا أصوات الجهاز */
 function ttsProvider(){
   const p = settings.ttsProvider;
-  if((p === "eleven" || p === "azure" || p === "google") && providerReady(p)) return p;
+  if((p === "eleven" || p === "azure" || p === "google" || p === "openai") && providerReady(p)) return p;
   return "device";
 }
 function providerVoiceId(p){
   if(p === "azure") return settings.azVoice || "";
   if(p === "google") return settings.gVoice || "";
+  if(p === "openai") return settings.oVoice || "";
   return settings.elVoiceId || "";
 }
 /* تقسيم النص لجُمل بحد أقصى maxlen حرف — دالة نقية: الناتج بيغطي النص كله من غير ما يضيع ولا حرف */
@@ -1989,18 +2089,27 @@ function splitSentences(text, maxlen){
 function textHash(str){ let h = 5381; const s = String(str || ""); for(let i = 0; i < s.length; i++){ h = ((h << 5) + h + s.charCodeAt(i)) >>> 0; } return h.toString(36); }
 /* بصمة إعدادات التوليد لكل مزوّد — أي تغيير فيها يبطل الكاش القديم ضمنيًا */
 function genSalt(p){
-  if(p === "azure" || p === "google") return "sp" + (settings.speed || 1);
-  return (settings.elModel || "") + "|" + settings.elStability + "|" + settings.elSimilarity + "|" + settings.elSpeed;
+  if(p === "azure" || p === "google" || p === "openai") return "sp" + (settings.speed || 1) + "|tn" + (settings.tone || "calm"); /* النبرة بتأثر في أسلوب الأداء السحابي */
+  return (settings.elModel || "") + "|" + settings.elStability + "|" + settings.elSimilarity + "|" + settings.elSpeed + "|tn" + (settings.tone || "calm");
 }
 /* مفتاح كاش الصوت: مزوّد|كتاب|جزء|نوع|صوت|بصمة (النص + إعدادات التوليد) */
 function audioCacheKey(provider, bookId, chunkIdx, kind, voiceId, text){ return provider + "|" + bookId + "|" + chunkIdx + "|" + kind + "|" + voiceId + "|" + textHash(String(text || "") + "" + genSalt(provider)); }
+/* ElevenLabs: الثبات والأسلوب بيتحسبوا من النبرة المختارة — الأساليب المعبّرة (قصصي/حماسي/شعري) بتاخد ثبات أقل وأسلوب أعلى،
+   والرسمية (أخبار/جاد/تعليمي) ثبات أعلى عشان تفضل واضحة */
+function elVoiceSettings(){
+  const expressive = ["story","enthusiastic","commentator","poet","creator","podcaster","literary"];
+  const formal = ["serious","news","documentary","calm","teacher","reverse"];
+  if(expressive.indexOf(settings.tone) >= 0) return {stability: 0.35, similarity_boost: settings.elSimilarity, speed: settings.elSpeed, style: 0.45};
+  if(formal.indexOf(settings.tone) >= 0) return {stability: 0.65, similarity_boost: settings.elSimilarity, speed: settings.elSpeed, style: 0};
+  return {stability: settings.elStability, similarity_boost: settings.elSimilarity, speed: settings.elSpeed};
+}
 async function elFetchSegment(text, signal){
   const r = await fetch(EL_API + "/v1/text-to-speech/" + encodeURIComponent(settings.elVoiceId), {
     method: "POST",
     headers: {"Content-Type":"application/json", "Accept":"audio/mpeg", "xi-api-key": settings.elKey.trim()},
     signal: signal,
     body: JSON.stringify({text: text, model_id: settings.elModel || "eleven_multilingual_v2",
-      voice_settings: {stability: settings.elStability, similarity_boost: settings.elSimilarity, speed: settings.elSpeed}})
+      voice_settings: elVoiceSettings()})
   });
   if(r.status === 401) throw Object.assign(new Error("مفتاح ElevenLabs مش شغال"), {cloudCode: 401});
   if(r.status === 429) throw Object.assign(new Error("رصيد ElevenLabs خلص أو وصل للحد"), {cloudCode: 429});
@@ -2010,19 +2119,31 @@ async function elFetchSegment(text, signal){
 /* ---------- Microsoft Azure Speech (باقة مجانية من حساب المستخدم) ---------- */
 function ssmlEscape(s){ return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;"); }
 function azureLocaleOf(voice){ const p = String(voice || "").split("-"); return p.length >= 2 ? p[0] + "-" + p[1] : "ar-EG"; }
-function azureSSML(text, voiceName, locale, rate){
-  return "<speak version='1.0' xml:lang='" + locale + "'><voice name='" + voiceName + "'><prosody rate='" + rate + "'>" + ssmlEscape(text) + "</prosody></voice></speak>";
+/* النبرة المختارة → أسلوب أداء Azure (mstts:express-as): بيخلي القراية معبّرة حسب نوع المحتوى مش مسطحة.
+   مش كل صوت بيدعم كل أسلوب — لو Azure رفضت (400) بنعيد الطلب من غير أسلوب تلقائيًا */
+const AZURE_TONE_STYLE = {calm:"calm", enthusiastic:"cheerful", serious:"newscast", teacher:"friendly", story:"narration-relaxed", commentator:"sports_commentary", literary:"narration-professional", poet:"lyrical", news:"newscast", documentary:"documentary-narration", podcaster:"chat", creator:"cheerful", reverse:"friendly"};
+function azurePitchOf(tone){ const pct = Math.round((((tone && tone.pitch) || 1) - 1) * 50); return (pct >= 0 ? "+" : "") + pct + "%"; }
+function azureSSML(text, voiceName, locale, rate, pitch, styleName){
+  const prosody = "<prosody rate='" + rate + "' pitch='" + pitch + "'>" + ssmlEscape(text) + "</prosody>";
+  const inner = styleName ? "<mstts:express-as style='" + styleName + "'>" + prosody + "</mstts:express-as>" : prosody;
+  return "<speak version='1.0' xmlns:mstts='https://www.w3.org/2001/mstts' xml:lang='" + locale + "'><voice name='" + voiceName + "'>" + inner + "</voice></speak>";
 }
-async function azFetchSegment(text, signal){
+async function azFetchSegment(text, signal, voiceName){
   const region = (settings.azRegion || "").trim();
+  const voice = voiceName || settings.azVoice;
+  const tone = TONES[settings.tone] || TONES.calm;
   const ratePct = Math.round(((settings.speed || 1) - 1) * 100);
   const rate = (ratePct >= 0 ? "+" : "") + ratePct + "%";
-  const r = await fetch("https://" + region + ".tts.speech.microsoft.com/cognitiveservices/v1", {
+  const pitch = azurePitchOf(tone);
+  const styleName = AZURE_TONE_STYLE[settings.tone] || "";
+  const mk = (style) => fetch("https://" + region + ".tts.speech.microsoft.com/cognitiveservices/v1", {
     method: "POST",
     headers: {"Ocp-Apim-Subscription-Key": settings.azKey.trim(), "Content-Type": "application/ssml+xml", "X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3"},
     signal: signal,
-    body: azureSSML(text, settings.azVoice, azureLocaleOf(settings.azVoice), rate)
+    body: azureSSML(text, voice, azureLocaleOf(voice), rate, pitch, style)
   });
+  let r = await mk(styleName);
+  if(r.status === 400 && styleName){ r = await mk(""); } /* الصوت ده مش بيدعم الأسلوب — نكمّل بنبرة محسوبة (rate/pitch) بس */
   if(r.status === 401 || r.status === 403) throw Object.assign(new Error("مفتاح Azure مش شغال أو الريجن غلط"), {cloudCode: 401});
   if(r.status === 429) throw Object.assign(new Error("وصلت لحد باقة Azure المجانية الشهرية"), {cloudCode: 429});
   if(!r.ok) throw new Error("Azure ردّت بخطأ " + r.status);
@@ -2036,12 +2157,16 @@ function base64ToBlob(b64, type){
   for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
   return new Blob([bytes], {type: type || "audio/mpeg"});
 }
-async function gFetchSegment(text, signal){
+/* Google: مفيش أساليب أداء — أقصى تحكم متاح هو pitch بالسيميتون حسب النبرة */
+function googlePitchOf(tone){ const st = Math.round((((tone && tone.pitch) || 1) - 1) * 10); return Math.max(-3, Math.min(3, st)); }
+async function gFetchSegment(text, signal, voiceName){
+  const voice = voiceName || settings.gVoice;
+  const tone = TONES[settings.tone] || TONES.calm;
   const r = await fetch("https://texttospeech.googleapis.com/v1/text:synthesize?key=" + encodeURIComponent(settings.gKey.trim()), {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     signal: signal,
-    body: JSON.stringify({input: {text: text}, voice: {languageCode: googleLangOf(settings.gVoice), name: settings.gVoice}, audioConfig: {audioEncoding: "MP3", speakingRate: settings.speed || 1}})
+    body: JSON.stringify({input: {text: text}, voice: {languageCode: googleLangOf(voice), name: voice}, audioConfig: {audioEncoding: "MP3", speakingRate: settings.speed || 1, pitch: googlePitchOf(tone)}})
   });
   if(r.status === 400 || r.status === 401 || r.status === 403) throw Object.assign(new Error("مفتاح Google مش شغال أو خدمة Text-to-Speech مش مفعّلة في مشروعك"), {cloudCode: 401});
   if(r.status === 429) throw Object.assign(new Error("وصلت لحد باقة Google المجانية الشهرية"), {cloudCode: 429});
@@ -2050,12 +2175,35 @@ async function gFetchSegment(text, signal){
   if(!j || !j.audioContent) throw new Error("Google ردّت من غير صوت");
   return base64ToBlob(j.audioContent, "audio/mpeg");
 }
-async function cloudFetchSegment(prov, text, signal){
+/* ---------- OpenAI TTS (حساب المستخدم نفسه — أصوات ثابتة معروفة، مفيش باقة مجانية) ---------- */
+async function oaFetchSegment(text, signal){
+  const tone = TONES[settings.tone] || TONES.calm;
+  const mk = (withInstr) => {
+    const body = {model: settings.oModel || "gpt-4o-mini-tts", voice: settings.oVoice || "alloy", input: text, speed: settings.speed || 1, response_format: "mp3"};
+    /* تعليمات الأداء: gpt-4o-mini-tts بس هو اللي بيفهمها — tts-1/tts-1-hd بيرفضوها فبنعيد من غيرها.
+       أساليب البرومبت الكامل (زي الهندسة العكسية) وصفها طويل — بتاخد وصف أداء مختصر */
+    if(withInstr) body.instructions = "اقرا النص ده " + (tone.fullInstr ? "بأسلوب شرح تعليمي متدرّج خطوة بخطوة وبنبرة مدرّس خبير" : tone.style) + " — قراية معبّرة طبيعية مش مسطحة.";
+    return fetch("https://api.openai.com/v1/audio/speech", {
+      method: "POST",
+      headers: {"Content-Type": "application/json", "Authorization": "Bearer " + settings.oKey.trim()},
+      signal: signal,
+      body: JSON.stringify(body)
+    });
+  };
+  let r = await mk((settings.oModel || "gpt-4o-mini-tts") === "gpt-4o-mini-tts");
+  if(r.status === 400){ r = await mk(false); }
+  if(r.status === 401 || r.status === 403) throw Object.assign(new Error("مفتاح OpenAI مش شغال"), {cloudCode: 401});
+  if(r.status === 429) throw Object.assign(new Error("رصيد OpenAI خلص أو وصل للحد"), {cloudCode: 429});
+  if(!r.ok) throw new Error("OpenAI ردّت بخطأ " + r.status);
+  return await r.blob();
+}
+async function cloudFetchSegment(prov, text, signal, voiceName){
   /* مهلة ٦٠ ثانية مركّبة مع إشارة الإيقاف — طلب صوت معلّق بيفشل نضيف بدل ما يعلّق التشغيل كله */
   const ts = timedSignal(signal, 60000);
   try{
-    if(prov === "azure") return await azFetchSegment(text, ts.signal);
-    if(prov === "google") return await gFetchSegment(text, ts.signal);
+    if(prov === "azure") return await azFetchSegment(text, ts.signal, voiceName);
+    if(prov === "google") return await gFetchSegment(text, ts.signal, voiceName);
+    if(prov === "openai") return await oaFetchSegment(text, ts.signal);
     return await elFetchSegment(text, ts.signal);
   }catch(e){
     if(ts.timedOut()) throw new Error("طلب الصوت أخد وقت أطول من اللازم — جرّب تاني");
@@ -2065,7 +2213,7 @@ async function cloudFetchSegment(prov, text, signal){
 /* صوت عنصر واحد (جزء + نوع) عند المزوّد السحابي الفعّال: من الكاش لو موجود، وإلا توليد + حفظ */
 async function cloudAudioForItem(item, signal){
   const prov = ttsProvider();
-  const voiceId = providerVoiceId(prov);
+  const voiceId = effectiveCloudVoice(prov, item);
   if(!voiceId) throw new Error("اختار صوت " + (PROVIDER_NAMES[prov] || "") + " من الإعدادات الأول");
   const key = (item.bookId != null && item.chunkIdx != null && item.kind) ? audioCacheKey(prov, item.bookId, item.chunkIdx, item.kind, voiceId, item.text) : null;
   if(key){
@@ -2076,7 +2224,7 @@ async function cloudAudioForItem(item, signal){
   const blobs = [];
   for(const seg of segs){
     if(signal && signal.aborted) throw Object.assign(new Error("اتوقف التوليد"), {name: "AbortError"});
-    blobs.push(await cloudFetchSegment(prov, seg, signal));
+    blobs.push(await cloudFetchSegment(prov, seg, signal, voiceId));
   }
   if(key && blobs.length){
     const merged = blobs.length === 1 ? blobs[0] : new Blob(blobs, {type: "audio/mpeg"});
@@ -2127,7 +2275,7 @@ async function cloudPlaySequence(items, label){
   elAbort = (typeof AbortController !== "undefined") ? new AbortController() : null;
   elActive = true;
   syncProviderUI();
-  const playRate = (prov === "azure" || prov === "google") ? 1 : (settings.speed || 1);
+  const playRate = (prov === "azure" || prov === "google" || prov === "openai") ? 1 : (settings.speed || 1);
   try{
     for(let k = 0; k < list.length; k++){
       if(gen !== audioGen) return;
@@ -2172,26 +2320,34 @@ function syncProviderUI(){
     if(!elKeySet()) missing.push("ElevenLabs");
     if(!azKeySet()) missing.push("Azure");
     if(!gKeySet()) missing.push("Google");
+    if(!oKeySet()) missing.push("OpenAI");
     hint.textContent = missing.length ? "اللي لسه محتاج مفتاح من الإعدادات: " + missing.join("، ") + " — وأصوات الجهاز شغالة دايمًا مجانًا." : "";
   }
 }
 function fillElVoices(){
   const sel = $("#elVoiceSel"); if(!sel) return;
-  const vs = Array.isArray(settings.elVoices) ? settings.elVoices : [];
-  sel.innerHTML = vs.length ? vs.map(v=>'<option value="' + esc(v.id) + '">' + esc(v.name) + (v.cat ? " · " + esc(v.cat) : "") + "</option>").join("") : '<option value="">— لسه مجبتش الأصوات —</option>';
+  /* الأصوات الجاهزة المعروفة بتظهر قبل أي جلب — وجلب أصوات الحساب بيستبدلها بأصوات المستخدم كلها */
+  const vs = (Array.isArray(settings.elVoices) && settings.elVoices.length) ? settings.elVoices : EL_SEED;
+  sel.innerHTML = vs.map(v=>'<option value="' + esc(v.id) + '">' + esc(v.name) + (v.cat ? " · " + esc(v.cat) : "") + "</option>").join("");
   sel.value = settings.elVoiceId || (vs[0] && vs[0].id) || "";
 }
 function fillAzVoices(){
   const sel = $("#azVoiceSel"); if(!sel) return;
-  const vs = Array.isArray(settings.azVoices) ? settings.azVoices : [];
-  sel.innerHTML = vs.length ? vs.map(v=>'<option value="' + esc(v.id) + '">' + esc(v.name) + "</option>").join("") : '<option value="">— لسه مجبتش الأصوات —</option>';
+  /* القايمة الجاهزة بتظهر قبل أي جلب — الأصوات العربية/المصرية مسماة بوضوح وتشتغل أول ما المفتاح يتحفظ */
+  const vs = (Array.isArray(settings.azVoices) && settings.azVoices.length) ? settings.azVoices : AZURE_AR_SEED;
+  sel.innerHTML = vs.map(v=>'<option value="' + esc(v.id) + '">' + esc(v.name) + "</option>").join("");
   sel.value = settings.azVoice || (vs[0] && vs[0].id) || "";
 }
 function fillGVoices(){
   const sel = $("#gVoiceSel"); if(!sel) return;
-  const vs = Array.isArray(settings.gVoices) ? settings.gVoices : [];
-  sel.innerHTML = vs.length ? vs.map(v=>'<option value="' + esc(v.id) + '">' + esc(v.name) + "</option>").join("") : '<option value="">— لسه مجبتش الأصوات —</option>';
+  const vs = (Array.isArray(settings.gVoices) && settings.gVoices.length) ? settings.gVoices : GOOGLE_AR_SEED;
+  sel.innerHTML = vs.map(v=>'<option value="' + esc(v.id) + '">' + esc(v.name) + "</option>").join("");
   sel.value = settings.gVoice || (vs[0] && vs[0].id) || "";
+}
+function fillOVoices(){
+  const sel = $("#oVoiceSel"); if(!sel) return;
+  sel.innerHTML = OPENAI_SEED.map(v=>'<option value="' + esc(v.id) + '">' + esc(v.name) + "</option>").join("");
+  sel.value = settings.oVoice || OPENAI_SEED[0].id;
 }
 /* جلب الأصوات من حسابات المستخدم عند كل مزوّد — المفتاح بيتبعت لمزوّده بس */
 async function elFetchVoices(){
@@ -2231,7 +2387,9 @@ async function azFetchVoices(){
     const arr = await r.json();
     if(!Array.isArray(arr) || !arr.length){ msg.textContent = "مفيش أصوات راجعة من Azure."; msg.classList.add("err"); return; }
     const score = v => { const loc = v.Locale || ""; if(loc.indexOf("ar-EG") === 0) return 0; if(loc.indexOf("ar-") === 0) return 1; return 2; };
-    const voices = arr.slice().sort((a, b)=>score(a) - score(b)).map(v=>({id: v.ShortName, name: (v.ShortName || "") + (v.Locale ? " · " + v.Locale : "") + (v.Gender ? " · " + v.Gender : "")}));
+    const tag = v => { const loc = v.Locale || ""; if(loc.indexOf("ar-EG") === 0) return " 🇪🇬 مصري"; if(loc.indexOf("ar-") === 0) return " 🌍 عربي"; return ""; };
+    const gnd = v => v.Gender === "Female" ? "ست" : v.Gender === "Male" ? "راجل" : (v.Gender || "");
+    const voices = arr.slice().sort((a, b)=>score(a) - score(b)).map(v=>({id: v.ShortName, name: (v.ShortName || "") + tag(v) + (v.Locale ? " · " + v.Locale : "") + (v.Gender ? " · " + gnd(v) : "")}));
     settings.azKey = key; settings.azRegion = region; settings.azVoices = voices;
     if(!voices.some(v=>v.id === settings.azVoice)) settings.azVoice = voices[0].id;
     saveSettings(); fillAzVoices(); syncProviderUI();

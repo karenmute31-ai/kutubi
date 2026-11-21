@@ -392,11 +392,12 @@
               <option value="eleven">ElevenLabs</option>
               <option value="azure">Microsoft Azure — باقة مجانية</option>
               <option value="google">Google Cloud — باقة مجانية</option>
+              <option value="openai">OpenAI TTS</option>
             </select>
           </label>
         </div>
         <p id="elProviderHint" class="hint"></p>
-        <p class="hint">مفاتيح الصوت السحابي (ElevenLabs / Azure / Google) بتتظبط من تبويب الإعدادات — قسم «🔊 مفاتيح الصوت». وأصوات الجهاز شغالة دايمًا مجانًا.</p>
+        <p class="hint">مفاتيح الصوت السحابي (ElevenLabs / Azure / Google / OpenAI) بتتظبط من تبويب الإعدادات — قسم «🔊 مفاتيح الصوت». وأصوات الجهاز شغالة دايمًا مجانًا.</p>
         <audio id="elAudio" class="hidden" controls preload="metadata" style="width:100%"></audio>
         <div class="row wrap">
           <button id="btnElFallback" class="ghost hidden">🔊 اسمع بصوت الجهاز</button>
@@ -420,13 +421,17 @@
                 <option value="podcaster">بودكاستر مصري</option>
                 <option value="creator">صانع محتوى</option>
               </optgroup>
+              <optgroup label="أساليب شرح متخصصة">
+                <option value="reverse">🔬 الهندسة العكسية — أسلوب المهندس بهنسي ⭐</option>
+              </optgroup>
             </select>
           </label>
           <label>سرعة الصوت
             <input id="speedRange" type="range" min="0.6" max="1.6" step="0.1" value="1">
           </label>
         </div>
-        <p class="hint">أساليب أداء مستوحاة من أنماط معروفة (تعليق رياضي، إلقاء شعري، راوي وثائقي…) وبتتنفذ بأصوات جهازك نفسها — مش أصوات أشخاص حقيقيين.</p>
+        <p id="toneDesc" class="hint hidden"></p>
+        <p class="hint">أساليب أداء مستوحاة من أنماط معروفة (تعليق رياضي، إلقاء شعري، راوي وثائقي…) وبتتنفذ بأصوات جهازك نفسها — مش أصوات أشخاص حقيقيين. في المزودين السحابيين النبرة بتتحكم فعليًا في أسلوب الأداء (Azure styles / OpenAI instructions / إعدادات ElevenLabs)؛ في أصوات الجهاز التحكم محصور في السرعة وحدة الصوت (pitch/rate) لأن المتصفح مش بيدي تحكم أعمق.</p>
         <div class="row wrap">
           <button id="btnPlayTrans" class="primary">▶ اسمع الترجمة</button>
           <button id="btnPlayOrig" class="ghost">📖 اسمع الأصل</button>
@@ -436,8 +441,17 @@
           <button id="btnStopAudio" class="ghost">⏹ إيقاف الصوت</button>
         </div>
         <p id="audioStatus" class="hint"></p>
+        <div class="row wrap">
+          <label>نوع الصوت
+            <select id="voiceGenderFilter">
+              <option value="all">الكل (رجالي ونسائي)</option>
+              <option value="male">رجالي بس</option>
+              <option value="female">نسائي بس</option>
+            </select>
+          </label>
+        </div>
         <div id="voiceLists"></div>
-        <p id="noArabicVoice" class="msg hidden">جهازك مش بيقدّم أصوات عربية في المتصفح — هيتستخدم صوت الجهاز الافتراضي. جرّب تثبّت صوت عربي من إعدادات الموبايل (تحويل النص لكلام).</p>
+        <p id="noArabicVoice" class="msg hidden">جهازك مش بيقدّم أصوات عربية في المتصفح — هيتستخدم صوت الجهاز الافتراضي. تقدر تثبّت صوت عربي من إعدادات الموبايل (تحويل النص لكلام)، أو استخدم أصوات Azure المصرية الجاهزة من «مصدر الصوت» فوق (باقة مجانية بمفتاحك من الإعدادات).</p>
       </div>
     </div>
 
@@ -644,6 +658,7 @@
       <label>صوت Azure
         <select id="azVoiceSel"></select>
       </label>
+      <p class="hint">القايمة فيها أصوات مصرية 🇪🇬 (شاكر راجل وسلمى ست) وعربية 🌴 جاهزة — بتشتغل أول ما تحفظ المفتاح. ولحد ما تختار بنفسك، الشرح بيتقرا تلقائيًا بصوت مطابق للهجته: مصري بصوت مصري، وفصحى/خليجي بصوت عربي فصيح.</p>
       <h3>Google Cloud Text-to-Speech</h3>
       <label>مفتاح Google API
         <span class="key-field"><input id="gKey" type="password" autocomplete="off" placeholder="الصق مفتاح Google API هنا"><button type="button" class="key-eye" data-eye-for="gKey" title="إظهار / إخفاء المفتاح" aria-label="إظهار أو إخفاء المفتاح">👁</button></span>
@@ -657,7 +672,26 @@
       <label>صوت Google
         <select id="gVoiceSel"></select>
       </label>
-      <p class="privacy">🔒 المفاتيح دي بتتحفظ على جهازك بس، وكل مفتاح بيتبعت لنطاق شركته بس (microsoft.com / googleapis.com).</p>
+      <h3>OpenAI TTS</h3>
+      <label>مفتاح OpenAI API
+        <span class="key-field"><input id="oKey" type="password" autocomplete="off" placeholder="الصق مفتاح OpenAI هنا"><button type="button" class="key-eye" data-eye-for="oKey" title="إظهار / إخفاء المفتاح" aria-label="إظهار أو إخفاء المفتاح">👁</button></span>
+      </label>
+      <p class="hint">أصوات OpenAI معروفة وثابتة (Alloy وEcho وOnyx وNova وغيرهم) وبتفهم العربي كويس — مفيش باقة مجانية، الاستخدام بيتخصم من رصيد حسابك.</p>
+      <div class="row wrap">
+        <button id="oSaveKey" class="primary">احفظ مفتاح OpenAI</button>
+      </div>
+      <p id="oMsg" class="msg"></p>
+      <label>صوت OpenAI
+        <select id="oVoiceSel"></select>
+      </label>
+      <label>الموديل
+        <select id="oModelSel">
+          <option value="gpt-4o-mini-tts">gpt-4o-mini-tts — أحدث وأذكى (بيفهم تعليمات الأداء)</option>
+          <option value="tts-1">tts-1 — أرخص</option>
+          <option value="tts-1-hd">tts-1-hd — أعلى جودة</option>
+        </select>
+      </label>
+      <p class="privacy">🔒 المفاتيح دي بتتحفظ على جهازك بس، وكل مفتاح بيتبعت لنطاق شركته بس (microsoft.com / googleapis.com / openai.com).</p>
     </div>
     <h2 class="settings-group">⚙️ عام</h2>
     <div class="card">

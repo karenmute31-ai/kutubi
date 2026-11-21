@@ -13,7 +13,9 @@ async function gFetchVoices(){
     const arr = (j && j.voices) || [];
     if(!arr.length){ msg.textContent = "مفيش أصوات راجعة من Google."; msg.classList.add("err"); return; }
     const score = v => { const lc = (v.languageCodes || [""])[0] || ""; if(lc.indexOf("ar-XA") === 0) return 0; if(lc.indexOf("ar-") === 0) return 1; return 2; };
-    const voices = arr.slice().sort((a, b)=>score(a) - score(b)).map(v=>({id: v.name, name: v.name + (v.ssmlGender ? " · " + v.ssmlGender : "")}));
+    const tag = v => { const lc = (v.languageCodes || [""])[0] || ""; return lc.indexOf("ar-") === 0 ? " 🌍 عربي" : ""; };
+    const gnd = v => v.ssmlGender === "FEMALE" ? "ست" : v.ssmlGender === "MALE" ? "راجل" : (v.ssmlGender || "");
+    const voices = arr.slice().sort((a, b)=>score(a) - score(b)).map(v=>({id: v.name, name: v.name + tag(v) + (v.ssmlGender ? " · " + gnd(v) : "")}));
     settings.gKey = key; settings.gVoices = voices;
     if(!voices.some(v=>v.id === settings.gVoice)) settings.gVoice = voices[0].id;
     saveSettings(); fillGVoices(); syncProviderUI();
@@ -24,12 +26,14 @@ async function gFetchVoices(){
 /* حالة «محفوظة» وأزرار MP3 على أجزاء الكتاب حسب كاش الصوت الحالي */
 async function refreshChunkAudioStates(book){
   const prov = ttsProvider();
-  if(!book || prov === "device" || !providerVoiceId(prov)) return;
-  const voiceId = providerVoiceId(prov);
+  if(!book || prov === "device") return;
   for(let i = 0; i < book.chunks.length; i++){
     const sec = $("#chunk-" + i); if(!sec) continue;
     const ch = book.chunks[i];
     for(const kind of ["trans", "explain"]){
+      /* الصوت الفعلي للجزء ده — الشرح ممكن يبقى بصوت تاني حسب لهجته (اختيار تلقائي) */
+      const voiceId = effectiveCloudVoice(prov, {kind: kind, explDialect: ch.explDialect});
+      if(!voiceId) return;
       const text = kind === "trans" ? ch.trans : ch.explanation;
       const btn = $('[data-role="listen-' + kind + '"]', sec);
       const mp3 = $('[data-role="mp3-' + kind + '"]', sec);
@@ -50,8 +54,9 @@ async function downloadChunkMp3(book, i, kind){
   const prov = ttsProvider();
   const ch = book.chunks[i];
   const text = kind === "explain" ? (ch.explanation || "") : (ch.trans || "");
-  if(!text || prov === "device" || !providerVoiceId(prov)) return;
-  const blob = await idbAudioGet(audioCacheKey(prov, book.id, i, kind, providerVoiceId(prov), text)).catch(()=>null);
+  const voiceId = (prov === "device") ? "" : effectiveCloudVoice(prov, {kind: kind, explDialect: ch.explDialect});
+  if(!text || prov === "device" || !voiceId) return;
+  const blob = await idbAudioGet(audioCacheKey(prov, book.id, i, kind, voiceId, text)).catch(()=>null);
   if(!blob){ setAudioStatus("الصوت ده مش محفوظ لسه — شغّله مرة واحدة الأول عشان يتولّد ويتحفظ.", true); return; }
   const a = document.createElement("a");
   const url = URL.createObjectURL(blob);
@@ -68,7 +73,13 @@ function renderVoices(){
   wrap.innerHTML="";
   const vs = window.speechSynthesis ? speechSynthesis.getVoices() : [];
   const ar = vs.filter(v=>v.lang && v.lang.toLowerCase().startsWith("ar"));
+  const arEg = ar.filter(v=>v.lang.toLowerCase().indexOf("ar-eg")===0);
+  const arOther = ar.filter(v=>v.lang.toLowerCase().indexOf("ar-eg")!==0);
   const en = vs.filter(v=>v.lang && v.lang.toLowerCase().startsWith("en"));
+  /* فلتر النوع (راجل/ست): الأصوات اللي معروف نوعها بتتفلتر، والمجهول بيظهر في «الكل» بس */
+  const gfEl = $("#voiceGenderFilter");
+  const gf = gfEl ? gfEl.value : "all";
+  const byGender = l => (gf === "male" || gf === "female") ? l.filter(v=>voiceGenderHint(v)===gf) : l;
   $("#noArabicVoice").classList.toggle("hidden", ar.length>0);
   const group=(title,list,sample)=>{
     if(!list.length) return;
@@ -78,15 +89,18 @@ function renderVoices(){
       const row=document.createElement("div"); row.className="voice-row";
       const radio=document.createElement("input"); radio.type="radio"; radio.name="voicePick"; radio.checked=settings.voiceURI===v.voiceURI;
       radio.addEventListener("change",()=>{ settings.voiceURI=v.voiceURI; saveSettings(); setAudioStatus("اتحفظ الصوت: "+v.name); });
-      const name=document.createElement("span"); name.className="vn"; name.textContent=v.name+" · "+v.lang;
+      const name=document.createElement("span"); name.className="vn";
+      const g=voiceGenderHint(v);
+      name.textContent=v.name+" · "+v.lang+(g==="female"?" · ست":g==="male"?" · راجل":"");
       const test=document.createElement("button"); test.className="ghost"; test.textContent="جرّب";
       test.addEventListener("click",()=>{ stopSpeaking(); const u=new SpeechSynthesisUtterance(sample); u.voice=v; u.lang=v.lang; speechSynthesis.speak(u); });
       row.append(radio,name,test); h.appendChild(row);
     });
     wrap.appendChild(h);
   };
-  group("الأصوات العربية", ar, "أهلاً بيك في كُتُبِي");
-  group("الأصوات الإنجليزية", en, "Welcome to the Egyptian book translator");
+  group("الأصوات المصرية 🇪🇬", byGender(arEg), "أهلاً بيك في كُتُبِي");
+  group("أصوات عربية تانية", byGender(arOther), "أهلاً بيك في كُتُبِي");
+  group("الأصوات الإنجليزية", byGender(en), "Welcome to the Egyptian book translator");
   if(!vs.length){ const p=document.createElement("p"); p.className="hint"; p.textContent="الأصوات لسه بتتحمّل من الجهاز… افتح الصفحة تاني لو القايمة فاضية."; wrap.appendChild(p); }
 }
 
@@ -1040,7 +1054,7 @@ function fillChunk(book,i){
   if(ch.status==="done"){
     const lt=mk("🔊 اسمع ترجمة الجزء","ghost",()=>playVoiceItems([Object.assign(transSpeakItem(book, ch.trans), {bookId:book.id, chunkIdx:i, kind:"trans"})],"ترجمة الجزء "+(i+1)));
     lt.dataset.role="listen-trans";
-    const le=mk("🎧 اعمل واسمع الشرح الصوتي","ghost",async()=>{ const gen=audioGen; try{ setAudioStatus("بيجهّز الشرح…"); const t=await makeExplanation(book,i); if(gen!==audioGen) return; if(t) playVoiceItems([{text:t,lang:"ar",bookId:book.id, chunkIdx:i, kind:"explain"}],"شرح الجزء "+(i+1)); }catch(e){ if(gen===audioGen && !(e && e.name==="AbortError")){ logError("شرح", e); setAudioStatus("الشرح وقف — سبب التوقف: " + describeError(e), true); } } });
+    const le=mk("🎧 اعمل واسمع الشرح الصوتي","ghost",async()=>{ const gen=audioGen; try{ setAudioStatus("بيجهّز الشرح…"); const t=await makeExplanation(book,i); if(gen!==audioGen) return; if(t){ const dk=ch.explDialect||explDialectKey(); playVoiceItems([{text:t,lang:"ar",langFull:explLocaleOf(dk),explDialect:dk,bookId:book.id, chunkIdx:i, kind:"explain"}],"شرح الجزء "+(i+1)); } }catch(e){ if(gen===audioGen && !(e && e.name==="AbortError")){ logError("شرح", e); setAudioStatus("الشرح وقف — سبب التوقف: " + describeError(e), true); } } });
     le.dataset.role="listen-explain";
   }
   /* شرح نصي للجزء ده بس — بيظهر لما الجزء قابل للشرح (مترجم، أو الكتاب في وضع النص الأصلي) */
@@ -1415,7 +1429,7 @@ async function importBackupObject(o){
     const keep = {key: settings.key, elKey: settings.elKey, azKey: settings.azKey, gKey: settings.gKey}; /* مفاتيح الجهاز الحالي بتفضل — النسخة مفيهاش مفاتيح أصلًا */
     settings = Object.assign({}, DEFSET, o.settings, keep);
     if(!TARGET_LANGS.some(t=>t.code === settings.targetLang)) settings.targetLang = "ar-EG";
-    if(["device","eleven","azure","google"].indexOf(settings.ttsProvider) < 0) settings.ttsProvider = "device";
+    if(["device","eleven","azure","google","openai"].indexOf(settings.ttsProvider) < 0) settings.ttsProvider = "device";
     saveSettings();
   }
   if(o.readstats) saveReadStats(o.readstats);
@@ -1522,7 +1536,7 @@ document.addEventListener("DOMContentLoaded", async()=>{
   const deds=$("#defExplDialectSel"); if(deds){ deds.value=sanitizeExplDialect(settings.explDialect||"egyptian"); deds.addEventListener("change",()=>syncExplDialect(deds.value)); }
   const reds=$("#explDialectSel"); if(reds){ reds.value=sanitizeExplDialect(settings.explDialect||"egyptian"); reds.addEventListener("change",()=>syncExplDialect(reds.value)); }
   const qts=$("#quickTStyleSel"); if(qts) qts.value=sanitizeTStyle(settings.tStyle); /* المترجم السريع بيقرا قيمة الاختيار وقت الترجمة نفسها */
-  $("#toneSelect").value=settings.tone||"calm"; $("#speedRange").value=settings.speed||1;
+  $("#toneSelect").value=settings.tone||"calm"; $("#speedRange").value=settings.speed||1; syncToneDesc();
   if(!TARGET_LANGS.some(t=>t.code===settings.targetLang)) settings.targetLang="ar-EG";
   fillTargetSelect($("#targetLangSel"), settings.targetLang);
   fillTargetSelect($("#quickTargetSel"), settings.targetLang, false); /* المترجم السريع: لغات حقيقية بس — «النص الأصلي» مش هدف ترجمة */
@@ -1598,23 +1612,26 @@ document.addEventListener("DOMContentLoaded", async()=>{
   });
   /* 🔊 المزوّدات الصوتية السحابية: تهيئة الحقول والأزرار */
   $("#elKey").value=settings.elKey||""; $("#azKey").value=settings.azKey||""; $("#azRegion").value=settings.azRegion||""; $("#gKey").value=settings.gKey||"";
-  fillElVoices(); fillAzVoices(); fillGVoices();
+  fillElVoices(); fillAzVoices(); fillGVoices(); fillOVoices();
   $("#elModelSel").value=settings.elModel||"eleven_multilingual_v2";
   const syncElSliders=()=>{ $("#elStab").value=settings.elStability; $("#elStabVal").textContent=(+settings.elStability).toFixed(2); $("#elSim").value=settings.elSimilarity; $("#elSimVal").textContent=(+settings.elSimilarity).toFixed(2); $("#elSpeed").value=settings.elSpeed; $("#elSpeedVal").textContent=(+settings.elSpeed).toFixed(2); };
   syncElSliders();
-  $("#elSaveKey").addEventListener("click",()=>{ settings.elKey=$("#elKey").value.trim(); saveSettings(); syncProviderUI(); showTabMsg("#elMsg","اتحفظ مفتاح ElevenLabs على جهازك ✔"); });
+  $("#elSaveKey").addEventListener("click",()=>{ settings.elKey=$("#elKey").value.trim(); if(!settings.elVoiceId) settings.elVoiceId=EL_SEED[0].id; saveSettings(); fillElVoices(); syncProviderUI(); showTabMsg("#elMsg","اتحفظ مفتاح ElevenLabs على جهازك ✔ — الأصوات الجاهزة شغالة فورًا، ودوس «اختبار الاتصال» عشان تجيب أصوات حسابك كلها."); });
   $("#elTest").addEventListener("click", elFetchVoices);
   $("#elVoiceSel").addEventListener("change",()=>{ settings.elVoiceId=$("#elVoiceSel").value; saveSettings(); const b=currentBook(); if(b) refreshChunkAudioStates(b); });
   $("#elModelSel").addEventListener("change",()=>{ settings.elModel=$("#elModelSel").value; saveSettings(); });
   $("#elStab").addEventListener("input",()=>{ settings.elStability=parseFloat($("#elStab").value); saveSettings(); syncElSliders(); });
   $("#elSim").addEventListener("input",()=>{ settings.elSimilarity=parseFloat($("#elSim").value); saveSettings(); syncElSliders(); });
   $("#elSpeed").addEventListener("input",()=>{ settings.elSpeed=parseFloat($("#elSpeed").value); saveSettings(); syncElSliders(); });
-  $("#azSaveKey").addEventListener("click",()=>{ settings.azKey=$("#azKey").value.trim(); settings.azRegion=$("#azRegion").value.trim(); saveSettings(); syncProviderUI(); showTabMsg("#azMsg","اتحفظ مفتاح Azure والريجن على جهازك ✔"); });
+  $("#azSaveKey").addEventListener("click",()=>{ settings.azKey=$("#azKey").value.trim(); settings.azRegion=$("#azRegion").value.trim(); if(!settings.azVoice) settings.azVoice=AZURE_AR_SEED[0].id; saveSettings(); fillAzVoices(); syncProviderUI(); showTabMsg("#azMsg","اتحفظ مفتاح Azure والريجن على جهازك ✔ — الأصوات المصرية والعربية جاهزة في القايمة وتشتغل فورًا."); });
   $("#azTest").addEventListener("click", azFetchVoices);
-  $("#azVoiceSel").addEventListener("change",()=>{ settings.azVoice=$("#azVoiceSel").value; saveSettings(); const b=currentBook(); if(b) refreshChunkAudioStates(b); });
-  $("#gSaveKey").addEventListener("click",()=>{ settings.gKey=$("#gKey").value.trim(); saveSettings(); syncProviderUI(); showTabMsg("#gMsg","اتحفظ مفتاح Google على جهازك ✔"); });
+  $("#azVoiceSel").addEventListener("change",()=>{ settings.azVoice=$("#azVoiceSel").value; settings.azVoiceManual=true; saveSettings(); const b=currentBook(); if(b) refreshChunkAudioStates(b); });
+  $("#gSaveKey").addEventListener("click",()=>{ settings.gKey=$("#gKey").value.trim(); if(!settings.gVoice) settings.gVoice=GOOGLE_AR_SEED[0].id; saveSettings(); fillGVoices(); syncProviderUI(); showTabMsg("#gMsg","اتحفظ مفتاح Google على جهازك ✔ — الأصوات العربية جاهزة في القايمة وتشتغل فورًا."); });
+  $("#oSaveKey").addEventListener("click",()=>{ settings.oKey=$("#oKey").value.trim(); if(!settings.oVoice) settings.oVoice=OPENAI_SEED[0].id; saveSettings(); fillOVoices(); syncProviderUI(); showTabMsg("#oMsg","اتحفظ مفتاح OpenAI على جهازك ✔ — الأصوات جاهزة في القايمة وتشتغل فورًا."); });
+  $("#oVoiceSel").addEventListener("change",()=>{ settings.oVoice=$("#oVoiceSel").value; saveSettings(); const b=currentBook(); if(b) refreshChunkAudioStates(b); });
+  const omdl=$("#oModelSel"); if(omdl){ omdl.value=settings.oModel||"gpt-4o-mini-tts"; omdl.addEventListener("change",()=>{ settings.oModel=omdl.value; saveSettings(); }); }
   $("#gTest").addEventListener("click", gFetchVoices);
-  $("#gVoiceSel").addEventListener("change",()=>{ settings.gVoice=$("#gVoiceSel").value; saveSettings(); const b=currentBook(); if(b) refreshChunkAudioStates(b); });
+  $("#gVoiceSel").addEventListener("change",()=>{ settings.gVoice=$("#gVoiceSel").value; settings.gVoiceManual=true; saveSettings(); const b=currentBook(); if(b) refreshChunkAudioStates(b); });
   $("#ttsProviderSel").addEventListener("change",()=>{ const v=$("#ttsProviderSel").value; if(v!=="device" && !providerReady(v)){ setAudioStatus("المزوّد ده محتاج مفتاح من الإعدادات الأول.", true); syncProviderUI(); return; } const wasEl=elActive; settings.ttsProvider=v; saveSettings(); if(wasEl) stopAllAudio("الصوت وقف."); syncProviderUI(); });
   syncProviderUI();
   /* التقاط آخر تحديد نص جوه جزء (احتياطي: ضغطة زرار الحفظ ممكن تضيّع التحديد الحي) */
@@ -1923,7 +1940,7 @@ $("#moreReaderTools")?.addEventListener("click", e => { const b = e.target.close
       await idbPut(b); renderSummary(b);
     }catch(e){ alert("الملخص وقف: "+e.message); }
   });
-  $("#toneSelect").addEventListener("change",()=>{ settings.tone=$("#toneSelect").value; saveSettings(); autoMatchVoiceForTone(settings.tone); const b=currentBook(); if(b){ const lim = (pagerBookId === b.id) ? Math.min(renderedUpTo, b.chunks.length) : 0; for(let i=0;i<lim;i++) renderChunk(b,i); } });
+  $("#toneSelect").addEventListener("change",()=>{ settings.tone=$("#toneSelect").value; saveSettings(); syncToneDesc(); autoMatchVoiceForTone(settings.tone); const b=currentBook(); if(b){ const lim = (pagerBookId === b.id) ? Math.min(renderedUpTo, b.chunks.length) : 0; for(let i=0;i<lim;i++) renderChunk(b,i); } });
   $("#speedRange").addEventListener("input",()=>{ settings.speed=parseFloat($("#speedRange").value); saveSettings(); const ea=$("#elAudio"); if(ea) ea.playbackRate=settings.speed; });
   $("#btnPlayTrans").addEventListener("click",()=>{ const b=currentBook(); if(!b) return; const items=[]; b.chunks.forEach((c,ci)=>{ if(c.status==="done") items.push(Object.assign(transSpeakItem(b, c.trans), {bookId:b.id, chunkIdx:ci, kind:"trans"})); }); if(!items.length){ setAudioStatus("لسه مفيش أجزاء مترجمة تسمعها.", true); return; } playVoiceItems(items,"ترجمة الكتاب"); });
   $("#btnPlayOrig").addEventListener("click",()=>{ const b=currentBook(); if(!b) return; const items=[]; b.chunks.forEach((c,ci)=>{ if(c.orig && c.orig.trim()) items.push(Object.assign(origSpeakItem(b, c.orig), {bookId:b.id, chunkIdx:ci, kind:"orig"})); }); if(!items.length){ setAudioStatus("الكتاب ده مفيهوش نص أصلي يتقرا.", true); return; } playVoiceItems(items,"أصل الكتاب"); });
@@ -1935,7 +1952,7 @@ $("#moreReaderTools")?.addEventListener("click", e => { const b = e.target.close
       const items=[];
       for(let i=0;i<b.chunks.length;i++){
         if(gen!==audioGen){ setAudioStatus("الصوت وقف."); return; }
-        if(b.chunks[i].status==="done"){ const t=await makeExplanation(b,i); if(t) items.push({text:t,lang:"ar",bookId:b.id, chunkIdx:i, kind:"explain"}); }
+        if(b.chunks[i].status==="done"){ const t=await makeExplanation(b,i); if(t){ const dk=b.chunks[i].explDialect||explDialectKey(); items.push({text:t,lang:"ar",langFull:explLocaleOf(dk),explDialect:dk,bookId:b.id, chunkIdx:i, kind:"explain"}); } }
       }
       if(gen!==audioGen){ setAudioStatus("الصوت وقف."); return; }
       if(!items.length){ setAudioStatus("مفيش شروحات جاهزة — كمّل الترجمة الأول.", true); return; }
@@ -1997,6 +2014,7 @@ $("#moreReaderTools")?.addEventListener("click", e => { const b = e.target.close
   $("#btnInstall").addEventListener("click",async()=>{ if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; $("#btnInstall").classList.add("hidden"); } });
 
   if("speechSynthesis" in window){ speechSynthesis.onvoiceschanged=renderVoices; renderVoices(); }
+  const vgf=$("#voiceGenderFilter"); if(vgf) vgf.addEventListener("change",renderVoices);
 
   try{ books=await idbAll(); }catch(e){ books=[]; }
   getInstallId();
@@ -2039,7 +2057,8 @@ function reloadSettingsFromStorage(){
   set("#defExplDialectSel", sanitizeExplDialect(settings.explDialect||"egyptian"));
   set("#explDialectSel", sanitizeExplDialect(settings.explDialect||"egyptian"));
   set("#toneSelect", settings.tone || "calm"); set("#speedRange", settings.speed || 1);
-  set("#elKey", settings.elKey || ""); set("#azKey", settings.azKey || ""); set("#azRegion", settings.azRegion || ""); set("#gKey", settings.gKey || "");
+  set("#elKey", settings.elKey || ""); set("#azKey", settings.azKey || ""); set("#azRegion", settings.azRegion || ""); set("#gKey", settings.gKey || ""); set("#oKey", settings.oKey || "");
+  syncToneDesc();
   const fv = $("#fontSizeVal"); if(fv) fv.textContent = settings.font || 17;
   const rt = $("#rulerToggle"); if(rt) rt.checked = !!settings.ruler;
   const tb = $(".topbar"); if(tb) document.documentElement.style.setProperty("--topbar-h", tb.offsetHeight + "px");

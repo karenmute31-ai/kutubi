@@ -102,7 +102,7 @@ function sanitizeSettingsValues(){
   clamp("dailyGoalMin", 1, 600, 15);
   if(HEALTH_THEMES.indexOf(settings.theme) < 0){ settings.theme = "light"; corr.push("theme→light"); }
   if(typeof FONT_STACKS !== "undefined" && !FONT_STACKS[settings.fontFamily]){ settings.fontFamily = "system"; corr.push("fontFamily→system"); }
-  if(["device", "eleven", "azure", "google"].indexOf(settings.ttsProvider) < 0){ settings.ttsProvider = "device"; corr.push("ttsProvider→device"); }
+  if(["device", "eleven", "azure", "google", "openai"].indexOf(settings.ttsProvider) < 0){ settings.ttsProvider = "device"; corr.push("ttsProvider→device"); }
   const tl = sanitizeTargetLang(settings.targetLang); /* أي كود قديم/محذوف (he-IL مثلًا) بيرجع ar-EG */
   if(tl !== settings.targetLang){ corr.push("targetLang: " + settings.targetLang + "→" + tl); settings.targetLang = tl; }
   const ts = sanitizeTStyle(settings.tStyle);
