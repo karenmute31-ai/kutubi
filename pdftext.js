@@ -5,6 +5,8 @@
 })(typeof self !== "undefined" ? self : (typeof globalThis !== "undefined" ? globalThis : this), function(){
   "use strict";
 
+  /* حركات وتشكيل عربي: عنصر كله حركات بيلزق في اللي قبله من غير مسافة (وإلا بتدخل مسافة جوه الكلمة) */
+  var MARKS_ONLY = /^[\u064B-\u065F\u0670\u06D6-\u06ED]+$/;
   var ARABIC = /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/;
   var ARABIC_GLOBAL = /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/g;
   var LATIN = /[A-Za-z]/;
@@ -34,7 +36,10 @@
       var x = numberOr(t[4], 0);
       var y = numberOr(t[5], 0);
       var width = numberOr(item.width, 0);
-      return { item: item, str: String(item.str), x: x, y: y, width: width, h: h, rotated: Math.abs(b) > 0.2 * Math.abs(a), index: index };
+      var str = String(item.str);
+      var trimmed = str.trim();
+      if(trimmed && MARKS_ONLY.test(trimmed)) str = trimmed; /* حركات بمسافات حواليها: تتلزق من غير مسافة */
+      return { item: item, str: str, x: x, y: y, width: width, h: h, rotated: Math.abs(b) > 0.2 * Math.abs(a), index: index };
     });
   }
 
@@ -135,7 +140,7 @@
         ? previous.x - (current.x + current.width)
         : current.x - (previous.x + previous.width);
       var explicitSpace = /\s$/.test(previous.str) || /^\s/.test(current.str);
-      flags.push(!explicitSpace && gap > 0.15 * Math.max(previous.h, current.h));
+      flags.push(!explicitSpace && !MARKS_ONLY.test(current.str) && gap > 0.15 * Math.max(previous.h, current.h));
     }
     return flags;
   }
@@ -188,6 +193,20 @@
     var rotated = prepared.filter(function(entry){ return entry.rotated; }).length;
     if(rotated / prepared.length > 0.2) return legacyLines(prepared);
     return trimLines(makeLines(prepared).map(renderLine));
+  }
+
+
+  /* رباطات الشدة مع الحركات (U+FC5E–FC63, U+FCF2–FCF4): تفكيك NFKC بتاعها بيحط مسافة/تطويل غلط
+     جوه الكلمة («تُقد ِّم»)، فبنفكها بالترتيب الصح: شدة ثم حركة */
+  var SHADDA_LIGS = {"\uFC5E":"\u0651\u064C","\uFC5F":"\u0651\u064D","\uFC60":"\u0651\u064E","\uFC61":"\u0651\u064F","\uFC62":"\u0651\u0650","\uFC63":"\u0651\u0670","\uFCF2":"\u0651\u064E","\uFCF3":"\u0651\u064F","\uFCF4":"\u0651\u0650"};
+  /* فك أشكال العرض + إرجاع الحركات المنفصلة لكلمتها: بعض الملفات بتحط الحركة بعد مسافة
+     («بلغة ٍجزلة») والصح إنها على آخر حرف في الكلمة اللي قبلها («بلغةٍ جزلة») */
+  function expandText(t){
+    t = String(t == null ? "" : t);
+    t = t.replace(/[\uFC5E-\uFC63\uFCF2-\uFCF4]/g, function(c){ return SHADDA_LIGS[c] || c; });
+    if(/[\uFB50-\uFDFF\uFE70-\uFEFF]/.test(t)) t = t.normalize("NFKC");
+    t = t.replace(/(\S) +([\u064B-\u0652\u0670\u06D6-\u06ED]+)/g, "$1$2 ");
+    return t;
   }
 
   function normLine(line){
@@ -285,6 +304,7 @@
   return {
     classify: classify,
     itemsToLines: itemsToLines,
+    expandText: expandText,
     normLine: normLine,
     stripRunningHeaders: stripRunningHeaders,
     markPage: markPage,

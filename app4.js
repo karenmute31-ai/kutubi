@@ -257,7 +257,8 @@ async function ocrLayerText(pdf){
   const out = [];
   for(let p = 1; p <= pdf.numPages; p++){
     const page = await pdf.getPage(p);
-    const tc = await page.getTextContent();
+    /* disableNormalization: تطبيع pdf.js بيفك الحروف المركبة (في/لا/المجموعات المشكولة) وبعدين بيقلبها كعربي، فتطلع مقلوبة («يف» بدل «في») */
+    const tc = await page.getTextContent({disableNormalization: true});
     out.push(tc.items.map(it=>it.str).join(" "));
     if(page.cleanup) page.cleanup();
   }
@@ -267,7 +268,7 @@ async function ocrLayerPages(pdf){
   const pages = [];
   for(let p = 1; p <= pdf.numPages; p++){
     const page = await pdf.getPage(p);
-    const tc = await page.getTextContent();
+    const tc = await page.getTextContent({disableNormalization: true});
     const fallback = tc.items.map(it=>it.str).join(" ").trim();
     const helper = typeof window !== "undefined" ? window.PdfText : null;
     const lines = helper && typeof helper.itemsToLines === "function" ? helper.itemsToLines(tc.items) : (fallback ? [fallback] : []);
@@ -368,14 +369,22 @@ async function ocrPdfToText(pdf, opts){
 
 /* ---------- نقطة الدخول من الاستيراد: نص الطبقة لو كفاية، ولو الكتاب مصوّر → لوحة الـ OCR ----------
    بترجع {text, ocr:null, pages, pageCount} للكتب النصية، و{text, ocr:{...}, pages:null, pageCount} للمصوّرة */
+/* بعض ملفات الـ PDF العربية بتخزن النص بأشكال عرض (Presentation Forms U+FB50–FEFF):
+   بنفكها لحروف قياسية بـ NFKC عشان البحث والمطابقة يشتغلوا صح */
+function expandPresentationForms(t){
+  const pt = (typeof window !== "undefined" && window.PdfText) ? window.PdfText : null;
+  if(pt && typeof pt.expandText === "function") return pt.expandText(t);
+  t = String(t == null ? "" : t);
+  return /[\uFB50-\uFDFF\uFE70-\uFEFF]/.test(t) ? t.normalize("NFKC") : t;
+}
 async function extractPDFWithOCR(buf, title){
   const pdf = await ocrOpenPdf(buf);
   const layer = await ocrLayerText(pdf);
   if(!ocrLooksScanned(layer, pdf.numPages)){
     const pageLines = await ocrLayerPages(pdf);
-    if(!window.PdfText || typeof window.PdfText.stripRunningHeaders !== "function") return { text: layer, ocr: null, pages: null, pageCount: pdf.numPages };
+    if(!window.PdfText || typeof window.PdfText.stripRunningHeaders !== "function") return { text: expandPresentationForms(layer), ocr: null, pages: null, pageCount: pdf.numPages };
     const cleaned = window.PdfText.stripRunningHeaders(pageLines);
-    const pages = cleaned.pages.map(lines=>lines.join("\n"));
+    const pages = cleaned.pages.map(lines=>expandPresentationForms(lines.join("\n")));
     return { text: pages.join("\n\n"), ocr: null, pages: pages, pageCount: pdf.numPages };
   }
   if(typeof document === "undefined" || !document.getElementById("ocrPanel"))
