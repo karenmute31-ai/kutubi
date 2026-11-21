@@ -6,7 +6,7 @@ async function ownerAuthorized(req){
  try{const r=await fetch('https://api.vercel.com/v1/edge-config/'+process.env.EDGE_CONFIG_ID+'/items',{headers:{Authorization:'Bearer '+process.env.EDGE_CONFIG_WRITE_TOKEN}});if(!r.ok)return false;const j=await r.json();const rec=(j.items||[]).find(x=>x.key==='kutubi_admin')?.value;if(!rec?.hash)return false;const good=crypto.createHmac('sha256',rec.hash).update(exp).digest('hex');return crypto.timingSafeEqual(Buffer.from(sig),Buffer.from(good));}catch{return false;}
 }
 const VOICES=['Zephyr','Puck','Charon','Kore','Fenrir','Leda','Orus','Aoede','Callirrhoe','Autonoe','Enceladus','Iapetus','Umbriel','Algieba','Despina','Erinome','Algenib','Rasalgethi','Laomedeia','Achernar','Alnilam','Schedar','Gacrux','Pulcherrima','Achird','Zubenelgenubi','Vindemiatrix','Sadachbia','Sadaltager','Sulafat'];
-const blocked='معاينة Gemini غير مفعلة: يلزم تحقق المالك من الحصة والخصوصية والقيود الإقليمية، وصلاحية المالك. لا تم إرسال النص.';
+const blocked='معاينة Gemini غير مفعلة: يلزم تحقق المالك من الحصة والخصوصية والقيود الإقليمية، وصلاحية المالك. لم يُرسل النص.';
 export default async function handler(req,res){
  res.setHeader('Cache-Control','no-store');
  const enabled=process.env.GEMINI_TTS_ENABLED==='true'&&process.env.GEMINI_TTS_FREE_TIER_VERIFIED==='true'&&process.env.GEMINI_TTS_KEY;
