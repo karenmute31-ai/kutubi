@@ -2222,7 +2222,7 @@ function updateBanner(){
   function el(id){ return document.getElementById(id); }
   function say(t, err){ try{ setTransStatus(t, !!err); }catch(e){} }
   function curId(){ try{ return (typeof currentId !== "undefined" && currentId) ? currentId : null; }catch(e){ return null; } }
-  function setLabel(){ var b = el("btnPdfPages"); if(b) b.textContent = isOpen ? "📝 رجوع للنص" : "📑 صفحات الـPDF"; }
+  function setLabel(){ var b = el("btnPdfPages"); if(b) b.textContent = isOpen ? "📝 رجوع للنص" : "📑 الصفحات"; }
   function releasePage(p){
     p.__n = (p.__n || 0) + 1; p.dataset.state = "";
     var c = p.querySelector("canvas"); if(c){ c.width = 0; c.height = 0; c.remove(); }

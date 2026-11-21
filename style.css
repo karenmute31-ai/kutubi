@@ -953,3 +953,71 @@ body[data-layout="mobile"] #readerDrawer .action-row #btnStopTrans,
 body[data-layout="mobile"] #readerDrawer .action-row #btnExplainBook{grid-column:auto;width:100%}
 body[data-layout="mobile"] #readerDrawer .action-row .lang-label{white-space:nowrap}
 body[data-layout="mobile"] #readerDrawer .action-row .lang-label select{flex:1;min-width:0;width:auto}
+
+/* ================= v78: درج أدوات القراءة — تصميم مضغوط ومرتب =================
+   زراير أصغر ومتسقة، شبكة مرتبة، ليبلات وسليكتات على سطر واحد من غير كسر نص،
+   مساحات فاضية أقل — على الموبايل والديسكتوب بنفس الشكل */
+#readerDrawer .rd-body{ padding:.55rem .6rem; display:flex; flex-direction:column; gap:.55rem; }
+#readerDrawer .rd-body > *{ margin-top:0; }
+#readerDrawer #readerBottomBar{ margin:0; }
+#readerDrawer .reader-actionbar{ padding:.5rem .55rem; margin:0; border-radius:.9rem; }
+#readerDrawer #bookToolsCard{ padding:.55rem .65rem; }
+#readerDrawer #bookToolsCard h2{ font-size:.92rem; margin:.05rem 0 .4rem; }
+
+/* خانات اللغة/الأسلوب/اللهجة: ليبل بعرض ثابت + سليكت باقي السطر — محاذاة واحدة والنص كامل */
+#readerDrawer .action-row{ gap:.4rem; }
+body[data-layout="mobile"] #readerDrawer .action-row{ gap:.4rem; }
+#readerDrawer .action-row .lang-label{
+  display:grid; grid-template-columns:6.6rem minmax(0,1fr); align-items:center; gap:.4rem;
+  width:100%; white-space:nowrap; font-size:.8rem; font-weight:700;
+}
+#readerDrawer .action-row .lang-label select{
+  width:100%; min-width:0; height:34px; font-size:.82rem; line-height:1.2;
+  padding:.15rem .5rem; padding-inline-end:1.6rem; border-radius:.55rem; margin-top:0;
+}
+/* أزرار الترجمة/الإيقاف/الشرح: مضغوطة ومتساوية العرض */
+#readerDrawer .action-row button{
+  width:100%; height:auto; min-height:36px; font-size:.85rem; font-weight:700;
+  padding:.32rem .6rem; border-radius:.6rem; white-space:nowrap;
+}
+body[data-layout="mobile"] #readerDrawer .action-row button{ min-height:36px; }
+
+/* صف العرض (الأصلي/المترجم/الاتنين/صفحات PDF): شبكة أعمدة متساوية */
+#readerDrawer #readViewBar{
+  display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr);
+  gap:.3rem; margin:.4rem 0 0;
+}
+#readerDrawer #readViewBar button{
+  width:100%; min-height:32px; font-size:.72rem; font-weight:700; line-height:1.15;
+  padding:.22rem .1rem; border-radius:.55rem; white-space:nowrap;
+}
+#readerDrawer #readViewBar button.hidden{ display:none; }
+
+/* شريط الحالة: أقل ارتفاعًا */
+#readerDrawer .status-strip{ margin-top:.4rem; }
+#readerDrawer .status-strip .hint{ font-size:.72rem; margin:.1rem 0; }
+#readerDrawer .status-line{ display:flex; justify-content:space-between; gap:.5rem; }
+
+/* أدوات الكتاب: شبكة مضغوطة متسقة */
+#readerDrawer #bookToolsCard .row.wrap{ margin-top:0; }
+#readerDrawer #btnMenuVoice{ width:100%; min-height:34px; font-size:.82rem; font-weight:700; padding:.3rem .5rem; border-radius:.6rem; }
+#readerDrawer .tools-grid{ gap:.35rem; margin-top:.4rem; }
+#readerDrawer .tools-grid > button,
+#readerDrawer .tool-cell > button{
+  min-height:36px; font-size:.78rem; font-weight:700; line-height:1.2;
+  padding:.28rem .3rem; border-radius:.6rem;
+}
+#readerDrawer .tool-cell{ gap:.35rem; }
+#readerDrawer .tool-date{
+  grid-column:1 / -1; flex-direction:row; align-items:center; gap:.45rem;
+  font-size:.78rem; white-space:nowrap;
+}
+#readerDrawer .tool-date input{
+  flex:1 1 auto; min-width:0; height:32px; font-size:.78rem; margin-top:0;
+  background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:.55rem;
+  padding:.15rem .5rem;
+}
+html[data-theme="dark"] #readerDrawer .tool-date input,
+html[data-theme="black"] #readerDrawer .tool-date input,
+html[data-theme="royal"] #readerDrawer .tool-date input{ color-scheme:dark; }
+#readerDrawer #bookToolsCard .hint{ font-size:.72rem; margin:.25rem 0 0; }
