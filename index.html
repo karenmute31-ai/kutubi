@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#7c3f12">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>كُتُبِي — مترجم الكتب بالمصري</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="./vendor/pdfjs/pdf.min.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+  <button id="btnNavBack" class="ghost">→ رجوع</button>
+  <div class="brand">📚 كُتُبِي<span class="tagline">كتب العالم.. بالمصري</span></div>
+  <div class="top-actions">
+    <button id="btnNavUpdate" class="icon-btn" title="تحديث — إعادة تحميل التطبيق والبيانات">⟳ تحديث</button>
+    <button id="btnNavFiles" class="icon-btn" title="ملفاتي">📁 ملفاتي</button>
+    <button id="btnNavAdmin" class="icon-btn" title="الإدارة">🛠 الإدارة</button>
+  </div>
+  <span id="toolbarMsg" class="toolbar-msg"></span>
+</header>
+
+<div id="readProgressTrack"><div id="readProgressFill"></div></div>
+
+<div id="readRuler"></div>
+
+<div id="engineBanner" class="banner hidden"></div>
+
+<div id="updateBanner" class="update-banner hidden">
+  <span>🔔 فيه تحديث جديد للتطبيق جاهز</span>
+  <span class="row">
+    <button id="btnUpdateNow" class="primary">حدّث دلوقتي</button>
+    <button id="btnUpdateLater" class="ghost">لاحقًا</button>
+  </span>
+</div>
+
+<main>
+  <!-- الرئيسية -->
+  <section id="tab-home" class="tab active">
+    <div class="home-hero">
+      <div class="home-brand">📚 كُتُبِي</div>
+      <p class="home-tagline">كتب العالم.. بالمصري</p>
+    </div>
+    <p id="homeSubStatus" class="hint"></p>
+    <div id="homeResume" class="resume-banner hidden"><span id="homeResumeText"></span><button id="homeResumeBtn" class="ghost">أكمِل القراءة</button></div>
+    <div class="card">
+      <h2>اعمل إيه دلوقتي؟</h2>
+      <div class="home-actions">
+        <button id="homeAdd" class="primary">➕ أضف كتاب</button>
+        <button id="homeFreeLibrary" class="ghost">🌐 كتب مجانية</button>
+        <button id="homeQuick" class="ghost">⚡ مترجم سريع</button>
+        <button id="homeFiles" class="ghost">📁 ملفاتي</button>
+        <button id="homeSub" class="ghost">⭐ الاشتراك</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>📊 قراءتي</h2>
+      <div id="readStatsBody" class="stats-grid"></div>
+      <p id="homeGoalLine" class="hint hidden"></p>
+    </div>
+    <!-- بصمة المالك في الرئيسية -->
+    <div class="owner-footer">
+      <img src="icons/owner-logo.jpg" alt="Don Eslam — صاحب التطبيق" class="owner-logo-sm">
+      <p>من تطوير وإنشاء <strong>Don Eslam</strong> — صاحب التطبيق</p>
+    </div>
+  </section>
+
+  <!-- المكتبة -->
+  <section id="tab-library" class="tab">
+    <button type="button" id="openFreeLibrary" class="freelib-entry">
+      <strong>🌐 مكتبة الكتب المجانية</strong>
+      <span>آلاف الكتب الأجنبية والعربية المجانية قانونيًا، نزّل وترجم</span>
+    </button>
+    <h1>مكتبتي</h1>
+    <p id="libSubStatus" class="hint"></p>
+    <div id="resumeBanner" class="resume-banner hidden"><span id="resumeBannerText"></span><button id="resumeBannerBtn" class="ghost">أكمِل القراءة</button></div>
+    <div id="shelfChips" class="row wrap shelf-chips">
+      <button type="button" class="chip active" data-filter="all">الكل</button>
+      <button type="button" class="chip" data-filter="want">سأقرأه</button>
+      <button type="button" class="chip" data-filter="reading">بقرأه حاليًا</button>
+      <button type="button" class="chip" data-filter="done">خلّصته</button>
+    </div>
+    <div class="card">
+      <h2>ضيف كتاب جديد</h2>
+      <label>اسم الكتاب
+        <input id="bookTitle" type="text" placeholder="مثال: كتاب الأمن السيبراني">
+      </label>
+      <div class="source-row">
+        <button type="button" id="srcUpload" class="src-btn">📄 ارفع ملف من الجهاز</button>
+        <button type="button" id="srcLink" class="src-btn">🔗 الصق رابط</button>
+        <button type="button" id="srcDrive" class="src-btn">📥 استيراد من Google Drive</button>
+      </div>
+      <p id="driveImportHint" class="hint hidden">📥 الاستيراد من Drive بيفتح منتقي ملفات جهازك نفسه — على أندرويد هتلاقي «Google Drive» ضمن أماكن الاختيار، اختر ملفك منه مباشرة (PDF أو نصي) وهيتضاف ككتاب. ولو تفضّل لينك: <a href="https://drive.google.com" target="_blank" rel="noopener">افتح Google Drive في تبويب جديد</a>، شارك الملف بـ«أي شخص معه الرابط»، انسخ اللينك والزقه في خانة لينك Drive اللي تحت.</p>
+      <div class="add-methods">
+        <div class="method">
+          <h3>١) الزق النص</h3>
+          <textarea id="pasteText" rows="6" placeholder="الزق نص الكتاب أو الفصل هنا…"></textarea>
+          <button id="addByPaste" class="primary">ضيف من النص</button>
+        </div>
+        <div class="method">
+          <h3>٢) ارفع ملف</h3>
+          <p class="hint">ملف نصي ‎.txt/.md/.html‎ أو ملف PDF‎— الـ PDF بيستخرج نصه جوه المتصفح، ولو طلع مصوّر (سكانر) هيتعرّف عليه ضوئيًا (OCR) تلقائيًا على جهازك.</p>
+          <input id="fileInput" type="file" accept=".txt,.md,.html,.htm,text/plain,text/markdown,text/html,application/pdf">
+          <button id="addByFile" class="primary">ضيف من الملف</button>
+        </div>
+        <div class="method">
+          <h3>٣) لينك Google Drive</h3>
+          <p class="hint">الزق لينك مشاركة عام. لازم اللينك يكون «أي شخص معه الرابط» (Anyone with the link)، غير كده الاستيراد هيفشل وهتظهر لك ملحوظة.</p>
+          <input id="driveLink" type="url" placeholder="https://drive.google.com/file/d/…">
+          <button id="addByDrive" class="primary">استورد من Drive</button>
+          <p id="driveMsg" class="msg"></p>
+        </div>
+      </div>
+      <p id="addMsg" class="msg"></p>
+    </div>
+    <!-- [v25] لوحة التعرف الضوئي: بتظهر بس لما الـ PDF يطلع مصوّر (صور من غير طبقة نص) -->
+    <div id="ocrPanel" class="card hidden">
+      <h3>📷 الكتاب ده مصوّر — تعرّف ضوئي (OCR)</h3>
+      <p id="ocrInfo" class="hint"></p>
+      <div id="ocrRangeBox">
+        <label class="ocr-range-opt"><input type="radio" name="ocrRangeMode" value="all"> كل الصفحات</label>
+        <label class="ocr-range-opt"><input type="radio" name="ocrRangeMode" value="first" checked> أول <input id="ocrFirstN" type="number" min="1" max="9999" value="60"> صفحة</label>
+        <label class="ocr-range-opt"><input type="radio" name="ocrRangeMode" value="custom"> من صفحة <input id="ocrFrom" type="number" min="1" value="1"> إلى <input id="ocrTo" type="number" min="1" value="60"></label>
+      </div>
+      <p id="ocrTimeWarn" class="hint"></p>
+      <div class="progress-wrap"><div id="ocrBar" class="progress"></div></div>
+      <p id="ocrStatus" class="msg"></p>
+      <div class="row wrap">
+        <button type="button" id="ocrStart" class="primary">📷 ابدأ التعرف</button>
+        <button type="button" id="ocrDiag" class="ghost hidden">📋 نسخ التشخيص</button>
+        <button type="button" id="ocrPause" class="ghost hidden">⏸ إيقاف مؤقت</button>
+        <button type="button" id="ocrCancel" class="ghost">✖ إلغاء</button>
+      </div>
+      <p class="hint">التعرف بيتم على جهازك بالكامل — الملف مش بيتبعت لأي سيرفر. نص الـ OCR بيبقى فيه غلطات حروف عادةً: التنضيف التلقائي بيشتغل عليه وهو بيتضاف، ولو عندك مفتاح ذكاء اصطناعي هنعرض عليك إصلاح أدق بعد ما يخلص.</p>
+    </div>
+    <div class="lib-search-row">
+      <input id="libSearchInput" type="search" placeholder="🔎 دور في مكتبتك بالاسم…" aria-label="دور في مكتبتك بالاسم">
+    </div>
+    <div id="bookList" class="book-list"></div>
+    <p id="libFilterEmpty" class="empty hidden">مفيش كتب على الرف ده لسه.</p>
+    <p id="emptyLib" class="empty">لسه مفيش كتب. ضيف أول كتاب من فوق وابدأ.</p>
+  </section>
+
+  <!-- مكتبة الكتب المجانية القانونية: كتالوج خارجي فقط، مفيش ملفات كتب مضمّنة في التطبيق -->
+  <section id="tab-freelib" class="tab">
+    <div class="row freelib-head">
+      <button type="button" id="freeLibBack" class="ghost">← رجوع للمكتبة</button>
+      <h1>🌐 مكتبة الكتب المجانية</h1>
+    </div>
+    <div class="freelib-source-switch" role="group" aria-label="مصدر الكتب المجانية">
+      <button type="button" id="freeSourceForeign" class="freelib-source active">🌍 كتب أجنبية</button>
+      <button type="button" id="freeSourceArabic" class="freelib-source">📚 كتب عربية</button>
+    </div>
+    <p id="freeLibAttribution" class="hint freelib-attribution">الكتب من مشروع جوتنبرج (Project Gutenberg) — كتب دخلت الملكية العامة ومجانية قانونيًا. الكتب الحديثة المحمية بحقوق النشر مش موجودة هنا — دي بتتشرى أو بتتستعار من مصدرها.</p>
+
+    <div id="foreignCatalogPanel">
+      <div class="row wrap freelib-search-row">
+        <input id="freeSearchInput" type="search" placeholder="دوّر بعنوان الكتاب أو اسم المؤلف…" aria-label="بحث في الكتب الأجنبية">
+        <button type="button" id="freeSearchBtn" class="primary">🔎 دوّر</button>
+      </div>
+      <div id="freeCategoryChips" class="row wrap shelf-chips" aria-label="تصنيفات الكتب الأجنبية">
+        <button type="button" class="chip active" data-free-category="popular">📈 الأكثر تحميلًا</button>
+        <button type="button" class="chip" data-free-category="literature">أدب</button>
+        <button type="button" class="chip" data-free-category="history">تاريخ</button>
+        <button type="button" class="chip" data-free-category="philosophy">فلسفة</button>
+        <button type="button" class="chip" data-free-category="science">علوم</button>
+        <button type="button" class="chip" data-free-category="children">أطفال</button>
+      </div>
+      <div id="freeLangChips" class="row wrap shelf-chips" aria-label="لغة الكتب الأجنبية">
+        <button type="button" class="chip active" data-free-lang="">الكل</button>
+        <button type="button" class="chip" data-free-lang="en">English</button>
+        <button type="button" class="chip" data-free-lang="fr">Français</button>
+        <button type="button" class="chip" data-free-lang="de">Deutsch</button>
+        <button type="button" class="chip" data-free-lang="es">Español</button>
+      </div>
+      <p id="freeLibStatus" class="msg" aria-live="polite"></p>
+      <div id="freeLibResults" class="book-list freelib-results"></div>
+      <button type="button" id="freeLibMore" class="ghost freelib-more hidden">التالي — عرض كتب أكتر</button>
+    </div>
+
+    <div id="arabicCatalogPanel" class="hidden">
+      <div class="card hindawi-card">
+        <h2>📖 كتب مؤسسة هنداوي</h2>
+        <p>📖 كتب مؤسسة هنداوي — آلاف الكتب العربية المجانية قانونيًا (PDF/EPUB) من موقعها الرسمي</p>
+        <p class="hint">نزّل الكتاب من هناك وبعدين استورده هنا من «إضافة كتاب»</p>
+        <a class="button-link primary" href="https://www.hindawi.org/books/" target="_blank" rel="noopener">افتح كتب هنداوي الرسمية</a>
+      </div>
+      <h2 class="freelib-shelf-head">📚 رفوف مختارة — كلاسيكيات عربية (ملكية عامة)</h2>
+      <p class="hint">كتب تراثية اتحقّق منها نسخة نصية عربية سليمة في أرشيف الإنترنت — دي نقطة البداية المضمونة.</p>
+      <div id="arShelfResults" class="book-list freelib-results"></div>
+      <p class="hint">من أرشيف الإنترنت — نصوص عربية من الملكية العامة</p>
+      <div class="row wrap freelib-search-row">
+        <input id="arSearchInput" type="search" placeholder="دوّر بعنوان الكتاب العربي أو اسم المؤلف…" aria-label="بحث في الكتب العربية">
+        <button type="button" id="arSearchBtn" class="primary">🔎 دوّر</button>
+      </div>
+      <p id="arSearchNote" class="hint freelib-search-note">نتائج بحث أرشيف الإنترنت — كلها من رفوعات الأرشيف نفسه وجودة نصوصها متفاوتة لأن أصلها مسح ضوئي؛ الرفوف المختارة فوق هي المضمونة.</p>
+      <p id="arLibStatus" class="msg" aria-live="polite"></p>
+      <div id="arLibResults" class="book-list freelib-results"></div>
+      <button type="button" id="arLibMore" class="ghost freelib-more hidden">التالي — عرض كتب أكتر</button>
+    </div>
+  </section>
+
+    <!-- القارئ -->
+    <section id="tab-reader" class="tab">
+	    <div id="readerSidebar">
+	      <!-- شريط القارئ العائم (نموذج عارض PDF في Drive): رجوع + العنوان + فهرس/بحث/مظهر/أدوات — بيختفي مع النزول ويرجع مع الطلوع أو اللمس -->
+	      <div id="readerTopbar" class="reader-hide">
+	        <button id="backToLib" class="ghost">← رجوع</button>
+	        <div class="reader-title-wrap">
+	          <h1 id="readerTitle">—</h1>
+	          <span id="readerSubtitle"></span>
+	        </div>
+	        <button id="btnReaderSearch" class="icon-btn" type="button" title="بحث في الكتاب">🔍</button>
+	        <button id="btnReaderMenu" class="icon-btn" type="button" title="أدوات الكتاب">⋯</button>
+	      </div>
+	      <!-- المنطقة ١: شريط الإجراءات (ثابت تحت الهيدر) + شريط الحالة -->
+	      <div id="readerActionBar" class="reader-actionbar reader-hide">
+	        <div class="row action-row">
+	          <label class="lang-label">🌐 لغة الترجمة
+	            <select id="targetLangSel"></select>
+	          </label>
+	          <label class="lang-label" id="tStyleWrap">الأسلوب:
+	            <select id="tStyleSel">
+	              <option value="fusha">📖 فصحى</option>
+	              <option value="egyptian">🇪🇬 مصري</option>
+	            </select>
+	          </label>
+	          <button id="btnTranslate" class="primary">ترجم / كمّل الترجمة</button>
+	          <button id="btnStopTrans" class="ghost">⏹ إيقاف الترجمة</button>
+	          <button id="btnExplainBook" class="ghost">💡 اشرح الكتاب بالمصري</button>
+	        </div>
+	        <div id="readViewBar" class="row" role="group"><button type="button" class="primary" data-readview="orig">📄 الأصلي</button><button type="button" class="ghost" data-readview="trans">🌐 المترجم</button><button type="button" class="ghost" data-readview="both">الاتنين</button><button type="button" id="btnPdfPages" class="ghost hidden">📑 صفحات الـPDF</button></div>
+	        <div class="status-strip">
+	          <p id="transStatus" class="hint"></p>
+	          <div class="progress-wrap"><div id="transProgress" class="progress"></div></div>
+	          <div class="status-line">
+	            <span id="readerPercents" class="hint"></span>
+	            <span id="readProgressText" class="hint"></span>
+	          </div>
+	          <p id="basicNote" class="basic-note hidden">ترجمة آلية أساسية — للأسلوب المصري الكامل ضيف مفتاحك في الإعدادات</p>
+	        </div>
+	      </div>
+	    </div>
+	    <div id="lockCard" class="card">
+	      <h2>🔒 الفترة التجريبية خلصت</h2>
+	      <p class="hint">الفترة التجريبية المجانية يومين من أول تشغيل للتطبيق — وخلصت. فعّل الاشتراك الشهري عشان تفتح كل كتبك: ترجمة وشرح وتصدير كاملين.</p>
+	      <div class="sub-panel"></div>
+	    </div>
+	    <div id="readerEmpty" class="card">
+	      <p class="reader-empty-msg">📖 لسه مفيش كتاب مفتوح — افتح كتابًا من المكتبة</p>
+	      <button type="button" id="readerEmptyLib" class="primary">📚 افتح المكتبة</button>
+	    </div>
+
+    <!-- المنطقة ٢: مظهر القراءة (قابل للطي — مقفول افتراضيًا) -->
+    <div class="card reader-hide" id="appearanceCard">
+      <button id="btnAppearance" class="ghost card-toggle">🎨 مظهر القراءة</button>
+      <div id="appearanceBody" class="hidden">
+        <label>لون الصفحة</label>
+        <div class="row wrap swatches">
+          <button type="button" class="theme-swatch sw-light" data-theme-val="light">فاتح</button>
+          <button type="button" class="theme-swatch sw-sepia" data-theme-val="sepia">بيج ورقي</button>
+          <button type="button" class="theme-swatch sw-dark" data-theme-val="dark">ليلي</button>
+          <button type="button" class="theme-swatch sw-black" data-theme-val="black">أسود</button>
+          <button id="darkToggle" class="icon-btn" title="الوضع الليلي">🌙</button>
+        </div>
+        <label>خط القراءة
+          <select id="readerFontSel">
+            <option value="system">خط الجهاز</option>
+            <option value="amiri">أميري (Amiri)</option>
+            <option value="tajawal">تجوّل (Tajawal)</option>
+          </select>
+        </label>
+        <div class="row font-size-row">
+          <span>حجم الخط</span>
+          <button id="fontMinus" class="icon-btn" title="تصغير الخط">أ−</button>
+          <span id="fontSizeVal" class="hint">17</span>
+          <button id="fontPlus" class="icon-btn" title="تكبير الخط">أ+</button>
+        </div>
+        <label>تباعد الأسطر: <span id="lineHeightVal">1.9</span>
+          <input id="lineHeightRange" type="range" min="1.6" max="2.4" step="0.1" value="1.9">
+        </label>
+        <label class="switch-row">📏 مسطرة القراءة <input type="checkbox" id="rulerToggle"></label>
+        <p class="hint">شريط شفاف بيتحرك مع الماوس أو صباعك وانت بتقرا عشان عينك متزحش من السطر.</p>
+        <div class="row wrap">
+          <button id="btnFocus" class="ghost">⛶ وضع التركيز</button>
+          <label>😴 إيقاف تلقائي
+            <select id="sleepTimerSel">
+              <option value="off">لا يوجد</option>
+              <option value="10">بعد ١٠ دقايق</option>
+              <option value="20">بعد ٢٠ دقيقة</option>
+              <option value="30">بعد ٣٠ دقيقة</option>
+              <option value="endchunk">نهاية الجزء الحالي</option>
+            </select>
+          </label>
+        </div>
+        <p class="hint">الشكل بيتطبق على التطبيق كله وبيتحفظ على جهازك. خطوط أميري وتجوّل بتتحمّل من جوجل أول مرة (محتاجة إنترنت)، ولو مش متاحة بيشتغل خط الجهاز.</p>
+        <p class="hint shortcuts-hint">⌨️ اختصارات الكمبيوتر: الأسهم (← →) للتنقّل بين الأجزاء، وCtrl+K للبحث في الكتاب، وEsc لإغلاق اللوحات المفتوحة.</p>
+      </div>
+    </div>
+
+    <!-- المنطقة ٢ب: الصوت والنبرة (قابل للطي — مقفول افتراضيًا) -->
+    <div class="card reader-hide" id="voiceCard">
+      <button id="btnVoice" class="ghost card-toggle">🔊 الصوت والنبرة</button>
+      <div id="voiceBody" class="hidden">
+        <div class="row wrap">
+          <label>مصدر الصوت
+            <select id="ttsProviderSel">
+              <option value="device">أصوات الجهاز (مجاني)</option>
+              <option value="eleven">ElevenLabs</option>
+              <option value="azure">Microsoft Azure — باقة مجانية</option>
+              <option value="google">Google Cloud — باقة مجانية</option>
+            </select>
+          </label>
+        </div>
+        <p id="elProviderHint" class="hint"></p>
+        <p class="hint">مفاتيح الصوت السحابي (ElevenLabs / Azure / Google) بتتظبط من تبويب الإعدادات — قسم «🔊 مفاتيح الصوت». وأصوات الجهاز شغالة دايمًا مجانًا.</p>
+        <audio id="elAudio" class="hidden" controls preload="metadata" style="width:100%"></audio>
+        <div class="row wrap">
+          <button id="btnElFallback" class="ghost hidden">🔊 اسمع بصوت الجهاز</button>
+        </div>
+        <div class="row wrap">
+          <label>النبرة
+            <select id="toneSelect">
+              <optgroup label="نبرات عامة">
+                <option value="calm">هادية للتركيز</option>
+                <option value="enthusiastic">حماسية شيّقة</option>
+                <option value="serious">جادّة رسمية</option>
+                <option value="teacher">شرح معلّم صبور</option>
+                <option value="story">قصصية</option>
+              </optgroup>
+              <optgroup label="أساليب أداء">
+                <option value="commentator">معلّق رياضي حماسي</option>
+                <option value="literary">راوٍ أدبي</option>
+                <option value="poet">إلقاء شعري</option>
+                <option value="news">مذيع نشرة أخبار</option>
+                <option value="documentary">راوي وثائقي</option>
+                <option value="podcaster">بودكاستر مصري</option>
+                <option value="creator">صانع محتوى</option>
+              </optgroup>
+            </select>
+          </label>
+          <label>سرعة الصوت
+            <input id="speedRange" type="range" min="0.6" max="1.6" step="0.1" value="1">
+          </label>
+        </div>
+        <p class="hint">أساليب أداء مستوحاة من أنماط معروفة (تعليق رياضي، إلقاء شعري، راوي وثائقي…) وبتتنفذ بأصوات جهازك نفسها — مش أصوات أشخاص حقيقيين.</p>
+        <div class="row wrap">
+          <button id="btnPlayTrans" class="primary">▶ اسمع الترجمة</button>
+          <button id="btnPlayBookExplain" class="ghost">🔊 اسمع شرح الكتاب</button>
+          <button id="btnPauseAudio" class="ghost">⏸ وقفة</button>
+          <button id="btnResumeAudio" class="ghost">⏵ استكمال</button>
+          <button id="btnStopAudio" class="ghost">⏹ إيقاف الصوت</button>
+        </div>
+        <p id="audioStatus" class="hint"></p>
+        <div id="voiceLists"></div>
+        <p id="noArabicVoice" class="msg hidden">جهازك مش بيقدّم أصوات عربية في المتصفح — هيتستخدم صوت الجهاز الافتراضي. جرّب تثبّت صوت عربي من إعدادات الموبايل (تحويل النص لكلام).</p>
+      </div>
+    </div>
+
+    <!-- المنطقة ٣: أدوات الكتاب -->
+    <div class="card reader-hide hidden tools-menu" id="bookToolsCard">
+      <h2>🧰 أدوات الكتاب</h2>
+      <div class="row wrap">
+        <button id="btnMenuVoice" class="ghost">🔊 الصوت والنبرة</button>
+      </div>
+      <div class="tools-grid">
+        <button id="btnCleanup" class="ghost">🧹 تنظيف النص</button>
+        <div class="tool-cell">
+          <button id="btnRepair" class="ghost">🔧 إصلاح النص البايظ</button>
+          <button id="btnStopRepair" class="ghost hidden">إيقاف الإصلاح</button>
+        </div>
+        <button id="btnRestoreOrig" class="ghost">↩️ استرجاع النص الأصلي</button>
+        <button id="btnClearTrans" class="ghost">🗑 مسح الترجمات</button>
+        <button id="btnAskBook" class="ghost">💬 اسأل الكتاب</button>
+        <button id="btnQuiz" class="ghost">🧠 اختبرني</button>
+        <button id="btnReloadBook" class="ghost">🔄 إعادة تحميل الكتاب</button>
+        <button id="btnExportBook" class="ghost">⬇ تصدير الكتاب</button>
+        <button id="btnPrintBook" class="ghost">🖨 طباعة</button>
+        <label class="tool-date">🎯 أخلص الكتاب يوم
+          <input id="finishByInput" type="date">
+        </label>
+      </div>
+      <p id="finishPlanHint" class="hint"></p>
+      <p id="restoreHint" class="hint"></p>
+      <p id="cleanupStatus" class="hint"></p>
+    </div>
+
+    <div id="askPanel" class="card reader-hide hidden">
+      <h2>💬 اسأل الكتاب</h2>
+      <p class="hint">اسأل عن محتوى الكتاب الحالي — الإجابة بتتكوّن من أجزاء الكتاب نفسه بس، مع ذكر رقم الجزء.</p>
+      <div id="askMessages" class="chat-box"></div>
+      <div class="row">
+        <input id="askInput" type="text" placeholder="اكتب سؤالك عن الكتاب…">
+        <button id="askSend" class="primary">ابعت</button>
+      </div>
+      <div class="row wrap">
+        <button id="askClear" class="ghost">مسح المحادثة</button>
+        <p id="askMsg" class="msg"></p>
+      </div>
+    </div>
+
+    <div id="summaryCard" class="card hidden reader-hide">
+      <h2>ملخص الكتاب</h2>
+      <p id="bookSummary"></p>
+      <button id="btnSummary" class="ghost">اعمل / حدّث الملخص من أهم النقط</button>
+    </div>
+
+    <!-- فهرس وبحث: صف نحيف فوق الأجزاء على طول -->
+    <div class="card reader-hide" id="indexCard">
+      <button id="btnIndex" class="ghost card-toggle">📑 فهرس وبحث</button>
+      <div id="indexPanel" class="hidden">
+        <label>🔍 دوّر في الكتاب
+          <input id="bookSearch" type="search" placeholder="اكتب كلمة أو جملة من الكتاب…">
+        </label>
+        <label class="switch-row">العلامات بس 🔖 <input type="checkbox" id="indexMarksOnly"></label>
+        <div id="indexList" class="index-list"></div>
+        <h3>🖍 تظليلاتي وملاحظاتي</h3>
+        <div id="indexAnnotations" class="index-list"></div>
+      </div>
+    </div>
+    <div id="pdfPages" class="hidden" dir="ltr"></div>
+    <div id="chunks" class="reader-hide"></div>
+    <!-- شريط تحكم سفلي (أسلوب أبجد): سكرولر تقدّم + فهرس/مظهر/صوت/ثيم سريع -->
+    <div id="readerBottomBar" class="hidden">
+      <div class="rbb-row1">
+        <input id="readScrubber" type="range" min="0" max="0" step="1" value="0" aria-label="التنقل بين أجزاء الكتاب">
+        <span id="scrubPos">—</span>
+        <span id="scrubMeta" class="hint"></span>
+      </div>
+      <div class="rbb-row2">
+        <button id="btnBarIndex" class="rbb-btn" type="button">📑<span>الفهرس</span></button>
+        <button id="btnBarAppearance" class="rbb-btn" type="button">🎨<span>المظهر</span></button>
+        <button id="btnBarVoice" class="rbb-btn" type="button">🔊<span>الصوت</span></button>
+        <button id="btnBarTheme" class="rbb-btn" type="button">🌙<span>الثيم</span></button>
+      </div>
+      <div class="rbb-credit">كُتُبِي — تطوير Don Eslam ©</div>
+    </div>
+  </section>
+
+  <!-- القاموس -->
+  <section id="tab-glossary" class="tab">
+    <h1>القاموس</h1>
+    <p class="hint">مصطلحات الكتاب الحالي + كلماتك المحفوظة من المترجم السريع. النجمة ⭐ بتحفظ المصطلح في المفضلة.</p>
+    <input id="glossSearch" type="search" placeholder="دوّر في المصطلحات…">
+    <label class="switch-row">المفضلة بس <input type="checkbox" id="glossFavOnly"></label>
+    <div id="glossaryList"></div>
+    <h2>كلماتي المحفوظة</h2>
+    <div id="savedWordsList"></div>
+    <h2>🃏 بطاقات مراجعة</h2>
+    <p class="hint">راجع مصطلحات الكتاب الحالي ببطاقات: شوف المصطلح الإنجليزي، اقلب البطاقة للمعنى والشرح، وعلّم على اللي عرفته — اللي لسه بتعلّمه بيرجع آخر الطابور.</p>
+    <div id="flashBox"></div>
+  </section>
+
+  <!-- مترجم سريع -->
+  <section id="tab-quick" class="tab">
+    <h1>مترجم سريع</h1>
+    <div class="card">
+      <label>🌐 لغة الترجمة
+        <select id="quickTargetSel"></select>
+      </label>
+      <label id="quickTStyleWrap">الأسلوب:
+        <select id="quickTStyleSel">
+          <option value="fusha">📖 فصحى</option>
+          <option value="egyptian">🇪🇬 مصري</option>
+        </select>
+      </label>
+      <textarea id="quickInput" rows="4" placeholder="اكتب كلمة واحدة، أو جملة / فقرة قصيرة بأي لغة أجنبية…"></textarea>
+      <div class="row">
+        <button id="btnQuick" class="primary">ترجم دلوقتي</button>
+        <button id="btnQuickSave" class="ghost" disabled>⭐ احفظ الكلمة في قاموسي</button>
+        <button id="btnQuickListen" class="ghost" disabled>🔊 اسمعها</button>
+      </div>
+      <div id="quickResult" class="result"></div>
+    </div>
+  </section>
+
+  <!-- التثبيت -->
+  <section id="tab-install" class="tab">
+    <h1>ثبّت التطبيق</h1>
+    <div class="card">
+      <h2>على موبايل أندرويد</h2>
+      <ol class="steps">
+        <li>افتح الصفحة دي في متصفح <b>Chrome</b> على الموبايل.</li>
+        <li>دوس على قايمة النقط التلاتة <b>⋮</b> اللي فوق.</li>
+        <li>اختار <b>Install app / تثبيت التطبيق</b> أو <b>Add to Home Screen / إضافة إلى الشاشة الرئيسية</b>.</li>
+        <li>أكّد التثبيت — هتلاقي أيقونة «كُتُبِي» على الشاشة الرئيسية وبتفتح ملء الشاشة زي أي تطبيق.</li>
+      </ol>
+      <button id="btnInstall" class="primary hidden">ثبّت التطبيق دلوقتي</button>
+      <p class="hint">لو زرار التثبيت الجاهز مش ظاهر، الخطوات اليدوية اللي فوق هي نفس النتيجة بالظبط.</p>
+    </div>
+    <div class="card">
+      <h2>حفظ النسخ على Google Drive</h2>
+      <ol class="steps">
+        <li>من صفحة الكتاب دوس «تصدير ‎.txt‎» أو «طباعة / PDF» ونزّل الملف على جهازك.</li>
+        <li>افتح تطبيق Google Drive ودوس «+ جديد» ثم «رفع ملف».</li>
+        <li>اختار ملف النسخة المترجمة — كده محفوظ في درايف وتقدر تفتحه من أي جهاز.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- الإعدادات -->
+  <section id="tab-settings" class="tab">
+    <h1>الإعدادات</h1>
+    <div class="card" id="subCard">
+      <h2>⭐ الاشتراك</h2>
+      <p class="hint">الاشتراك الشهري بيفتح كل كتبك — وفيه فترة تجريبية مجانية لمدة يومين من أول تشغيل للتطبيق.</p>
+      <div class="sub-panel"></div>
+    </div>
+    <h2 class="settings-group">🔑 الذكاء الاصطناعي</h2>
+    <div class="card">
+      <h2>🔑 مفتاح الترجمة الذكية</h2>
+      <p class="hint">الترجمة والشرح بالمصري شغالين مجانًا من غير أي مفتاح (خدمة التطبيق المدمجة، بحد يومي بسيط). ولو عندك مفتاحك الخاص الصقه هنا لجودة وحدود أعلى — بيتحفظ على جهازك بس.</p>
+      <label>مفتاح الـ API بتاعك (OpenAI-compatible)
+        <span class="key-field"><input id="apiKey" type="password" autocomplete="off" placeholder="الصق المفتاح هنا"><button type="button" class="key-eye" data-eye-for="apiKey" title="إظهار / إخفاء المفتاح" aria-label="إظهار أو إخفاء المفتاح">👁</button></span>
+      </label>
+      <label>العنوان الأساسي (Base URL)
+        <input id="apiBase" type="url" value="/api/ai">
+      </label>
+      <label>الموديل
+        <input id="apiModel" type="text" value="gemini-3.5-flash-lite">
+      </label>
+      <label>أسلوب الترجمة الافتراضي (للهدف العربي — بيتحكم في الكتب الجديدة)
+        <select id="defTStyleSel">
+          <option value="fusha">📖 فصحى — عربي سليم زي ترجمة المتصفحات</option>
+          <option value="egyptian">🇪🇬 مصري — باللهجة المصرية</option>
+        </select>
+      </label>
+      <div class="row wrap">
+        <button id="btnFetchModels" type="button" class="ghost">📋 هات الموديلات المتاحة لحسابي</button>
+        <select id="modelListSel" class="hidden" style="width:auto"></select>
+      </div>
+      <p id="modelsMsg" class="msg"></p>
+      <p class="hint">اسم الموديل لازم يبقى مكتوب بالحروف بالظبط زي ما الخدمة عارفاه (حسّاس لحالة الحروف) — لو الترجمة وقفت بخطأ 404، هات القايمة من الزرار اللي فوق واختار الموديل منها بدل ما تكتبه بإيدك.</p>
+      <div class="row wrap">
+        <button id="saveSettings" class="primary">احفظ الإعدادات</button>
+        <button id="testConn" class="ghost">اختبار الاتصال</button>
+      </div>
+      <p class="privacy">🔒 المفتاح بيتحفظ في متصفح جهازك بس (localStorage)، وبيتبعت لعنوان الـ API اللي انت كاتبه بس — مش بيروح لأي مكان تاني ومش بيتسجّل في أي مكان.</p>
+      <p id="settingsMsg" class="msg"></p>
+      <p id="connMsg" class="msg"></p>
+      <p id="lastErrLine" class="hint hidden"></p>
+    </div>
+    <h2 class="settings-group">🔊 مفاتيح الصوت</h2>
+    <div class="card">
+      <h2>🔊 الأصوات الاحترافية — ElevenLabs</h2>
+      <p class="hint">الأصوات دي بتشتغل من حساب ElevenLabs بتاعك وبتتخصم من رصيد حروفك عندهم — مفتاح الترجمة منفصل تمامًا.</p>
+      <label>مفتاح ElevenLabs API
+        <span class="key-field"><input id="elKey" type="password" autocomplete="off" placeholder="الصق مفتاح ElevenLabs هنا"><button type="button" class="key-eye" data-eye-for="elKey" title="إظهار / إخفاء المفتاح" aria-label="إظهار أو إخفاء المفتاح">👁</button></span>
+      </label>
+      <div class="row wrap">
+        <button id="elSaveKey" class="primary">احفظ المفتاح</button>
+        <button id="elTest" class="ghost">اختبار الاتصال وجلب الأصوات</button>
+      </div>
+      <p id="elMsg" class="msg"></p>
+      <label>الصوت
+        <select id="elVoiceSel"></select>
+      </label>
+      <label>الموديل
+        <select id="elModelSel">
+          <option value="eleven_multilingual_v2">eleven_multilingual_v2 — الأفضل للعربي</option>
+          <option value="eleven_flash_v2_5">eleven_flash_v2_5 — أسرع وأرخص</option>
+        </select>
+      </label>
+      <label>الثبات (Stability): <span id="elStabVal">0.50</span>
+        <input id="elStab" type="range" min="0" max="1" step="0.05" value="0.5">
+      </label>
+      <label>التشابه (Similarity Boost): <span id="elSimVal">0.75</span>
+        <input id="elSim" type="range" min="0" max="1" step="0.05" value="0.75">
+      </label>
+      <label>السرعة (Speed): <span id="elSpeedVal">1.00</span>
+        <input id="elSpeed" type="range" min="0.7" max="1.2" step="0.05" value="1">
+      </label>
+      <p class="privacy">🔒 مفتاح ElevenLabs بيتحفظ على جهازك بس وبيتبعت لـ api.elevenlabs.io بس. الصوت المولّد بيتحفظ على جهازك فمش بيتخصم من رصيدك مرتين.</p>
+    </div>
+    <div class="card">
+      <h2>🔊 الأصوات المجانية — Azure وGoogle</h2>
+      <p class="hint">الباقات المجانية دي من حساباتك انت عند Microsoft وGoogle — حدودها الشهرية المجانية بتكفي آلاف الصفحات، والاستخدام قانوني تجاريًا حسب شروط كل شركة.</p>
+      <h3>Microsoft Azure Speech</h3>
+      <label>مفتاح Azure
+        <span class="key-field"><input id="azKey" type="password" autocomplete="off" placeholder="الصق مفتاح Azure Speech هنا"><button type="button" class="key-eye" data-eye-for="azKey" title="إظهار / إخفاء المفتاح" aria-label="إظهار أو إخفاء المفتاح">👁</button></span>
+      </label>
+      <label>الريجن (Region)
+        <input id="azRegion" type="text" autocomplete="off" placeholder="eastus">
+      </label>
+      <p class="hint">اكتب الريجن زي ما هو في حسابك (زي eastus أو westeurope) — هتلاقيه في صفحة الـ resource بتاعتك في Azure.</p>
+      <div class="row wrap">
+        <button id="azSaveKey" class="primary">احفظ مفتاح Azure</button>
+        <button id="azTest" class="ghost">جلب أصوات Azure</button>
+      </div>
+      <p id="azMsg" class="msg"></p>
+      <label>صوت Azure
+        <select id="azVoiceSel"></select>
+      </label>
+      <h3>Google Cloud Text-to-Speech</h3>
+      <label>مفتاح Google API
+        <span class="key-field"><input id="gKey" type="password" autocomplete="off" placeholder="الصق مفتاح Google API هنا"><button type="button" class="key-eye" data-eye-for="gKey" title="إظهار / إخفاء المفتاح" aria-label="إظهار أو إخفاء المفتاح">👁</button></span>
+      </label>
+      <p class="hint">المفتاح لازم يكون مشروع Google Cloud مفعّل فيه Cloud Text-to-Speech API.</p>
+      <div class="row wrap">
+        <button id="gSaveKey" class="primary">احفظ مفتاح Google</button>
+        <button id="gTest" class="ghost">جلب أصوات Google</button>
+      </div>
+      <p id="gMsg" class="msg"></p>
+      <label>صوت Google
+        <select id="gVoiceSel"></select>
+      </label>
+      <p class="privacy">🔒 المفاتيح دي بتتحفظ على جهازك بس، وكل مفتاح بيتبعت لنطاق شركته بس (microsoft.com / googleapis.com).</p>
+    </div>
+    <h2 class="settings-group">⚙️ عام</h2>
+    <div class="card">
+      <h2>🔐 الصلاحيات</h2>
+      <p class="hint">التطبيق بيطلب الصلاحية وقت ما يحتاجها بس — ودي حالتها دلوقتي:</p>
+      <div class="perm-row">
+        <div><strong>الإشعارات</strong><div class="hint">عشان نبلّغك لما يوصل تحديث جديد للتطبيق.</div></div>
+        <span id="notifStatus" class="perm-status"></span>
+      </div>
+      <div class="row"><button id="btnNotifPerm" class="ghost">تفعيل الإشعارات</button></div>
+      <div class="perm-row">
+        <div><strong>الميكروفون</strong><div class="hint">مش بنستخدمه إلا لو فعّلت ميزة صوتية تحتاجه.</div></div>
+        <span id="micStatus" class="perm-status"></span>
+      </div>
+      <div class="perm-row">
+        <div><strong>الملفات</strong><div class="hint">بتختار الملف بنفسك كل مرة من جهازك.</div></div>
+        <span id="fileStatus" class="perm-status"></span>
+      </div>
+      <div class="perm-row">
+        <div><strong>الحافظة</strong><div class="hint">للصق نص الكتاب أو نسخ كود التثبيت لما تدوس نسخ.</div></div>
+        <span id="clipStatus" class="perm-status"></span>
+      </div>
+    </div>
+    <div class="card danger">
+      <h2>💾 بياناتي</h2>
+      <p class="hint">كل كتبك وترجماتك محفوظة على جهازك بس. المسح ده نهائي.</p>
+      <div class="row wrap">
+        <button id="btnShowTerms" class="ghost">📄 شروط الخدمة</button>
+        <button id="btnWipe" class="ghost">امسح كل الكتب والبيانات</button>
+      </div>
+      <h3>نسخة احتياطية / نقل لجهاز تاني</h3>
+      <p class="hint">النسخة فيها كتبك وترجماتك وتظليلاتك ومحادثاتك وإعداداتك وحالة اشتراكك — من غير أي مفاتيح API (المفاتيح مبتطلعش من الجهاز).</p>
+      <div class="row wrap">
+        <button id="btnBackupExport" class="ghost">⬇ تصدير نسخة احتياطية</button>
+        <label class="file-label">⬆ استيراد نسخة<input id="backupFile" type="file" accept=".json,application/json" class="hidden"></label>
+      </div>
+      <p id="backupMsg" class="msg"></p>
+    </div>
+  </section>
+
+  <!-- ملفاتي -->
+  <section id="tab-files" class="tab">
+    <h1>ملفاتي</h1>
+    <p id="storageInfo" class="hint"></p>
+    <div class="row wrap">
+      <button type="button" id="filesDriveBtn" class="ghost">📥 استيراد من Google Drive</button>
+    </div>
+    <div id="filesList" class="book-list"></div>
+    <p id="emptyFiles" class="empty">لسه مفيش ملفات. ضيف أول كتاب من تبويب المكتبة.</p>
+  </section>
+
+  <!-- الإدارة (للمالك بس — مش في شريط التبويبات) -->
+  <!-- محتوى الإدارة مش موجود في الصفحة أصلًا: بيتبني بـ JS بعد فتح قفل كلمة السر بس
+       (إنشاء كلمة السر أول مرة / شاشة القفل / المحتوى الكامل) — انظر renderAdmin في app3.js -->
+  <section id="tab-admin" class="tab">
+    <h1>الإدارة</h1>
+    <div id="adminRoot"></div>
+  </section>
+</main>
+<div id="sheetBackdrop" class="sheet-backdrop hidden"></div>
+
+<!-- شيت «المزيد»: فهرس كامل بأقسام التطبيق — بيتبني من JS وبيعيش فوق نفس خلفية اللوحات -->
+<div id="moreSheet" class="more-sheet" role="dialog" aria-label="المزيد — كل أقسام التطبيق">
+  <div class="more-sheet-head">☰ المزيد — كل الأقسام</div>
+  <div id="moreReaderTools"><div class="more-reader-title">أدوات القارئ</div><button type="button" class="more-row" id="moreBtnIndex" data-proxy="btnBarIndex">📑 <span>الفهرس</span></button><button type="button" class="more-row" id="moreBtnAppearance" data-proxy="btnBarAppearance">🎨 <span>المظهر</span></button><button type="button" class="more-row" id="moreBtnVoice" data-proxy="btnBarVoice">🔊 <span>الصوت</span></button><button type="button" class="more-row" id="moreBtnTheme" data-proxy="btnBarTheme">🌙 <span>الثيم</span></button></div>
+  <div id="moreSheetList"></div>
+  <div id="moreTransTools"><div class="more-reader-title">الترجمة والعرض</div>
+    <label class="more-field" id="moreLangWrap"><span>🌐 لغة الترجمة</span><select id="moreTargetLangSel"></select></label>
+    <label class="more-field" id="moreStyleWrap"><span>الأسلوب</span><select id="moreTStyleSel"></select></label>
+    <div id="moreViewList"></div>
+    <button type="button" class="more-row" data-tproxy="btnTranslate">🌐 <span>ترجم / كمّل الترجمة</span></button>
+    <button type="button" class="more-row" data-tproxy="btnStopTrans">⏹ <span>إيقاف الترجمة</span></button>
+    <button type="button" class="more-row" data-tproxy="btnExplainBook">💡 <span>اشرح الكتاب بالمصري</span></button>
+  </div>
+  <!-- كارت المالك: بصمة التطوير وحقوق التطبيق -->
+  <div id="ownerCard" class="owner-card">
+    <img src="icons/owner-logo.jpg" alt="Don Eslam — صاحب التطبيق" class="owner-logo">
+    <h3>👑 عن التطبيق وصاحبه</h3>
+    <p>من تطوير وإنشاء <strong>Don Eslam</strong> — صاحب التطبيق</p>
+    <p class="hint">© 2026 Don Eslam — جميع الحقوق محفوظة لتطبيق كُتُبِي</p>
+  </div>
+</div>
+
+<nav class="tabbar">
+  <button data-tab="home" class="active">🏠<span>الرئيسية</span></button>
+  <button data-tab="library">📚<span>المكتبة</span></button>
+  <button data-tab="reader">📖<span>القارئ</span></button>
+  <button data-tab="glossary">🔤<span>القاموس</span></button>
+  <button data-tab="quick">⚡<span>مترجم سريع</span></button>
+  <button data-tab="files">📁<span>ملفاتي</span></button>
+  <button data-tab="install">📲<span>التثبيت</span></button>
+  <button data-tab="settings">⚙️<span>الإعدادات</span></button>
+  <button type="button" id="btnNavMore" title="كل أقسام التطبيق">☰<span>المزيد</span></button>
+</nav>
+
+<div id="selPopup" class="sel-popup hidden">
+  <div id="selText" class="sel-text"></div>
+  <div id="selResult" class="result"></div>
+  <div class="row">
+    <button id="selTranslate" class="primary">ترجم</button>
+    <button id="selClose" class="ghost">اقفل</button>
+  </div>
+</div>
+
+<div id="resumeBar" class="resume-bar hidden"><span id="resumeBarText"></span><button id="resumeBarBtn" class="primary">رجوع للكتاب</button></div>
+
+<div id="consentModal" class="consent-overlay hidden">
+  <div class="consent-box card">
+    <h2>أهلًا بيك في كُتُبِي 📚</h2>
+    <p>قبل ما تبدأ، دي شروط الاستخدام باختصار:</p>
+    <ul class="consent-list">
+      <li>التطبيق أداة ترجمة وتعليم — انت المسؤول عن حقوق الكتب والنصوص اللي بتضيفها، ومتضيفش محتوى مقرصن أو مخالف للقانون.</li>
+      <li>مفتاح الـ API وكتبك وبياناتك بتتحفظ على جهازك بس ومش بتتبعت لأي سيرفر تابع لينا؛ الترجمة بتتم بين جهازك وخدمة الذكاء الاصطناعي اللي انت مختارها.</li>
+      <li>الاشتراك الشهري ٤٩ جنيه بيتفعّل يدويًا بكود عن طريق واتساب، ومدته لنهاية شهر التفعيل — وفيه فترة تجريبية مجانية لمدة يومين من أول تشغيل.</li>
+      <li>جودة الترجمة والشرح بتعتمد على خدمة الذكاء الاصطناعي والنص الأصلي، ومفيش ضمان إنها خالية من الأخطاء — راجع المحتوى المهم بنفسك.</li>
+      <li>ممكن نحدّث التطبيق والشروط دي، والتحديثات توصلك جوه التطبيق.</li>
+    </ul>
+    <button id="consentBtn" class="primary">أوافق على الشروط وأبدأ</button>
+  </div>
+</div>
+
+<div id="quizOverlay" class="consent-overlay hidden">
+  <div class="consent-box card">
+    <h2>🧠 اختبرني</h2>
+    <p id="quizBestLine" class="hint"></p>
+    <div id="quizBody"></div>
+    <div class="row wrap">
+      <button id="quizNew" class="ghost">🔄 أسئلة جديدة</button>
+      <button id="quizClose" class="primary">خلاص</button>
+    </div>
+  </div>
+</div>
+
+<div id="wordSheet" class="consent-overlay hidden">
+  <div class="consent-box card">
+    <h2 id="wordTitle" dir="ltr">word</h2>
+    <p id="wordBody" class="hint">بيجيب المعنى…</p>
+    <div class="row wrap">
+      <button id="wordSpeak" class="ghost">🔊 النطق</button>
+      <button id="wordSave" class="ghost">⭐ احفظها في قاموسي</button>
+      <button id="wordClose" class="primary">خلاص</button>
+    </div>
+  </div>
+</div>
+
+<div id="printArea"></div>
+<script src="app.js"></script>
+<!-- [D-04] حاوية الطبقات الواحدة: كل العناصر العائمة بتتنقل لجواها وقت الإقلاع (OVERLAY_FLOATERS في app2.js) -->
+<div id="overlay-root"><div id="appToast" role="status" aria-live="polite"></div></div>
+<script src="app2.js"></script>
+<script src="app3.js"></script>
+<script src="pdftext.js"></script>
+<script src="app4.js"></script>
+<!-- [F] محرك الإصلاح الذاتي: وصفات فحص/إصلاح + سجل — بيتحمّل آخر حاجة عشان يستخدم دوال كل الوحدات -->
+<script src="app5.js"></script>
+</body>
+</html>
