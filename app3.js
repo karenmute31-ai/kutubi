@@ -372,7 +372,7 @@ async function loadFreeLibrary(reset){
   freeLibState.loading = true; more.disabled = true;
   status.textContent = reset ? "بيحمّل كتب مجانية…" : "بيحمّل كتب أكتر…"; status.classList.remove("err");
   try{
-    const r = await fetch(url);
+    const r = await fetch(url, {signal: AbortSignal.timeout(20000)});
     if(!r.ok) throw new Error("Gutendex HTTP " + r.status);
     const data = await r.json();
     const results = Array.isArray(data.results) ? data.results : [];
@@ -412,7 +412,7 @@ async function downloadFreeBook(book, card){
   try{
     const url = freeTextUrl(book);
     if(!url) throw new Error("no plain text");
-    const r = await fetch(url);
+    const r = await fetch(url, {signal: AbortSignal.timeout(90000)});
     if(!r.ok) throw new Error("text HTTP " + r.status);
     text = await r.text();
     if(/^\s*<!doctype html/i.test(text)) throw new Error("source returned html");
@@ -511,7 +511,7 @@ async function loadArabicLibrary(reset){
   arLibState.loading = true; more.disabled = true;
   status.textContent = reset ? "بيحمّل نصوص عربية من الملكية العامة…" : "بيحمّل كتب عربية أكتر…"; status.classList.remove("err");
   try{
-    const r = await fetch(iaSearchUrl(arLibState.page));
+    const r = await fetch(iaSearchUrl(arLibState.page), {signal: AbortSignal.timeout(20000)});
     if(!r.ok) throw new Error("Internet Archive HTTP " + r.status);
     const data = await r.json();
     const response = data.response || {};
@@ -555,12 +555,12 @@ async function downloadArabicBook(doc, card){
   let text = "";
   try{
     const id = encodeURIComponent(doc.identifier || "");
-    const mr = await fetch("https://archive.org/metadata/" + id);
+    const mr = await fetch("https://archive.org/metadata/" + id, {signal: AbortSignal.timeout(20000)});
     if(!mr.ok) throw new Error("metadata HTTP " + mr.status);
     const meta = await mr.json();
     const file = archiveTextFile(meta.files || []);
     if(!file) throw new Error("no full text file");
-    const r = await fetch("https://archive.org/download/" + id + "/" + encodeURIComponent(file));
+    const r = await fetch("https://archive.org/download/" + id + "/" + encodeURIComponent(file), {signal: AbortSignal.timeout(90000)});
     if(!r.ok) throw new Error("text HTTP " + r.status);
     text = await r.text();
     if(/^\s*<!doctype html/i.test(text)) throw new Error("source returned html");

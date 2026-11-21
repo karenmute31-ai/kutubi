@@ -433,6 +433,7 @@
               </optgroup>
               <optgroup label="أساليب شرح متخصصة">
                 <option value="reverse">🔬 الهندسة العكسية — أسلوب المهندس بهنسي ⭐</option>
+                <option value="hakawati">⚡ حكواتي — شرح سريع بالتشبيهات</option>
               </optgroup>
             </select>
           </label>
@@ -656,7 +657,11 @@
       <p class="privacy">🔒 مفتاح ElevenLabs بيتحفظ على جهازك بس وبيتبعت لـ api.elevenlabs.io بس. الصوت المولّد بيتحفظ على جهازك فمش بيتخصم من رصيدك مرتين.</p>
     </div>
     <div class="card">
-      <section id="geminiTtsPreview" class="card" aria-label="معاينة Gemini المصرية الاختيارية">
+      <style>
+:is(#geminiTtsPreview,#cloudflareTtsPreview,#elevenOwnerTtsPreview) input[type=checkbox]{width:auto;display:inline-block;vertical-align:middle;margin-inline:0 .5rem}
+:is(#geminiTtsPreview,#cloudflareTtsPreview,#elevenOwnerTtsPreview) div>label{display:block;line-height:1.8;margin-block:.6rem}
+:is(#cloudflareTtsPreview,#elevenOwnerTtsPreview) button{font:inherit;padding:.6rem .85rem;border-radius:.7rem;cursor:pointer}
+</style><section id="geminiTtsPreview" class="card" aria-label="معاينة Gemini المصرية الاختيارية">
 <h3>Gemini TTS — معاينة مصرية اختيارية للبالغين</h3>
 <p>مش المصدر الافتراضي ومش قراءة تلقائية لكتابك. تجربة نص عام قصير فقط، بلا مفتاح على جهازك؛ المفتاح يظل في الخادم. للمالك فقط؛ لا سقف يومي يفرضه التطبيق، وحدود Google تسري. التوليد للمالك بعد تسجيل الدخول ومراجعة حصة مشروعه فقط. المجاني محدود وقد لا يكون متاحًا لحساب التطبيق.</p>
 <p><strong>قبل الإرسال:</strong> Google قد تستخدم نص ومخرجات الطبقة المجانية لتحسين نماذجها، وقد يراجعها أشخاص. ما تبعتش كتابًا خاصًا أو أي معلومات شخصية أو سرية. هذه التجربة 18+ فقط، وليست مخصصة لمن دون 18. غير متاحة هنا لسكان الاتحاد/المنطقة الاقتصادية الأوروبية أو سويسرا أو المملكة المتحدة لأن شروطهم تحتاج خدمة مدفوعة.</p>
@@ -670,7 +675,32 @@
 <div class="toolrow row wrap"><button type="button" data-gtts="sample">استخدم عينة مصرية عامة</button><button type="button" data-gtts="check">افحص الإتاحة بدون إرسال نص</button><button type="button" data-gtts="play">أرسل العينة واسمعها</button><button type="button" data-gtts="stop">أوقف العينة</button></div>
 <p data-gtts="status" role="status" aria-live="polite">لم يُرسل أي نص. أكّد الشروط لكل عينة. فحص الإتاحة لا يولّد صوتًا.</p>
 <audio data-gtts="audio" controls preload="none" style="width:100%"></audio>
+</section><section id="cloudflareTtsPreview" class="card" aria-label="معاينة Cloudflare الإنجليزية للمالك">
+<h3>Cloudflare Workers AI · عينة إنجليزية للمالك</h3>
+<p>نموذج Aura-2-en يتحدث الإنجليزية فقط، ليس عربيًا أو مصريًا. ليس مصدر قراءة الكتاب الافتراضي، ولا يرسل كتابك تلقائيًا. سجل دخول المالك من قسم Gemini أعلاه، ويُستخدم نفس الدخول لهذه العينة. مفتاح Cloudflare لا يخرج من الخادم.</p>
+<p>الحساب على Workers Free، بحصة مشتركة قدرها10 آلاف neuron يوميًا، ثم يرفض المزود الطلبات. لا ترقية أو إعادة تلقائية. هذه العينة حدها 200 حرف. لا سقف يومي يفرضه التطبيق؛ الحصة المتبقية يحددها Cloudflare.</p>
+<label>نص عام إنجليزي قصير<textarea data-cftts="text" rows="3" maxlength="200" dir="ltr" lang="en" style="width:100%;box-sizing:border-box" placeholder="A short public English sample only"></textarea></label>
+<div><label><input type="checkbox" data-cftts="adult"> عمري 18 سنة أو أكثر.</label></div>
+<div><label><input type="checkbox" data-cftts="publicText"> النص عام، بلا كتاب خاص أو بيانات شخصية أو سرية.</label></div>
+<div><label><input type="checkbox" data-cftts="privacy"> أوافق على إرسال هذه العينة إلى Cloudflare لمعالجتها وتوليد صوت اصطناعي.</label></div>
+<div class="row wrap"><button type="button" data-cftts="sample">املأ عينة إنجليزية عامة</button><button type="button" data-cftts="play">أرسل العينة الإنجليزية</button><button type="button" data-cftts="stop">أوقف العينة</button></div>
+<p data-cftts="status" role="status" aria-live="polite">لم يُرسل شيء. هذه المعاينة لا تدعم العربية.</p>
+<audio data-cftts="audio" controls preload="none" style="width:100%" aria-label="عينة إنجليزية مولدة باستخدام Cloudflare"></audio>
+<p><a href="https://developers.cloudflare.com/workers-ai/models/aura-2-en/" target="_blank" rel="noopener noreferrer">النموذج وخصوصيته</a> · <a href="https://developers.cloudflare.com/workers-ai/platform/pricing/" target="_blank" rel="noopener noreferrer">الحصة والتسعير</a></p>
+</section><section id="elevenOwnerTtsPreview" class="card" aria-label="معاينة ElevenLabs الخاصة بالمالك">
+<h3>ElevenLabs · عينة متعددة اللغات للمالك</h3>
+<p>صوت Daniel القياسي، أصله إنجليزي، باستخدام eleven_multilingual_v2 الذي يدعم العربية. ليس صوتًا مصريًا مضمونًا. هذه معاينة قصيرة فقط وليست قراءة كتاب تلقائية. سجل دخول المالك أعلاه؛ المفتاح في الخادم ولا يُحفظ في متصفحك.</p>
+<p>يتحقق الخادم من أن الخطة Free وأن الحصة تكفي قبل كل عينة. الحصة مشتركة، 10 آلاف credit لكل دورة. الاستخدام المجاني غير تجاري مع نسبة إلى ElevenLabs. مكتبة أصوات المجتمع غير متاحة عبر API المجاني، لذلك اخترنا صوتًا قياسيًا لا استنساخًا.</p>
+<label>نص عام قصير، حتى 200 حرف<textarea data-eltts="text" rows="3" maxlength="200" style="width:100%;box-sizing:border-box"></textarea></label>
+<div><label><input type="checkbox" data-eltts="adult"> عمري 18 سنة أو أكثر.</label></div>
+<div><label><input type="checkbox" data-eltts="publicText"> النص عام، بلا كتاب خاص أو بيانات شخصية أو سرية.</label></div>
+<div><label><input type="checkbox" data-eltts="privacy"> أوافق على إرسال هذه العينة إلى ElevenLabs لتوليد صوت اصطناعي.</label></div>
+<div class="row wrap"><button type="button" data-eltts="sample">املأ عينة عربية عامة</button><button type="button" data-eltts="play">أرسل عينة ElevenLabs</button><button type="button" data-eltts="stop">أوقف العينة</button></div>
+<p data-eltts="status" role="status" aria-live="polite">لم يُرسل شيء. اللهجة المصرية غير مضمونة.</p>
+<audio data-eltts="audio" controls preload="none" style="width:100%" aria-label="صوت اصطناعي مولد باستخدام ElevenLabs"></audio>
+<p><a href="https://elevenlabs.io/pricing" target="_blank" rel="noopener noreferrer">الخطط والحصص</a> · <a href="https://elevenlabs.io/docs/eleven-creative/voices/voice-library/" target="_blank" rel="noopener noreferrer">قيود مكتبة الأصوات</a></p>
 </section>
+
 <h2 id="cloudSetupHeading" tabindex="-1">🔊 تفعيل الصوت السحابي</h2>
       <ol class="hint"><li>اختار مزودًا وافتح حسابك عنده. للمصري: Azure فيه شاكر وسلمى. راجع الحصة والتكلفة قبل التشغيل.</li><li>من لوحة المزود انسخ مفتاح الصوت والصقه في الخانة الخاصة به هنا. Azure يحتاج كمان اسم المنطقة من نفس المورد، مثل eastus.</li><li>اضغط احفظ المفتاح، ثم اجلب الأصوات لعرض كل ما يتيحه حسابك. اختار «الكل» في فلتر النوع لو عايز تشوفها كلها.</li><li>ارجع للقارئ واختار المزود من «مصدر الصوت»، ثم شغّل القراءة. حفظ المفتاح لا يثبت صلاحيته؛ نجاح الجلب يثبت الاتصال، والتشغيل قد يستهلك رصيدًا.</li></ol>
       <p class="hint">ما تبعتش مفتاحك في شات أو صورة. يُحفظ في متصفح الجهاز؛ مسح بيانات التطبيق يحذفه. عند التشغيل يُرسل نص القراءة للمزود لإنتاج الصوت. الحصة المجانية ليست استخدامًا بلا حدود.</p>
@@ -887,6 +917,8 @@
 <script src="app9.js"></script>
 <script src="read-aloud.js"></script>
 <script src="gemini-tts.js" defer></script>
+<script src="cloudflare-tts.js" defer></script>
+<script src="eleven-owner-tts.js" defer></script>
 </body>
 </html>
 

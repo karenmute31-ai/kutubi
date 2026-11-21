@@ -1,6 +1,6 @@
 (function(){
  const root=document.getElementById('geminiTtsPreview');if(!root)return;
- const q=id=>root.querySelector('[data-gtts="'+id+'"]');let controller,url,ownerToken;const audio=q('audio');
+ const q=id=>root.querySelector('[data-gtts="'+id+'"]');let controller,url,ownerToken;const audio=q('audio');root._ownerTtsToken=()=>ownerToken;
  const voices=['Zephyr','Puck','Charon','Kore','Fenrir','Leda','Orus','Aoede','Callirrhoe','Autonoe','Enceladus','Iapetus','Umbriel','Algieba','Despina','Erinome','Algenib','Rasalgethi','Laomedeia','Achernar','Alnilam','Schedar','Gacrux','Pulcherrima','Achird','Zubenelgenubi','Vindemiatrix','Sadachbia','Sadaltager','Sulafat'];for(const name of voices){const o=document.createElement('option');o.value=o.textContent=name;q('voice').appendChild(o);}q('voice').value='Charon';
  q('ownerLogin').addEventListener('click',async()=>{const pw=q('ownerPassword').value;q('ownerPassword').value='';try{const r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})});const j=await r.json();if(!r.ok||!j.token)throw Error(j.error||'تعذر دخول المالك');ownerToken=j.token;q('ownerStatus').textContent='تم دخول المالك لهذه الجلسة فقط.';}catch(e){ownerToken=null;q('ownerStatus').textContent=e.message;}});
  const sample='إزيك؟ خلينا نفهمها واحدة واحدة. الشبكة بتوصل الأجهزة ببعض عشان تتبادل البيانات. البروتوكول بينظم شكل الرسالة وطريقة تبادلها. دلوقتي جرّب تشرح الفكرة بكلامك.';
