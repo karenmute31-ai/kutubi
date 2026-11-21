@@ -12,6 +12,7 @@ const SHELL = [
   "./app4.js",
   "./app5.js", /* [F] محرك الإصلاح الذاتي — جزء من الشل */
   "./app6.js",
+  "./app7.js",
   "./vendor/pdfjs/pdf.min.js",
   "./vendor/pdfjs/pdf.worker.min.js",
   "./manifest.webmanifest",
