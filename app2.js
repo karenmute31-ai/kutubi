@@ -1438,7 +1438,7 @@ document.addEventListener("DOMContentLoaded", async()=>{
   /* [D-04] نظام الطبقات: كل عنصر عائم بيتنقل لحاوية #overlay-root (بره حاوية القارئ) قبل أي تفاعل */
   const OVERLAY_FLOATERS=["updateBanner","resumeBar","readProgressTrack","readRuler","selPopup","sheetBackdrop","moreSheet","quizOverlay","wordSheet","appearanceCard","voiceCard","bookToolsCard","indexCard","readerBottomBar","readerDrawer","readerDrawerFab"];
   const overlayRootEl=$("#overlay-root");
-  if(overlayRootEl) OVERLAY_FLOATERS.forEach(id=>{ const el=document.getElementById(id); if(el && el.parentNode!==overlayRootEl) overlayRootEl.appendChild(el); });
+  if(overlayRootEl) OVERLAY_FLOATERS.forEach(id=>{ const el=document.getElementById(id); if(el && el.parentNode!==overlayRootEl && !el.closest("#readerDrawer")) overlayRootEl.appendChild(el); }); /* الساكن جوّه درج القارئ أصلًا (كارت الأدوات) ميتحركش من مكانه */
   /* [D-04] ارتفاع الشريط العام بيتقاس لحظيًا — مفيش قيمة قديمة تخلي أشرطة القارئ تطفو فوق النص */
   if(tb0 && "ResizeObserver" in window) new ResizeObserver(()=>{ document.documentElement.style.setProperty("--topbar-h", tb0.offsetHeight+"px"); }).observe(tb0);
   $("#apiKey").value=settings.key||""; $("#apiBase").value=settings.base||DEFSET.base; $("#apiModel").value=settings.model||DEFSET.model;
