@@ -1695,21 +1695,33 @@ $("#moreReaderTools")?.addEventListener("click", e => { const b = e.target.close
 
   // إضافة كتب
   $("#addByPaste").addEventListener("click",async()=>{ try{ const b=await addBook($("#bookTitle").value.trim(), $("#pasteText").value, "paste"); showTabMsg("#addMsg","اتضاف «"+b.title+"» ✔ افتحه من المكتبة تحت."+cleanNote(b)); $("#pasteText").value=""; renderLibrary(); }catch(e){ showTabMsg("#addMsg","مشكلة: "+e.message, true); } });
+  /* حارس تزامن الاستيراد: اختيار ملف بيستورد على طول، ولو المستخدم دوس «ضيف من الملف» والاستيراد شغال
+     كانت بتبدأ نسخة تانية متوازية بتكسر مرجع شغلانة الـ OCR وتسيب الأولى معلّقة للأبد — فأي استيراد
+     جديد أثناء واحد شغال بيتجاهل برسالة واضحة، وقيمة الحقل بتتصفّر قبل الانتظار مش بعده */
+  let bookImportInFlight = false;
   $("#addByFile").addEventListener("click",async()=>{
-    const f=$("#fileInput").files[0]; if(!f){ showTabMsg("#addMsg","اختار ملف الأول.", true); return; }
+    const fi=$("#fileInput");
+    const f=fi.files[0]; if(!f){ showTabMsg("#addMsg","اختار ملف الأول.", true); return; }
+    if(bookImportInFlight){ showTabMsg("#addMsg","فيه كتاب بيتحضّر دلوقتي — استنى لما يخلص الأول.", true); return; }
+    fi.value="";
+    bookImportInFlight = true;
     try{ await importBookFile(f); }
     catch(e){ showTabMsg("#addMsg","مشكلة في الملف: "+e.message, true); }
+    finally{ bookImportInFlight = false; }
   });
   /* اختيار ملف من منتقي الجهاز/Drive: الاختيار نفسه بيستورد الكتاب وبيفتحه — من غير ما يستنى زرار «ضيف من الملف».
-     قيمة الحقل بتتصفّر بعد كل محاولة (نجاح أو فشل) عشان اختيار نفس الملف تاني يطلّع حدث change من جديد */
+     قيمة الحقل بتتصفّر قبل بدء الاستيراد (مش بعده) عشان الدوس على «ضيف من الملف» أثناء الشغل ميبدأش استيراد تاني */
   $("#fileInput").addEventListener("change",async()=>{
     const fi=$("#fileInput");
     const f=fi.files && fi.files[0];
     if(f){
+      if(bookImportInFlight){ showTabMsg("#addMsg","فيه كتاب بيتحضّر دلوقتي — استنى لما يخلص الأول.", true); fi.value=""; return; }
+      fi.value="";
+      bookImportInFlight = true;
       try{ await importBookFile(f); }
       catch(e){ showTabMsg("#addMsg","مشكلة في الملف: "+e.message, true); }
-    }
-    fi.value="";
+      finally{ bookImportInFlight = false; }
+    } else { fi.value=""; }
   });
   $("#addByDrive").addEventListener("click",async()=>{
     const link=$("#driveLink").value.trim(); if(!link){ showTabMsg("#driveMsg","الزق لينك Drive الأول.", true); return; }
