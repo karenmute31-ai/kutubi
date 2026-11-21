@@ -982,6 +982,8 @@ function fillChunk(book,i){
   const tDone = ch.status==="done" || (!!ch.trans && ch.status!=="fail");
   const tBtn = mk(tWorking ? "⏳ بيترجم…" : tDone ? "🔁 أعد ترجمة الجزء" : "🌐 ترجم الجزء ده", (tWorking || tDone) ? "ghost" : "primary", ()=>translateOneChunk(book,i));
   tBtn.dataset.role="translate-chunk";
+  const lo=mk("📖 اسمع الأصل","ghost",()=>playVoiceItems([Object.assign(origSpeakItem(book, ch.orig), {bookId:book.id, chunkIdx:i, kind:"orig"})],"أصل الجزء "+(i+1)));
+  lo.dataset.role="listen-orig";
   if(ch.status==="done"){
     const lt=mk("🔊 اسمع ترجمة الجزء","ghost",()=>playVoiceItems([Object.assign(transSpeakItem(book, ch.trans), {bookId:book.id, chunkIdx:i, kind:"trans"})],"ترجمة الجزء "+(i+1)));
     lt.dataset.role="listen-trans";
@@ -1856,6 +1858,7 @@ $("#moreReaderTools")?.addEventListener("click", e => { const b = e.target.close
   $("#toneSelect").addEventListener("change",()=>{ settings.tone=$("#toneSelect").value; saveSettings(); autoMatchVoiceForTone(settings.tone); const b=currentBook(); if(b){ const lim = (pagerBookId === b.id) ? Math.min(renderedUpTo, b.chunks.length) : 0; for(let i=0;i<lim;i++) renderChunk(b,i); } });
   $("#speedRange").addEventListener("input",()=>{ settings.speed=parseFloat($("#speedRange").value); saveSettings(); const ea=$("#elAudio"); if(ea) ea.playbackRate=settings.speed; });
   $("#btnPlayTrans").addEventListener("click",()=>{ const b=currentBook(); if(!b) return; const items=[]; b.chunks.forEach((c,ci)=>{ if(c.status==="done") items.push(Object.assign(transSpeakItem(b, c.trans), {bookId:b.id, chunkIdx:ci, kind:"trans"})); }); if(!items.length){ setAudioStatus("لسه مفيش أجزاء مترجمة تسمعها.", true); return; } playVoiceItems(items,"ترجمة الكتاب"); });
+  $("#btnPlayOrig").addEventListener("click",()=>{ const b=currentBook(); if(!b) return; const items=[]; b.chunks.forEach((c,ci)=>{ if(c.orig && c.orig.trim()) items.push(Object.assign(origSpeakItem(b, c.orig), {bookId:b.id, chunkIdx:ci, kind:"orig"})); }); if(!items.length){ setAudioStatus("الكتاب ده مفيهوش نص أصلي يتقرا.", true); return; } playVoiceItems(items,"أصل الكتاب"); });
   $("#btnPlayBookExplain").addEventListener("click",async()=>{
     const b=currentBook(); if(!b) return;
     const gen=audioGen; /* لو المستخدم وقّف الصوت أو شغّل حاجة تانية أثناء التجهيز، الإعداد بيتلغي ومبيبدأش نطق */
