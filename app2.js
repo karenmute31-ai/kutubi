@@ -15,7 +15,7 @@ async function gFetchVoices(){
     const score = v => { const lc = (v.languageCodes || [""])[0] || ""; if(lc.indexOf("ar-XA") === 0) return 0; if(lc.indexOf("ar-") === 0) return 1; return 2; };
     const tag = v => { const lc = (v.languageCodes || [""])[0] || ""; return lc.indexOf("ar-") === 0 ? " 🌍 عربي" : ""; };
     const gnd = v => v.ssmlGender === "FEMALE" ? "ست" : v.ssmlGender === "MALE" ? "راجل" : (v.ssmlGender || "");
-    const voices = arr.slice().sort((a, b)=>score(a) - score(b)).map(v=>({id: v.name, name: v.name + tag(v) + (v.ssmlGender ? " · " + gnd(v) : "")}));
+    const voices = arr.slice().sort((a, b)=>score(a) - score(b)).map(v=>({id: v.name, gender: (v.ssmlGender||"").toLowerCase(), name: v.name + tag(v) + (v.ssmlGender ? " · " + gnd(v) : "")}));
     settings.gKey = key; settings.gVoices = voices;
     if(!voices.some(v=>v.id === settings.gVoice)) settings.gVoice = voices[0].id;
     saveSettings(); fillGVoices(); syncProviderUI();
@@ -101,6 +101,7 @@ function renderVoices(){
   group("الأصوات المصرية 🇪🇬", byGender(arEg), "أهلاً بيك في كُتُبِي");
   group("أصوات عربية تانية", byGender(arOther), "أهلاً بيك في كُتُبِي");
   group("الأصوات الإنجليزية", byGender(en), "Welcome to the Egyptian book translator");
+  if(vs.length && !byGender(vs).length){ const empty=document.createElement("p"); empty.className="hint"; empty.textContent="مفيش أصوات جهاز بالنوع ده معروف نوعها. اختار الكل أو مزود سحابي."; wrap.appendChild(empty); }
   if(!vs.length){ const p=document.createElement("p"); p.className="hint"; p.textContent="الأصوات لسه بتتحمّل من الجهاز… افتح الصفحة تاني لو القايمة فاضية."; wrap.appendChild(p); }
 }
 
@@ -1054,6 +1055,8 @@ function fillChunk(book,i){
   if(ch.status==="done"){
     const lt=mk("🔊 اسمع ترجمة الجزء","ghost",()=>playVoiceItems([Object.assign(transSpeakItem(book, ch.trans), {bookId:book.id, chunkIdx:i, kind:"trans"})],"ترجمة الجزء "+(i+1)));
     lt.dataset.role="listen-trans";
+  }
+  if(ch.status==="done" || bookTargetLang(book)==="orig"){
     const le=mk("🎧 اعمل واسمع الشرح الصوتي","ghost",async()=>{ const gen=audioGen; try{ setAudioStatus("بيجهّز الشرح…"); const t=await makeExplanation(book,i); if(gen!==audioGen) return; if(t){ const dk=ch.explDialect||explDialectKey(); playVoiceItems([{text:t,lang:"ar",langFull:explLocaleOf(dk),explDialect:dk,bookId:book.id, chunkIdx:i, kind:"explain"}],"شرح الجزء "+(i+1)); } }catch(e){ if(gen===audioGen && !(e && e.name==="AbortError")){ logError("شرح", e); setAudioStatus("الشرح وقف — سبب التوقف: " + describeError(e), true); } } });
     le.dataset.role="listen-explain";
   }
@@ -1416,6 +1419,7 @@ function buildBackup(){
   delete s.elKey;  /* ولا مفاتيح الأصوات السحابية */
   delete s.azKey;
   delete s.gKey;
+  delete s.oKey;
   let subState = null;
   try{ subState = {sub: JSON.parse(localStorage.getItem("mk_sub") || "null"), owner: JSON.parse(localStorage.getItem("mk_owner") || "null")}; }catch(e){}
   return {app: "kotobgy-backup", version: 1, exportedAt: new Date().toISOString(), books: books, settings: s, readstats: loadReadStats(), installId: getInstallId(), subState: subState};
@@ -1426,7 +1430,7 @@ async function importBackupObject(o){
   books = [];
   for(const b of o.books){ if(b && b.id && Array.isArray(b.chunks)){ ensureBookExtras(b); await idbPut(b); books.push(b); } }
   if(o.settings && typeof o.settings === "object"){
-    const keep = {key: settings.key, elKey: settings.elKey, azKey: settings.azKey, gKey: settings.gKey}; /* مفاتيح الجهاز الحالي بتفضل — النسخة مفيهاش مفاتيح أصلًا */
+    const keep = {key: settings.key, elKey: settings.elKey, azKey: settings.azKey, gKey: settings.gKey, oKey: settings.oKey}; /* مفاتيح الجهاز الحالي بتفضل — النسخة مفيهاش مفاتيح أصلًا */
     settings = Object.assign({}, DEFSET, o.settings, keep);
     if(!TARGET_LANGS.some(t=>t.code === settings.targetLang)) settings.targetLang = "ar-EG";
     if(["device","eleven","azure","google","openai"].indexOf(settings.ttsProvider) < 0) settings.ttsProvider = "device";
@@ -1536,6 +1540,7 @@ document.addEventListener("DOMContentLoaded", async()=>{
   const deds=$("#defExplDialectSel"); if(deds){ deds.value=sanitizeExplDialect(settings.explDialect||"egyptian"); deds.addEventListener("change",()=>syncExplDialect(deds.value)); }
   const reds=$("#explDialectSel"); if(reds){ reds.value=sanitizeExplDialect(settings.explDialect||"egyptian"); reds.addEventListener("change",()=>syncExplDialect(reds.value)); }
   const qts=$("#quickTStyleSel"); if(qts) qts.value=sanitizeTStyle(settings.tStyle); /* المترجم السريع بيقرا قيمة الاختيار وقت الترجمة نفسها */
+  const learnLevel=$("#learningLevelSel"); if(learnLevel){ learnLevel.value=settings.explLevel||"beginner"; learnLevel.addEventListener("change",()=>{settings.explLevel=learnLevel.value;saveSettings();setAudioStatus("مستوى الشرح: "+learningLevel().label+". يطبق على الشرح الجديد.");}); }
   $("#toneSelect").value=settings.tone||"calm"; $("#speedRange").value=settings.speed||1; syncToneDesc();
   if(!TARGET_LANGS.some(t=>t.code===settings.targetLang)) settings.targetLang="ar-EG";
   fillTargetSelect($("#targetLangSel"), settings.targetLang);
@@ -1611,17 +1616,17 @@ document.addEventListener("DOMContentLoaded", async()=>{
     $("#backupFile").value="";
   });
   /* 🔊 المزوّدات الصوتية السحابية: تهيئة الحقول والأزرار */
-  $("#elKey").value=settings.elKey||""; $("#azKey").value=settings.azKey||""; $("#azRegion").value=settings.azRegion||""; $("#gKey").value=settings.gKey||"";
+  $("#elKey").value=settings.elKey||""; $("#azKey").value=settings.azKey||""; $("#azRegion").value=settings.azRegion||""; $("#gKey").value=settings.gKey||""; $("#oKey").value=settings.oKey||"";
   fillElVoices(); fillAzVoices(); fillGVoices(); fillOVoices();
   $("#elModelSel").value=settings.elModel||"eleven_multilingual_v2";
   const syncElSliders=()=>{ $("#elStab").value=settings.elStability; $("#elStabVal").textContent=(+settings.elStability).toFixed(2); $("#elSim").value=settings.elSimilarity; $("#elSimVal").textContent=(+settings.elSimilarity).toFixed(2); $("#elSpeed").value=settings.elSpeed; $("#elSpeedVal").textContent=(+settings.elSpeed).toFixed(2); };
   syncElSliders();
-  $("#elSaveKey").addEventListener("click",()=>{ settings.elKey=$("#elKey").value.trim(); if(!settings.elVoiceId) settings.elVoiceId=EL_SEED[0].id; saveSettings(); fillElVoices(); syncProviderUI(); showTabMsg("#elMsg","اتحفظ مفتاح ElevenLabs على جهازك ✔ — الأصوات الجاهزة شغالة فورًا، ودوس «اختبار الاتصال» عشان تجيب أصوات حسابك كلها."); });
+  $("#elSaveKey").addEventListener("click",()=>{ settings.elKey=$("#elKey").value.trim(); if(!settings.elVoiceId) settings.elVoiceId=(EL_SEED[0]||{}).id||""; saveSettings(); fillElVoices(); syncProviderUI(); showTabMsg("#elMsg","اتحفظ مفتاح ElevenLabs على جهازك ✔ — دوس «اختبار الاتصال» عشان تجيب أصوات حسابك المتاحة."); });
   $("#elTest").addEventListener("click", elFetchVoices);
-  $("#elVoiceSel").addEventListener("change",()=>{ settings.elVoiceId=$("#elVoiceSel").value; saveSettings(); const b=currentBook(); if(b) refreshChunkAudioStates(b); });
+  $("#elVoiceSel").addEventListener("change",()=>{ settings.elVoiceId=$("#elVoiceSel").value; settings.elVoiceManual=true; saveSettings(); const b=currentBook(); if(b) refreshChunkAudioStates(b); });
   $("#elModelSel").addEventListener("change",()=>{ settings.elModel=$("#elModelSel").value; saveSettings(); });
-  $("#elStab").addEventListener("input",()=>{ settings.elStability=parseFloat($("#elStab").value); saveSettings(); syncElSliders(); });
-  $("#elSim").addEventListener("input",()=>{ settings.elSimilarity=parseFloat($("#elSim").value); saveSettings(); syncElSliders(); });
+  $("#elStab").addEventListener("input",()=>{ settings.elProsodyManual=true; settings.elStability=parseFloat($("#elStab").value); saveSettings(); syncElSliders(); });
+  $("#elSim").addEventListener("input",()=>{ settings.elProsodyManual=true; settings.elSimilarity=parseFloat($("#elSim").value); saveSettings(); syncElSliders(); });
   $("#elSpeed").addEventListener("input",()=>{ settings.elSpeed=parseFloat($("#elSpeed").value); saveSettings(); syncElSliders(); });
   $("#azSaveKey").addEventListener("click",()=>{ settings.azKey=$("#azKey").value.trim(); settings.azRegion=$("#azRegion").value.trim(); if(!settings.azVoice) settings.azVoice=AZURE_AR_SEED[0].id; saveSettings(); fillAzVoices(); syncProviderUI(); showTabMsg("#azMsg","اتحفظ مفتاح Azure والريجن على جهازك ✔ — الأصوات المصرية والعربية جاهزة في القايمة وتشتغل فورًا."); });
   $("#azTest").addEventListener("click", azFetchVoices);
@@ -1629,7 +1634,7 @@ document.addEventListener("DOMContentLoaded", async()=>{
   $("#gSaveKey").addEventListener("click",()=>{ settings.gKey=$("#gKey").value.trim(); if(!settings.gVoice) settings.gVoice=GOOGLE_AR_SEED[0].id; saveSettings(); fillGVoices(); syncProviderUI(); showTabMsg("#gMsg","اتحفظ مفتاح Google على جهازك ✔ — الأصوات العربية جاهزة في القايمة وتشتغل فورًا."); });
   $("#oSaveKey").addEventListener("click",()=>{ settings.oKey=$("#oKey").value.trim(); if(!settings.oVoice) settings.oVoice=OPENAI_SEED[0].id; saveSettings(); fillOVoices(); syncProviderUI(); showTabMsg("#oMsg","اتحفظ مفتاح OpenAI على جهازك ✔ — الأصوات جاهزة في القايمة وتشتغل فورًا."); });
   $("#oVoiceSel").addEventListener("change",()=>{ settings.oVoice=$("#oVoiceSel").value; saveSettings(); const b=currentBook(); if(b) refreshChunkAudioStates(b); });
-  const omdl=$("#oModelSel"); if(omdl){ omdl.value=settings.oModel||"gpt-4o-mini-tts"; omdl.addEventListener("change",()=>{ settings.oModel=omdl.value; saveSettings(); }); }
+  const omdl=$("#oModelSel"); if(omdl){ omdl.value=settings.oModel||"gpt-4o-mini-tts"; omdl.addEventListener("change",()=>{ settings.oModel=omdl.value; fillOVoices(); saveSettings(); }); }
   $("#gTest").addEventListener("click", gFetchVoices);
   $("#gVoiceSel").addEventListener("change",()=>{ settings.gVoice=$("#gVoiceSel").value; settings.gVoiceManual=true; saveSettings(); const b=currentBook(); if(b) refreshChunkAudioStates(b); });
   $("#ttsProviderSel").addEventListener("change",()=>{ const v=$("#ttsProviderSel").value; if(v!=="device" && !providerReady(v)){ setAudioStatus("المزوّد ده محتاج مفتاح من الإعدادات الأول.", true); syncProviderUI(); return; } const wasEl=elActive; settings.ttsProvider=v; saveSettings(); if(wasEl) stopAllAudio("الصوت وقف."); syncProviderUI(); });
@@ -1940,8 +1945,8 @@ $("#moreReaderTools")?.addEventListener("click", e => { const b = e.target.close
       await idbPut(b); renderSummary(b);
     }catch(e){ alert("الملخص وقف: "+e.message); }
   });
-  $("#toneSelect").addEventListener("change",()=>{ settings.tone=$("#toneSelect").value; saveSettings(); syncToneDesc(); autoMatchVoiceForTone(settings.tone); const b=currentBook(); if(b){ const lim = (pagerBookId === b.id) ? Math.min(renderedUpTo, b.chunks.length) : 0; for(let i=0;i<lim;i++) renderChunk(b,i); } });
-  $("#speedRange").addEventListener("input",()=>{ settings.speed=parseFloat($("#speedRange").value); saveSettings(); const ea=$("#elAudio"); if(ea) ea.playbackRate=settings.speed; });
+  $("#toneSelect").addEventListener("change",()=>{ settings.tone=$("#toneSelect").value; settings.elProsodyManual=false; saveSettings(); syncToneDesc(); const b=currentBook(); if(b){ const lim = (pagerBookId === b.id) ? Math.min(renderedUpTo, b.chunks.length) : 0; for(let i=0;i<lim;i++) renderChunk(b,i); } });
+  $("#speedRange").addEventListener("input",()=>{ settings.speed=parseFloat($("#speedRange").value); saveSettings(); syncSpeedLabel(); const ea=$("#elAudio"); if(ea && elActive) ea.playbackRate=settings.speed/(elRenderedSpeed||1); });
   $("#btnPlayTrans").addEventListener("click",()=>{ const b=currentBook(); if(!b) return; const items=[]; b.chunks.forEach((c,ci)=>{ if(c.status==="done") items.push(Object.assign(transSpeakItem(b, c.trans), {bookId:b.id, chunkIdx:ci, kind:"trans"})); }); if(!items.length){ setAudioStatus("لسه مفيش أجزاء مترجمة تسمعها.", true); return; } playVoiceItems(items,"ترجمة الكتاب"); });
   $("#btnPlayOrig").addEventListener("click",()=>{ const b=currentBook(); if(!b) return; const items=[]; b.chunks.forEach((c,ci)=>{ if(c.orig && c.orig.trim()) items.push(Object.assign(origSpeakItem(b, c.orig), {bookId:b.id, chunkIdx:ci, kind:"orig"})); }); if(!items.length){ setAudioStatus("الكتاب ده مفيهوش نص أصلي يتقرا.", true); return; } playVoiceItems(items,"أصل الكتاب"); });
   $("#btnPlayBookExplain").addEventListener("click",async()=>{
@@ -1952,7 +1957,7 @@ $("#moreReaderTools")?.addEventListener("click", e => { const b = e.target.close
       const items=[];
       for(let i=0;i<b.chunks.length;i++){
         if(gen!==audioGen){ setAudioStatus("الصوت وقف."); return; }
-        if(b.chunks[i].status==="done"){ const t=await makeExplanation(b,i); if(t){ const dk=b.chunks[i].explDialect||explDialectKey(); items.push({text:t,lang:"ar",langFull:explLocaleOf(dk),explDialect:dk,bookId:b.id, chunkIdx:i, kind:"explain"}); } }
+        if(b.chunks[i].status==="done" || bookTargetLang(b)==="orig"){ const t=await makeExplanation(b,i); if(t){ const dk=b.chunks[i].explDialect||explDialectKey(); items.push({text:t,lang:"ar",langFull:explLocaleOf(dk),explDialect:dk,bookId:b.id, chunkIdx:i, kind:"explain"}); } }
       }
       if(gen!==audioGen){ setAudioStatus("الصوت وقف."); return; }
       if(!items.length){ setAudioStatus("مفيش شروحات جاهزة — كمّل الترجمة الأول.", true); return; }
@@ -2014,7 +2019,9 @@ $("#moreReaderTools")?.addEventListener("click", e => { const b = e.target.close
   $("#btnInstall").addEventListener("click",async()=>{ if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; $("#btnInstall").classList.add("hidden"); } });
 
   if("speechSynthesis" in window){ speechSynthesis.onvoiceschanged=renderVoices; renderVoices(); }
-  const vgf=$("#voiceGenderFilter"); if(vgf) vgf.addEventListener("change",renderVoices);
+  const vgf=$("#voiceGenderFilter"); if(vgf){ vgf.value=settings.voiceGender||"all"; vgf.addEventListener("change",()=>{ settings.voiceGender=vgf.value; saveSettings(); renderVoices(); fillElVoices(); fillAzVoices(); fillGVoices(); fillOVoices(); }); }
+  const autoVoice=$("#autoVoiceReset"); if(autoVoice) autoVoice.addEventListener("click",()=>{ settings.voiceURI=""; settings.azVoiceManual=false; settings.gVoiceManual=false; settings.elVoiceManual=false; saveSettings(); renderVoices(); setAudioStatus("اختيار الصوت تلقائي حسب اللهجة والنوع المتاح."); });
+  syncSpeedLabel();
 
   try{ books=await idbAll(); }catch(e){ books=[]; }
   getInstallId();
