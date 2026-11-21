@@ -63,6 +63,18 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   if (req.method === "OPTIONS") { res.status(204).end(); return; }
+  // تشديد: أصل الطلب + حجم الجسم
+  const ORIGINS = (process.env.ALLOWED_ORIGINS || "https://kutubi-app.vercel.app").split(",").map(o => o.trim()).filter(Boolean);
+  const origin = req.headers["origin"];
+  if (origin && ORIGINS.length && !ORIGINS.includes(origin)) {
+    res.status(403).json({ error: { message: "مصدر الطلب غير مسموح." } });
+    return;
+  }
+  const clen = parseInt(req.headers["content-length"] || "0", 10);
+  if (clen > 262144) {
+    res.status(413).json({ error: { message: "الطلب أكبر من اللازم — قسّم النص وجرب تاني." } });
+    return;
+  }
   if (req.method !== "POST") {
     res.status(405).json({ error: { message: "Method not allowed" } });
     return;
@@ -88,6 +100,12 @@ export default async function handler(req, res) {
     return;
   }
 
+  // تشديد: سقف إجمالي حجم الرسائل
+  const totalChars = messages.reduce((n, m) => n + (typeof (m && m.content) === "string" ? m.content.length : 0), 0);
+  if (totalChars > 120000) {
+    res.status(413).json({ error: { message: "النص طويل جدًا في الطلب الواحد — قسّمه على دفعات." } });
+    return;
+  }
   const payload = {
     model: process.env.GEMINI_MODEL || DEFAULT_MODEL,
     messages: messages.slice(0, 24),
