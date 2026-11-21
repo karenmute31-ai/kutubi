@@ -657,8 +657,9 @@ function renderTabDrawer(tab){
   if(head) head.textContent = "☰ درج «" + (TAB_DRAWER_TITLES[tab] || tab) + "»";
   /* الدرج الخاص: زراير التاب بس — من غير أدوات القارئ ولا الترجمة ولا كارت المالك */
   ["moreReaderTools","moreTransTools","ownerCard"].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display="none"; });
+  const sortKey = (s)=> s.replace(/^[^\p{L}\p{N}]+\s*/u, "");
   const rows = collectTabButtons(tab).map(b=>({ b:b, label:(b.textContent || "").replace(/\s+/g," ").trim() }));
-  rows.sort((x,y)=> x.label.localeCompare(y.label, "ar"));
+  rows.sort((x,y)=> sortKey(x.label).localeCompare(sortKey(y.label), "ar"));
   rows.forEach(r=>{
     const row = document.createElement("button"); row.type = "button"; row.className = "more-row";
     const sp = document.createElement("span"); sp.textContent = r.label; row.appendChild(sp);
