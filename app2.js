@@ -2208,7 +2208,16 @@ function updateBanner(){
 /* [T3.4b] show the ORIGINAL PDF pages (canvas, lazy, released when far away). Reads the Blob saved by T3.4a; never touches book data. */
 (function(){
   var PDF_WORKER = "./vendor/pdfjs/pdf.worker.min.js";
-  var isOpen = false, loading = false, openId = null, pdfDoc = null, io = null, posIO = null, token = 0;
+  var isOpen = false, loading = false, openId = null, pdfDoc = null, io = null, token = 0;
+  var pdfPageEls = [], pdfTotal = 0, pdfScrollT = null;
+  /* رقم صفحة الـPDF الحالية: آخر صفحة خطها العلوي عدّى منتصف الشاشة — بيتحدث مع السكرول حتى لو كل الصفحات ظاهرة */
+  function pdfPosUpdate(){
+    if(!pdfPageEls.length) return;
+    var mid = window.innerHeight * 0.45, cur = 1;
+    for(var i = 0; i < pdfPageEls.length; i++){ var r = pdfPageEls[i].getBoundingClientRect(); if(r.top <= mid) cur = i + 1; else break; }
+    var pill = document.getElementById("pillPos"); if(pill) pill.textContent = "صفحة " + cur + " من " + pdfTotal;
+  }
+  function onPdfScroll(){ if(pdfScrollT) return; pdfScrollT = setTimeout(function(){ pdfScrollT = null; pdfPosUpdate(); }, 120); }
   function el(id){ return document.getElementById(id); }
   function say(t, err){ try{ setTransStatus(t, !!err); }catch(e){} }
   function curId(){ try{ return (typeof currentId !== "undefined" && currentId) ? currentId : null; }catch(e){ return null; } }
@@ -2244,7 +2253,9 @@ function updateBanner(){
   function closeViewer(){
     token++;
     if(io){ try{ io.disconnect(); }catch(e){} io = null; }
-    if(posIO){ try{ posIO.disconnect(); }catch(e){} posIO = null; }
+    window.removeEventListener("scroll", onPdfScroll);
+    if(pdfScrollT){ clearTimeout(pdfScrollT); pdfScrollT = null; }
+    pdfPageEls = []; pdfTotal = 0;
     var host = el("pdfPages"); if(host){ host.innerHTML = ""; host.classList.add("hidden"); }
     var ch = el("chunks"); if(ch) ch.style.display = "";
     if(pdfDoc && pdfDoc.destroy){ try{ pdfDoc.destroy(); }catch(e){} }
@@ -2285,16 +2296,11 @@ function updateBanner(){
           entries.forEach(function(en){ if(en.isIntersecting) renderPage(en.target); else releasePage(en.target); });
         }, {rootMargin: "1200px 0px"});
         pages.forEach(function(p){ io.observe(p); });
-        /* تتبّع الصفحة الظاهرة: حبة الموضع بتعرض رقم صفحة الـPDF الحقيقي (صفحة X من numPages) */
-        if(posIO){ try{ posIO.disconnect(); }catch(e){} }
-        posIO = new IntersectionObserver(function(entries){
-          entries.forEach(function(en){ en.target.__ratio = en.isIntersecting ? en.intersectionRatio : 0; });
-          var cur = 0, bestR = 0;
-          for(var pi = 0; pi < pages.length; pi++){ var rr = pages[pi].__ratio || 0; if(rr > bestR){ bestR = rr; cur = pi + 1; } }
-          if(cur){ var pill = document.getElementById("pillPos"); if(pill) pill.textContent = "صفحة " + cur + " من " + doc.numPages; }
-        }, {threshold: [0, 0.15, 0.35, 0.55, 0.75, 0.95]});
-        pages.forEach(function(p){ posIO.observe(p); });
       } else { pages.slice(0, 20).forEach(renderPage); }
+      /* تتبّع الصفحة الظاهرة بالسكرول: حبة الموضع بتعرض رقم صفحة الـPDF الحقيقي (صفحة X من numPages) */
+      pdfPageEls = pages; pdfTotal = doc.numPages;
+      window.addEventListener("scroll", onPdfScroll, {passive: true});
+      pdfPosUpdate();
       host.scrollIntoView({block: "start"});
     } finally { loading = false; }
   }
