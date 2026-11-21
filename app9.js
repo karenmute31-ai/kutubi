@@ -96,30 +96,6 @@
     }
     var pe=document.getElementById("hlPop"); if(pe) smartBar(pe);
     new MutationObserver(function(){ var p=document.getElementById("hlPop"); if(p) smartBar(p); }).observe(document.body,{childList:true});
-    /* ===== قراءة متزامنة: تظليل الجملة الجارية أثناء النطق (CSS Custom Highlight — من غير ما نغيّر DOM النص) ===== */
-    (function(){
-      if(!window.CSS||!CSS.highlights||typeof Highlight==="undefined"||!("speechSynthesis" in window)) return;
-      function clear(){ try{CSS.highlights.delete("kb-read")}catch(e){} }
-      function hl(u,ci){
-        var it=null; try{ it=playChain&&playChain.items[playChain.idx]; }catch(e){}
-        if(!it||it.chunkIdx==null||(it.kind!=="orig"&&it.kind!=="trans")) return;
-        var box=document.querySelector("#chunk-"+it.chunkIdx+" [data-role="+it.kind+"]")||document.querySelector("#chunk-"+it.chunkIdx+" ."+it.kind); if(!box) return;
-        var full=box.textContent, probe=u.text.slice(0,24), base=full.indexOf(probe); if(base<0) base=0;
-        var st=base+ci, en=st, N=u.text.length;
-        while(st>base&&!/[.!?؟۔\n]/.test(full.charAt(st-1))) st--;
-        en=base+ci; while(en<full.length&&en<base+N&&!/[.!?؟۔\n]/.test(full.charAt(en))) en++; en=Math.min(full.length,en+1); while(st<en&&/\s/.test(full.charAt(st))) st++;
-        var w=document.createTreeWalker(box,NodeFilter.SHOW_TEXT),pos=0,n,r=document.createRange(),a=false,done=false;
-        while((n=w.nextNode())){ var L=n.nodeValue.length; if(!a&&st<pos+L){ r.setStart(n,st-pos); a=true; } if(a&&en<=pos+L){ r.setEnd(n,en-pos); done=true; break; } pos+=L; }
-        if(a&&!done){ var last=box.lastChild; try{ r.setEndAfter(box.lastChild); }catch(e){} }
-        if(!a) return;
-        CSS.highlights.set("kb-read",new Highlight(r));
-        var rc=r.getBoundingClientRect(); if(rc.top<90||rc.bottom>window.innerHeight-90){ window.scrollBy({top:rc.top-window.innerHeight*0.35,behavior:"smooth"}); }
-      }
-      window.__kbHL=hl;
-      var sp=speechSynthesis.speak.bind(speechSynthesis);
-      speechSynthesis.speak=function(u){ try{ u.addEventListener("boundary",function(e){ if(e.name&&e.name!=="word"&&e.name!=="sentence")return; hl(u,e.charIndex||0); }); u.addEventListener("end",clear); u.addEventListener("error",clear); }catch(e){} return sp(u); };
-      var cn=speechSynthesis.cancel.bind(speechSynthesis); speechSynthesis.cancel=function(){ clear(); return cn(); };
-    })();
     /* ===== المرحلة 4: تاب الإحصائيات (أيام ودقائق القراءة والسلسلة) ===== */
     try{ if(typeof MORE_DESTS!=="undefined" && !MORE_DESTS.some(function(d){return d.tab==="insights"})) MORE_DESTS.splice(2,0,{tab:"insights",icon:"📊",label:"إحصائياتي"}); }catch(e){}
     function renderInsights(){

@@ -145,3 +145,6 @@ body[data-layout="desktop"] #appearanceCard .card-toggle{display:none}
 body[data-layout="desktop"] #appearanceCard label{display:flex;align-items:center;justify-content:space-between;gap:.8rem}
 body[data-layout="desktop"] #appearanceCard details.aa-more{border-top:1px solid var(--border);padding-top:.5rem}
 body[data-layout="desktop"] #appearanceCard details.aa-more>*:not(summary){margin-top:.7rem}
+
+/* Native read-aloud sentence, independent of saved annotations. */
+::highlight(read-aloud){background-color:#f5cd55;color:#171717;text-decoration:underline;text-decoration-color:#a57100}
