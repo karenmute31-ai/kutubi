@@ -1,10 +1,11 @@
 /* كُتُبِي — Service Worker: app-shell cache (offline shell only, لا بيخزّن مفاتيح ولا بيانات كتب) */
-const CACHE = "motarjem-v79";
+const CACHE = "motarjem-v80";
 const SHARE_CACHE = "motarjem-shared-v1"; /* ملفات جاية من هدف المشاركة — برّه كاش النسخ ومبتتمسحش مع التحديثات */
 const SHELL = [
   "./",
   "./index.html",
   "./style.css",
+  "./reader2.css",
   "./app.js",
   "./app2.js",
   "./app3.js",
@@ -13,6 +14,7 @@ const SHELL = [
   "./app5.js", /* [F] محرك الإصلاح الذاتي — جزء من الشل */
   "./app6.js",
   "./app7.js",
+  "./app9.js",
   "./app8.js", /* [G] التظليل بالضغط المطوّل — جزء من الشل */
   "./vendor/pdfjs/pdf.min.js",
   "./vendor/pdfjs/pdf.worker.min.js",
