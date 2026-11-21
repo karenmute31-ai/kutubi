@@ -938,3 +938,6 @@ html[data-theme="modern"] .basic-note{ background:#eef0fe; color:#3c3aa8; }
 /* سواتش الثيمين في الإعدادات */
 .sw-royal{ background:#14100c; color:#f0c96a; border:1px solid #3d2f1e; }
 .sw-modern{ background:linear-gradient(135deg,#6366f1,#7c3aed); color:#fff; border:none; }
+html[data-theme="royal"] .resume-banner{ background:#2c2410; color:#f5d78a; border:1px solid #3d2f1e; }
+html[data-theme="modern"] .resume-banner{ background:#eef0fe; color:#3c3aa8; border:1px solid #dfe3fb; }
+html[data-theme="black"] .resume-banner{ background:#121110; color:#f0c96a; border:1px solid #2a2622; }
