@@ -166,6 +166,8 @@ function chunkDefect(ch){
   if(ar >= 20){
     const shaped = (o.match(/[\uFB50-\uFDFF\uFE70-\uFEFF]/g) || []).length;
     if(shaped / ar > 0.05) return "shaped-reversed"; /* حروف عربية بأشكال العرض = استخراج PDF مقلوب/مشكّل */
+    const amlSwap = (o.match(/(^|[^\u0621-\u064A\u0671-\u06D3])\u0627\u0645\u0644(?=[\u0621-\u064A\u064B-\u0652\u0670])/gm) || []).length;
+    if(amlSwap >= 3) return "lammeem-swap"; /* قلب «الم» إلى «امل» من رباطة بترتيب بصري في خريطة حروف الملف */
   }
   /* مشتقات بايظة: حقول لازم تكون مصفوفات/نصوص وحالتها غير كده */
   if(ch.glossary != null && !Array.isArray(ch.glossary)) return "invalid-derived";
@@ -195,6 +197,12 @@ async function repairBookData(book){
     const ch = book.chunks[d.i];
     if(!ch || typeof ch !== "object"){ quarantineIdx.push(d.i); return; }
     if(d.kind === "invalid-derived"){ clearDerivedChunk(ch); fixed++; return; }
+    if(d.kind === "lammeem-swap"){
+      const _pt = (typeof window !== "undefined" && window.PdfText) ? window.PdfText : null;
+      const _rep = (_pt && typeof _pt.repairVisualLamMeem === "function") ? _pt.repairVisualLamMeem(ch.orig) : ch.orig;
+      if(_rep !== ch.orig){ ch.orig = _rep; clearDerivedChunk(ch); fixed++; }
+      return;
+    }
     const snap = (Array.isArray(book.origChunks) && typeof book.origChunks[d.i] === "string") ? book.origChunks[d.i] : null;
     if(snap && snap.trim() && !chunkDefect({ orig: snap })){
       let restored = snap;
@@ -239,6 +247,19 @@ async function recipeBooks(){
     if(r.failed){ flagged++; notes.push("كتاب «" + (b.title || "") + "» كله بايظ ومفيش نسخة أصلية سليمة — اتساب زي ما هو واتحفظت نسخة احتياطية"); }
     else notes.push("كتاب «" + (b.title || "") + "»: اتصلح " + r.fixed + " جزء من النسخة الأصلية" + (r.quarantined ? " واتعزل " + r.quarantined + " جزء (محفوظ وقابل للاسترجاع)" : "") + " — حروف قبل " + r.charsBefore + " وبعد " + r.charsAfter);
   }
+    list.forEach((b)=>{
+    try{
+      const joined = (b.chunks || []).map((c)=> (c && typeof c.orig === "string") ? c.orig : "").join("\n");
+      const letters = (joined.match(/[\u0621-\u064A]/g) || []).length;
+      if(letters < 400) return;
+      const hamzaDoubles = (joined.match(/[\u0623\u0625\u0622]{2}/g) || []).length;
+      const aaDoubles = (joined.match(/اا/g) || []).length;
+      if((hamzaDoubles >= 3 && hamzaDoubles / letters > 0.0008) || aaDoubles / letters > 0.015){
+        flagged++;
+        notes.push("كتاب «" + (b.title || "") + "» ترميزه مكسور من مصدره — الحروف الصح مش موجودة في الملف نفسه وده مستحيل يتصلح من النص. امسح الكتاب وضيفه تاني بعد التحديث: هيتقري بالتعرّف الضوئي من الصور ✨");
+      }
+    }catch(e){}
+  });
   return healthResult("books", "بيانات الكتب", found, fixed, flagged || (quarantined ? 1 : 0), notes.concat(quarantined ? ["الأجزاء المعزولة محفوظة جوه كتبها (quarantinedChunks) مع نسخة احتياطية كاملة — مفيش حاجة اتمسحت"] : []));
 }
 

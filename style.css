@@ -449,7 +449,7 @@ html[data-theme="dark"] .book-cover, html[data-theme="black"] .book-cover{ filte
 #tab-reader:fullscreen #readerPill{ display:none; }
 
 /* خلفية الإغلاق + اللوحات السفلية (المظهر/الصوت) + درج الفهرس + قائمة الأدوات */
-.sheet-backdrop{ position:fixed; inset:0; z-index:64; background:rgba(15,10,4,.38); animation:fadeSlide var(--dur-2) var(--ease); }
+.sheet-backdrop{ position:fixed; inset:0; z-index:55; background:rgba(15,10,4,.38); animation:fadeSlide var(--dur-2) var(--ease); }
 #appearanceCard, #voiceCard{ position:fixed; inset-inline:0; bottom:0; z-index:70; margin:0; width:auto; max-width:none;
   border-radius:1.2rem 1.2rem 0 0; max-height:84dvh; overflow:auto; box-shadow:var(--elev-3);
   padding-bottom:calc(.9rem + env(safe-area-inset-bottom));

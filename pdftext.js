@@ -199,12 +199,30 @@
   /* كشف PDF عربي مكسور الترميز: ملفات زي دي خريطة الحروف (ToUnicode) جواها غلط، فأي مستخرج نص
      بيطلّع حروفًا عربية غلط بشكل منهجي والحروف الصحيحة ضايعة من الملف نفسه.
      العلامة المميزة: نسبة «اا» عالية جدًا ونسبة الألف مرتفعة عن الطبيعي (العربي السليم ≈ 0.01% و 17%). */
+  /* إصلاح قلب «الم» إلى «امل»: منتجات PDF عربية كتير (هنداوي وغيرها) بتكتب رباطة الألف-لام-ميم
+     في خريطة الحروف بالترتيب البصري، فتطلع «امل» بدل «الم» في بداية آلاف الكلمات وبعد أدوات الربط
+     و/ب/ف («باملعنى» ← «بالمعنى»). القلب ده آمن: «امل» العارية (من غير همزة) مش بداية كلمة عربية،
+     وبنسيب كامل/شامل/حامل لأن «امل» جواهم مش في البداية ولا بعد أداة ربط */
+  function repairVisualLamMeem(t){
+    t = String(t == null ? "" : t);
+    t = t.replace(/([وبف])امل(?=[ء-يً-ْٰ])/g, "$1الم");
+    t = t.replace(/(^|[^ء-يٱ-ۓ])امل(?=[ء-يً-ْٰ])/gm, "$1الم");
+    return t;
+  }
+
   function brokenArabicEncoding(t){
-    var letters = (String(t == null ? "" : t).match(/[\u0621-\u064A]/g) || []).length;
+    var letters = (String(t == null ? "" : t).match(/[ء-ي]/g) || []).length;
     if(letters < 400) return false;
     var aa = (t.match(/اا/g) || []).length;
     var alef = (t.match(/ا/g) || []).length;
-    return aa / letters > 0.015 || alef / letters > 0.28;
+    /* رباطات ترتيبها البصري ضايع فيها حروف أو مقلوبة بالهمزة: «أألمن»/«أأشكال» بدل «الأمن»/«الأشكال» —
+       العربي السليم مفيهوش همزتين/مدتين ورا بعض خالص */
+    var hamzaDoubles = (t.match(/[أإآ]{2}/g) || []).length;
+    /* بقايا «امل» بعد الإصلاح (أشكال تانية من نفس العطل مش بيغطيها القلب) */
+    var amlLeft = (t.match(/(^|[^ء-يٱ-ۓ])امل(?=[ء-يً-ْٰ])/gm) || []).length;
+    return aa / letters > 0.015 || alef / letters > 0.28
+      || (hamzaDoubles >= 3 && hamzaDoubles / letters > 0.0008)
+      || amlLeft >= 20;
   }
 
   /* رباطات الشدة مع الحركات (U+FC5E–FC63, U+FCF2–FCF4): تفكيك NFKC بتاعها بيحط مسافة/تطويل غلط
@@ -217,6 +235,7 @@
     t = t.replace(/[\uFC5E-\uFC63\uFCF2-\uFCF4]/g, function(c){ return SHADDA_LIGS[c] || c; });
     if(/[\uFB50-\uFDFF\uFE70-\uFEFF]/.test(t)) t = t.normalize("NFKC");
     t = t.replace(/(\S) +([\u064B-\u0652\u0670\u06D6-\u06ED]+)/g, "$1$2 ");
+    t = repairVisualLamMeem(t);
     return t;
   }
 
@@ -316,6 +335,7 @@
     classify: classify,
     itemsToLines: itemsToLines,
     expandText: expandText,
+    repairVisualLamMeem: repairVisualLamMeem,
     brokenArabicEncoding: brokenArabicEncoding,
     normLine: normLine,
     stripRunningHeaders: stripRunningHeaders,
