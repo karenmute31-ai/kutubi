@@ -2210,11 +2210,11 @@ function updateBanner(){
   var PDF_WORKER = "./vendor/pdfjs/pdf.worker.min.js";
   var isOpen = false, loading = false, openId = null, pdfDoc = null, io = null, token = 0;
   var pdfPageEls = [], pdfTotal = 0, pdfScrollT = null;
-  /* رقم صفحة الـPDF الحالية: آخر صفحة خطها العلوي عدّى منتصف الشاشة — بيتحدث مع السكرول حتى لو كل الصفحات ظاهرة */
+  /* رقم صفحة الـPDF الحالية: أول صفحة لسه ظاهرة تحت خط القراءة (أسفل الشريط العلوي) — لو الكتاب كله قد الشاشة يفضل «صفحة 1» لحد ما تسكرّل */
   function pdfPosUpdate(){
     if(!pdfPageEls.length) return;
-    var mid = window.innerHeight * 0.45, cur = 1;
-    for(var i = 0; i < pdfPageEls.length; i++){ var r = pdfPageEls[i].getBoundingClientRect(); if(r.top <= mid) cur = i + 1; else break; }
+    var line = Math.min(window.innerHeight * 0.45, 160), cur = pdfPageEls.length;
+    for(var i = 0; i < pdfPageEls.length; i++){ var r = pdfPageEls[i].getBoundingClientRect(); if(r.bottom > line){ cur = i + 1; break; } }
     var pill = document.getElementById("pillPos"); if(pill) pill.textContent = "صفحة " + cur + " من " + pdfTotal;
   }
   function onPdfScroll(){ if(pdfScrollT) return; pdfScrollT = setTimeout(function(){ pdfScrollT = null; pdfPosUpdate(); }, 120); }
