@@ -17,3 +17,5 @@ Official references:
 https://aistudio.google.com/docs/speech-generation
 https://aistudio.google.com/docs/pricing
 https://ai.google.dev/gemini-api/terms
+
+Local follow-up: Gemini default studio voice is Charon, selected by the owner after three successful direct API sample requests. Owner-only generation requires the existing admin login and server-side verification against the current admin record. The session token stays in JS memory, no password storage. Output capped at 1200 tokens per preview. Both production projects currently lack KV quota storage; not enabled or deployed. Owner states no billing/card is linked, but account console not inspected.
