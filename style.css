@@ -184,7 +184,7 @@ body.reading #readProgressTrack{display:block}
 .sw-sepia{background:#f4ecd8;color:#433422}
 .sw-dark{background:#241a0e;color:#f5e8d5}
 .sw-black{background:#000000;color:#d8d8d8}
-.sw-auto{background:linear-gradient(135deg,#fffaf2 45%,#241a0e 55%);color:#7c3f12;text-shadow:0 0 4px #fff}
+.sw-auto{background:linear-gradient(135deg,#fffaf2 45%,#241a0e 55%);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.85),0 0 4px rgba(0,0,0,.6)}
 .index-list{display:grid;gap:.45rem;margin-top:.5rem}
 .index-item{display:flex;flex-direction:column;align-items:flex-start;gap:.15rem;text-align:start;width:100%;padding:.55rem .7rem}
 .idx-title{font-weight:800}
