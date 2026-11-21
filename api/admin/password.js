@@ -6,7 +6,7 @@ function sha(salt,pw){return crypto.createHmac("sha256","kutubi-admin").update(s
 async function readItems(){
   const r=await fetch("https://api.vercel.com/v1/edge-config/"+ECID()+"/items",{headers:{Authorization:"Bearer "+WTOK()}});
   if(!r.ok) return null;
-  const d=await r.json(); return d.items||[];
+  const d=await r.json(); return Array.isArray(d)?d:(d.items||[]);
 }
 async function adminRec(){
   if(cache.rec && Date.now()-cache.t<30000) return cache.rec;
