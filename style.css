@@ -726,6 +726,7 @@ html[data-theme="dark"] #readerDrawerFab,html[data-theme="black"] #readerDrawerF
 #readerDrawer .rd-body{flex:1;overflow-y:auto;padding:.9rem}
 #readerDrawer .reader-actionbar{position:static;top:auto;box-shadow:none}
 #readerDrawer #bookToolsCard{margin-bottom:0}
+#readerDrawer #bookToolsCard.tools-menu{position:static;top:auto;inset-inline-end:auto;z-index:auto;width:auto;max-height:none;overflow:visible;box-shadow:none}
 /* الدرج وحبّته ساكنين في #overlay-root بره #tab-reader — فحالات الفاضي/المقفول/الانغماس بتتوصّلهم عن طريق مرايا body */
 body.reader-empty #readerDrawer, body.reader-empty #readerDrawerFab,
 body.reader-locked #readerDrawer, body.reader-locked #readerDrawerFab{display:none!important}
