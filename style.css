@@ -731,3 +731,23 @@ html[data-theme="dark"] #readerDrawerFab,html[data-theme="black"] #readerDrawerF
 body.reader-empty #readerDrawer, body.reader-empty #readerDrawerFab,
 body.reader-locked #readerDrawer, body.reader-locked #readerDrawerFab{display:none!important}
 body.chrome-off #readerDrawerFab, body.chrome-scroll-hidden #readerDrawerFab{opacity:0;pointer-events:none}
+
+/* ---------- أزرار أجزاء القارئ: شريط شرائح مضغوط مرتب (D-12) ----------
+   ديسكتوب/ويندوز (مؤشر دقيق) = أصغر وأدensed، أندرويد/لمس = أهداف لمس مريحة من غير ما تاكل الشاشة */
+.btns{ gap:.35rem; margin-top:.5rem; }
+.chunk .btns button, .btns.ask-sugs button{
+  font-size:.85rem; font-weight:600; line-height:1.25;
+  padding:.3rem .6rem; border-radius:.55rem;
+  min-height:32px;
+  background:transparent; border-color:transparent; box-shadow:none;
+  color:var(--accent);
+}
+.chunk .btns button.primary{ background:transparent; color:var(--accent); border-color:transparent; box-shadow:none; }
+.chunk .btns button[data-role="translate-chunk"]{ border:1px solid var(--border); background:var(--surface); color:var(--text); }
+@media (hover:hover){
+  .chunk .btns button:hover, .btns.ask-sugs button:hover{ background:color-mix(in srgb, var(--accent) 10%, transparent); }
+}
+@media (pointer:coarse){
+  .chunk .btns button, .btns.ask-sugs button{ min-height:42px; padding:.42rem .7rem; font-size:.9rem; }
+  .btns{ gap:.45rem; }
+}

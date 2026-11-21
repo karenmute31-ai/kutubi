@@ -829,7 +829,7 @@ function buildChunkSection(book, i){
     '<div class="orig" data-role="orig"></div>'+
     '<div class="trans" data-role="trans"></div>'+
     '<div class="chunk-err hidden" data-role="chunkerr"></div>'+
-    '<div class="row wrap" data-role="btns"></div>'+
+    '<div class="row wrap btns" data-role="btns"></div>'+
     '<div data-role="extra"></div>';
   return sec;
 }
@@ -1052,7 +1052,10 @@ function renderSummary(book){
 }
 
 /* ---------- 💬 اسأل الكتاب (محادثة مربوطة بمحتوى الكتاب نفسه بس) ---------- */
-const ASK_SYS = "انت مساعد قراءة بيجاوب على أسئلة القارئ عن كتابه، معتمد فقط على مقتطفات من الكتاب هتوصلك. جاوب باللهجة المصرية البسيطة اليومية وبأسلوب شيّق وواضح، واذكر رقم الجزء اللي جبت منه المعلومة بين قوسين زي (الجزء ٣). لو الإجابة مش موجودة في المقتطفات اللي وصلتك، قول بالنص: الكتاب مش بيغطي النقطة دي في الأجزاء اللي وصلتني. ممنوع تضيف أي معلومة من برّه المقتطفات.";
+function askSys(){
+  const dl = explDialect();
+  return "انت مساعد قراءة بيجاوب على أسئلة القارئ عن كتابه، معتمد فقط على مقتطفات من الكتاب هتوصلك. جاوب بنفس اللهجة دي: " + dl.sys.replace("انت شارح", "انت بتتكلم") + " واذكر رقم الجزء اللي جبت منه المعلومة بين قوسين زي (الجزء ٣). لو الإجابة مش موجودة في المقتطفات اللي وصلتك، قول بالنص إن الكتاب مش بيغطي النقطة دي في الأجزاء اللي وصلتك. ممنوع تضيف أي معلومة من برّه المقتطفات.";
+}
 function askTokens(q){ return Array.from(new Set(String(q || "").toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(w=>w.length >= 2))); }
 /* دالة نقية: اختيار أكتر أجزاء ليها علاقة بالسؤال (تداخل كلمات في الأصل + الترجمة، وعلاوة للأجزاء اللي ليها أهم نقط) */
 function pickAskChunks(book, question, n){
@@ -1074,7 +1077,17 @@ function renderAskPanel(book){
   book = book || currentBook();
   if(!book){ box.innerHTML = '<p class="hint">افتح كتاب الأول.</p>'; return; }
   ensureBookExtras(book);
-  if(!book.chat.length){ box.innerHTML = '<p class="hint">اسأل أي سؤال عن محتوى الكتاب — الإجابة هتيجي من أجزاء الكتاب نفسه بس.</p>'; return; }
+  if(!book.chat.length){
+    box.innerHTML = '<p class="hint">اسأل أي سؤال عن محتوى الكتاب — الإجابة هتيجي من أجزاء الكتاب نفسه بس.</p>';
+    const sug = document.createElement("div"); sug.className = "row wrap btns ask-sugs";
+    ["إيه أهم أفكار الكتاب ده؟","لخّصلي أهم اللي قاله الكتاب لحد دلوقتي","إيه أصعب فكرة في الكتاب واشرحهالي ببساطة؟"].forEach(t=>{
+      const c = document.createElement("button"); c.className = "ghost"; c.textContent = t;
+      c.addEventListener("click",()=>{ const inp=$("#askInput"); if(inp){ inp.value=t; } sendAsk(); });
+      sug.appendChild(c);
+    });
+    box.appendChild(sug);
+    return;
+  }
   box.innerHTML = "";
   book.chat.forEach(m=>{
     const d = document.createElement("div");
@@ -1100,9 +1113,9 @@ async function sendAsk(){
     const idxs = pickAskChunks(b, q);
     const ctx = idxs.map(i=>{
       const ch = b.chunks[i];
-      return "— الجزء " + (i + 1) + " —\n[الأصل]\n" + (ch.orig || "").slice(0, 1500) + "\n[الترجمة]\n" + (ch.trans || "").slice(0, 1500) + ((ch.keyPoints || []).length ? "\n[أهم النقط]\n" + ch.keyPoints.join("؛ ") : "");
+      return "— الجزء " + (i + 1) + " —\n[الأصل]\n" + (ch.orig || "").slice(0, 1500) + "\n[الترجمة]\n" + (ch.trans || "").slice(0, 1500) + (ch.summary ? "\n[ملخص الجزء]\n" + ch.summary.slice(0, 500) : "") + ((ch.keyPoints || []).length ? "\n[أهم النقط]\n" + ch.keyPoints.join("؛ ") : "");
     }).join("\n\n");
-    const ans = await aiChat(ASK_SYS, "مقتطفات من الكتاب:\n\n" + ctx + "\n\nسؤال القارئ: " + q, 0.4, undefined, {maxTokens: 2048});
+    const ans = await aiChat(askSys(), "مقتطفات من الكتاب:\n\n" + ctx + "\n\nسؤال القارئ: " + q, 0.4, undefined, {maxTokens: 2048});
     b.chat.push({role:"assistant", text:String(ans).trim(), ts:Date.now()});
     if(b.chat.length > 50) b.chat = b.chat.slice(-50);
     await idbPut(b);
