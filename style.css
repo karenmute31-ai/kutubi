@@ -754,6 +754,7 @@ body.chrome-off #readerDrawerFab, body.chrome-scroll-hidden #readerDrawerFab{opa
 }
 
 /* ---------- الشريط السفلي جوه درج القارئ (D-13): كل الاختصارات في الدرج، صفحة القراءة صافية ---------- */
+#readerDrawer #readerBottomBar.hidden{ display:none!important; }
 #readerDrawer #readerBottomBar{ display:block!important; position:static; inset-inline:auto; bottom:auto; left:auto; right:auto; z-index:auto; width:auto; max-width:none; margin:0 0 .8rem; padding:.45rem .6rem .5rem; border-radius:.9rem; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
 #readerDrawer #readerBottomBar .rbb-row1{ gap:.45rem; }
 #readerDrawer #readerBottomBar #readScrubber{ height:22px; }
