@@ -1594,6 +1594,40 @@ async function makeExplanation(book, i, signal){
 let explaining = false, explainStop = false, explainRun = null;
 function setExplainBtn(){ const b=$("#btnExplainBook"); if(b) b.textContent = explaining ? "⏹ وقّف الشرح" : "💡 اشرح الكتاب بال"+explDialect().label; }
 function stopExplainBook(){ if(!explaining) return; explainStop = true; if(explainRun) explainRun.stop(); audioGen++; }
+/* ---------- 📝 ملخص ذكي لكل جزء (فصل) — بيلخّص الجزء باللهجة المختارة وبيخزّنه معاه ---------- */
+async function makeChunkSummary(book, i, signal){
+  const ch=book.chunks[i]; if(!ch) return "";
+  const origMode = bookTargetLang(book)==="orig";
+  if(!origMode && ch.status!=="done") return "";
+  const dlKey = sanitizeExplDialect(settings.explDialect||"egyptian");
+  if(ch.summary && ch.summaryDialect===dlKey) return ch.summary;
+  if(!hasKey()) return "";
+  const src = origMode ? ch.orig : (ch.trans || ch.orig);
+  const dl = explDialect();
+  const text = await aiChat(dl.sys, "لخّص الجزء التالي من الكتاب في ٣-٥ جمل قصيرة مركّزة، أهم الأفكار والمعلومات بس من غير مقدمات ولا إضافات من برّه المحتوى:\n\n"+src, 0.4, signal, {maxTokens: 1024});
+  ch.summary=String(text).trim(); ch.summaryDialect=dlKey;
+  await idbPut(book); renderChunk(book,i);
+  return ch.summary;
+}
+async function summarizeChunkText(book, i){
+  if(!book || isBookLocked(book)) return;
+  if(!hasKey()){ setTransStatus("الملخص الذكي بيحتاج مفتاح API — ضيفه من تبويب الإعدادات", true); return; }
+  const ch=book.chunks[i]; if(!ch) return;
+  if(ch.summary && ch.summary.trim()){ openChunkSummary(i); setTransStatus("الجزء "+(i+1)+" متلخّص أصلًا — الملخص مفتوح تحت الجزء"); return; }
+  const gen=audioGen;
+  try{
+    setTransStatus("بيتلخّص الجزء "+(i+1)+"…");
+    const t=await makeChunkSummary(book,i);
+    if(gen!==audioGen) return;
+    if(t){ openChunkSummary(i); setTransStatus("✅ ملخص الجزء "+(i+1)+" جاهز تحت الجزء"); }
+    else setTransStatus("الملخص محتاج الجزء يكون مترجم الأول (أو الكتاب في وضع النص الأصلي).", true);
+  }catch(e){ if(!(e && e.name==="AbortError")){ logError("ملخص", e); setTransStatus("الملخص وقف — سبب التوقف: "+describeError(e), true); } }
+}
+function openChunkSummary(i){
+  const sec=document.getElementById("chunk-"+i); if(!sec) return;
+  sec.querySelectorAll("details").forEach(d=>{ const s=d.querySelector("summary"); if(s && s.textContent.indexOf("ملخص الجزء")===0) d.open=true; });
+}
+
 function openChunkExplanation(i){
   const sec = document.getElementById("chunk-" + i); if(!sec) return;
   sec.querySelectorAll("details").forEach(d=>{ const s = d.querySelector("summary"); if(s && s.textContent.indexOf("الشرح") === 0) d.open = true; });

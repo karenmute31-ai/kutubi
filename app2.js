@@ -990,6 +990,7 @@ function fillChunk(book,i){
   }
   /* شرح نصي للجزء ده بس — بيظهر لما الجزء قابل للشرح (مترجم، أو الكتاب في وضع النص الأصلي) */
   if(ch.status==="done" || bookTargetLang(book)==="orig") mk("💡 اشرح الجزء بال"+((typeof explDialect==="function")?explDialect().label:"مصري"),"ghost",()=>explainChunkText(book,i));
+  if(ch.status==="done" || bookTargetLang(book)==="orig") mk("📝 لخّص الجزء","ghost",()=>summarizeChunkText(book,i));
   const marked=book.bookmarks.includes(i);
   mk(marked?"🔖 شيل العلامة":"🔖 علامة","ghost",async()=>{ ensureBookExtras(book); const beforeMarks=book.bookmarks.slice(); const p=book.bookmarks.indexOf(i); if(p>=0) book.bookmarks.splice(p,1); else book.bookmarks.push(i); try{ await idbPut(book); }catch(e){ book.bookmarks=beforeMarks; logError("حفظ", e); setTransStatus("حفظ العلامة فشل — جرّب تاني.", true); } fillChunk(book,i); renderIndexPanel(); });
   mk("🖍 ظلّل","ghost",()=>{ const ed=$('[data-role="hledit"]',sec); if(ed) ed.classList.toggle("hidden"); });
@@ -1017,6 +1018,10 @@ function fillChunk(book,i){
     const d=document.createElement("details"); const s=document.createElement("summary"); s.textContent="أهم النقط"; d.appendChild(s);
     const ul=document.createElement("ul"); ch.keyPoints.forEach(k=>{ const li=document.createElement("li"); li.textContent=k; ul.appendChild(li); });
     d.appendChild(ul); ex.appendChild(d);
+  }
+  if(ch.summary){
+    const d=document.createElement("details"); const s=document.createElement("summary"); s.textContent="ملخص الجزء"; d.appendChild(s);
+    const p=document.createElement("p"); p.textContent=stripMd(ch.summary); d.appendChild(p); ex.appendChild(d);
   }
   if(ch.explanation){
     const d=document.createElement("details"); const s=document.createElement("summary"); s.textContent="الشرح (نص)"; d.appendChild(s);
