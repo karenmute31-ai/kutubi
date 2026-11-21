@@ -8,7 +8,7 @@ function stripMd(s){return String(s==null?"":s).replace(/\*\*([^*]+)\*\*/g,"$1")
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
 
 /* ---------- الإعدادات (localStorage بس) ---------- */
-const DEFSET = {key:"", base:"/api/ai", model:"gemini-3.5-flash-lite", tone:"calm", voiceURI:"", speed:1, dark:false, font:17, theme:"light", fontFamily:"system", lineHeight:1.9, targetLang:"ar-EG", tStyle:"fusha", dailyGoalMin:15, ruler:false, userWpm:0, elKey:"", elVoiceId:"", elModel:"eleven_multilingual_v2", elStability:0.5, elSimilarity:0.75, elSpeed:1, ttsProvider:"device", azKey:"", azRegion:"", azVoice:"", gKey:"", gVoice:""};
+const DEFSET = {key:"", base:"/api/ai", model:"gemini-3.5-flash-lite", tone:"calm", voiceURI:"", speed:1, dark:false, font:17, theme:"dark", fontFamily:"system", lineHeight:1.9, targetLang:"ar-EG", tStyle:"fusha", dailyGoalMin:15, ruler:false, userWpm:0, elKey:"", elVoiceId:"", elModel:"eleven_multilingual_v2", elStability:0.5, elSimilarity:0.75, elSpeed:1, ttsProvider:"device", azKey:"", azRegion:"", azVoice:"", gKey:"", gVoice:""};
 let settings = Object.assign({}, DEFSET);
 try{ Object.assign(settings, JSON.parse(localStorage.getItem("motarjem-settings")||"{}")); }catch(e){}
 /* ترحيل: اللي كان عنده dark بس من غير theme — الثيم بيتبني منها */
@@ -42,7 +42,7 @@ function applyAppearance(){
   const t = effectiveTheme();
   document.documentElement.dataset.theme = t;
   /* لون شريط المتصفح/النظام بيتبع ثيم القراءة: بني العلامة للفاتح، ورمادي غامق للّيلي */
-  const mtc = document.querySelector('meta[name="theme-color"]'); if(mtc) mtc.setAttribute("content", t === "dark" ? "#202124" : (t === "black" ? "#000000" : "#7c3f12"));
+  const mtc = document.querySelector('meta[name="theme-color"]'); if(mtc) mtc.setAttribute("content", t === "dark" ? "#131110" : (t === "black" ? "#000000" : "#7c3f12"));
   document.documentElement.style.setProperty("--fs", (settings.font||17)+"px");
   document.documentElement.style.setProperty("--lh", settings.lineHeight || 1.9);
   document.documentElement.style.setProperty("--reader-font", FONT_STACKS[settings.fontFamily] || FONT_STACKS.system);
@@ -105,7 +105,7 @@ function autoMatchVoiceForTone(toneKey){
 let dbPromise = null;
 /* حارس نسخة المخطط الوحيد: أي تغيير مستقبلي في شكل البيانات بيعدي من migrateSchema بس */
 const IDB_VERSION = 2;
-const APP_VERSION_TAG = "motarjem-v27"; /* بيتطابق مع اسم كاش الـ Service Worker */
+const APP_VERSION_TAG = "motarjem-v53"; /* بيتطابق مع اسم كاش الـ Service Worker */
 function migrateSchema(db, oldVersion, newVersion){ /* حاليًا المخطط ثابت من النسخة ٢ — مفيش ترحيلات، والخطّاف جاهز لأي تغيير جاي */
 }
 function idb(){
