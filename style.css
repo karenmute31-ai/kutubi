@@ -4,16 +4,16 @@
   --fs:17px; --lh:1.9; --reader-font:"Segoe UI",Tahoma,Arial,sans-serif;
 }
 html[data-theme="dark"]{
-  --bg:#171008; --surface:#211709; --card:#241a0e; --text:#f5e8d5; --muted:#c3ab8a;
-  --accent:#e0a458; --accent2:#c47b2a; --border:#4a3517;
+  --bg:#131110; --surface:#1b1815; --card:#201c18; --text:#f3ede2; --muted:#a89d8c;
+  --accent:#d9a94a; --accent2:#f0c96a; --border:#37302a;
 }
 html[data-theme="sepia"]{
   --bg:#f4ecd8; --surface:#efe3c6; --card:#fbf5e3; --text:#433422; --muted:#8a6d4f;
   --accent:#8a5a1d; --accent2:#b07d2b; --border:#ddc9a3;
 }
 html[data-theme="black"]{
-  --bg:#000000; --surface:#0b0b0b; --card:#121212; --text:#d8d8d8; --muted:#9c9c9c;
-  --accent:#e0a458; --accent2:#c47b2a; --border:#2e2e2e;
+  --bg:#000000; --surface:#0b0a09; --card:#121110; --text:#e8e2d6; --muted:#9c948a;
+  --accent:#d9a94a; --accent2:#f0c96a; --border:#2a2622;
 }
 html[data-theme="black"] .basic-note,html[data-theme="black"] .lock-badge,html[data-theme="black"] .ocr-badge,html[data-theme="black"] .resume-banner,html[data-theme="black"] .update-banner{background:#2a2108;color:#f5d78a}
 *{box-sizing:border-box}
@@ -833,3 +833,45 @@ details summary{ cursor:pointer; font-weight:700; color:var(--accent); }
 /* سويتشات وشارات */
 .badge{ border-radius:99px; }
 html[data-theme="dark"] .tabbar, html[data-theme="black"] .tabbar{ box-shadow:0 -6px 20px rgba(0,0,0,.35); }
+
+/* ================= الهوية الجديدة: ملكي × مودرن (D-16) — فيوجن معتمد من المستخدم =================
+   فخامة ذهبية ليلية بروح مودرن: كروت كبيرة ناعمة، زجاج مصنفر، تدرجات ذهبية رقيقة — ونسختها الفاتحة بنفس الروح */
+body{ font-family:"Tajawal","Segoe UI",Tahoma,Arial,sans-serif; }
+.home-brand{ font-family:"Amiri","Traditional Arabic","Tajawal",serif; }
+/* الثيم الغامق = الفيوجن المعتمد بالظبط */
+html[data-theme="dark"] body{ background:
+  radial-gradient(1000px 420px at 85% -8%, rgba(217,169,74,.08), transparent 60%),
+  radial-gradient(800px 380px at 5% 108%, rgba(217,169,74,.05), transparent 55%), var(--bg); }
+html[data-theme="dark"] .home-brand, html[data-theme="black"] .home-brand{
+  background:linear-gradient(120deg,#f5d78a,#c8942e); -webkit-background-clip:text; background-clip:text; color:transparent; }
+html[data-theme="dark"] .topbar, html[data-theme="black"] .topbar{
+  background:rgba(19,17,16,.82); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); }
+html[data-theme="dark"] .tabbar, html[data-theme="black"] .tabbar{
+  background:rgba(19,17,16,.86); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); }
+html[data-theme="dark"] .tabbar button.active, html[data-theme="black"] .tabbar button.active{ color:var(--accent2); }
+html[data-theme="dark"] .banner, html[data-theme="dark"] .update-banner{ background:#241e12; color:#f5d78a; }
+html[data-theme="dark"] .resume-bar{ background:#201c18; }
+html[data-theme="dark"] .basic-note{ background:#241e12; color:#f5d78a; }
+html[data-theme="dark"] input[type=text],html[data-theme="dark"] input[type=url],html[data-theme="dark"] input[type=password],
+html[data-theme="dark"] input[type=search],html[data-theme="dark"] input[type=month],html[data-theme="dark"] textarea,html[data-theme="dark"] select{
+  background:#171412; }
+html[data-theme="dark"] .progress-wrap{ background:#2c2620; }
+html[data-theme="dark"] details summary{ color:var(--accent2); }
+/* كروت أكبر وأنعم في كل الثيمات — روح المودرن */
+.card,.book-card{ border-radius:1.25rem; }
+html[data-theme="dark"] .card, html[data-theme="dark"] .book-card, html[data-theme="dark"] .stat-box{
+  box-shadow:0 8px 24px rgba(0,0,0,.28), 0 1px 3px rgba(0,0,0,.2); }
+/* الزرار الأساسي: تدرج ذهبي في الغامق/الأسود، تدرج من لون البراند في الفاتح */
+html[data-theme="dark"] button.primary, html[data-theme="black"] button.primary{
+  background:linear-gradient(135deg,#f0c96a,#cf9c34); color:#241a05; border:none; font-weight:800;
+  box-shadow:0 8px 22px rgba(207,156,52,.28), inset 0 1px 0 rgba(255,255,255,.45); }
+@media (hover:hover){
+  html[data-theme="dark"] button.primary:hover, html[data-theme="black"] button.primary:hover{
+    filter:brightness(1.06); box-shadow:0 12px 28px rgba(207,156,52,.34), inset 0 1px 0 rgba(255,255,255,.45); }
+  html[data-theme="dark"] button.ghost:hover, html[data-theme="black"] button.ghost:hover{ background:rgba(217,169,74,.08); }
+}
+html[data-theme="dark"] .progress, html[data-theme="black"] .progress{ background:linear-gradient(90deg,#f0c96a,#cf9c34); }
+html[data-theme="dark"] .badge.done, html[data-theme="black"] .badge.done{ background:#2c2410; color:var(--accent2); }
+/* مؤشر التركيز الذهبي */
+html[data-theme="dark"] input:focus,html[data-theme="dark"] textarea:focus,html[data-theme="dark"] select:focus{
+  box-shadow:0 0 0 3px rgba(217,169,74,.22); }
