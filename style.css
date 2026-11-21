@@ -767,3 +767,14 @@ body.reader-empty #readerDrawer #readerBottomBar, body.reader-locked #readerDraw
 @media (pointer:coarse){
   #readerDrawer #readerBottomBar .rbb-btn{ min-height:44px; font-size:.78rem; }
 }
+
+/* ---------- 🏆 الإنجازات وتحدي الأسبوع (D-14) ---------- */
+.achv-title{ margin:.9rem 0 .4rem; font-size:1rem; color:var(--accent); }
+.achv-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:.45rem; margin-top:.45rem; }
+.achv{ display:flex; flex-direction:column; gap:.15rem; padding:.5rem .6rem; border:1px solid var(--border); border-radius:.8rem; background:var(--surface); opacity:.55; filter:grayscale(.6); }
+.achv.done{ opacity:1; filter:none; border-color:var(--accent2); box-shadow:var(--elev-1); }
+.achv .achv-ic{ font-size:1.25rem; }
+.achv strong{ font-size:.85rem; }
+.achv .hint{ font-size:.7rem; }
+.achv .progress-wrap{ height:5px; margin-top:.15rem; }
+.stat-box.weekly{ grid-column:1/-1; }

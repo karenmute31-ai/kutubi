@@ -981,6 +981,7 @@ function renderHomeStats(){
   if(wpm) el.innerHTML += '<div class="stat-box"><strong>' + wpm + '</strong><span>كلمة/دقيقة — الوقت محسوب على سرعتك الفعلية</span></div>';
   const gs = $("#goalSel");
   if(gs) gs.addEventListener("change", ()=>{ settings.dailyGoalMin = parseInt(gs.value, 10) || 15; saveSettings(); renderHomeStats(); });
+  renderAchievements(s, streak);
   /* هدف خطة الإنهاء لآخر كتاب اتفتح — بيظهر في الرئيسية */
   const gl = $("#homeGoalLine");
   if(gl){
@@ -993,6 +994,52 @@ function renderHomeStats(){
       gl.classList.remove("hidden");
     } else gl.classList.add("hidden");
   }
+}
+
+/* ---------- 🏆 الإنجازات وتحدي الأسبوع (محسوبة من إحصائيات القراءة الموجودة — من غير تخزين جديد) ---------- */
+function weekMin(s){
+  let n = 0; const tk = todayKey();
+  for(let d = 0; d < 7; d++) n += (s.byDay[shiftDayKey(tk, -d)] || 0);
+  return n;
+}
+function computeAchievements(s, books, streak){
+  const anns = books.reduce((n, b)=>n + ((b.annotations || []).length), 0);
+  const asked = books.some(b=>(b.chat || []).length);
+  const summarized = books.some(b=>(b.chunks || []).some(c=>c.summary));
+  const explained = books.some(b=>(b.chunks || []).some(c=>c.explanation));
+  const list = [
+    {icon:"🎯", title:"أول خطوة", desc:"سجّل أول دقيقة قراية", done:s.totalMin >= 1, cur:Math.min(s.totalMin,1), max:1},
+    {icon:"📖", title:"قارئ جديد", desc:"خلّص أول كتاب", done:s.finishedBooks >= 1, cur:Math.min(s.finishedBooks,1), max:1},
+    {icon:"📚", title:"نهّاز كتب", desc:"خلّص ٣ كتب", done:s.finishedBooks >= 3, cur:Math.min(s.finishedBooks,3), max:3},
+    {icon:"🔥", title:"ولّاعة ٣ أيام", desc:"سلسلة قراية ٣ أيام", done:streak >= 3, cur:Math.min(streak,3), max:3},
+    {icon:"🏆", title:"أسبوع كامل", desc:"سلسلة ٧ أيام متتالية", done:streak >= 7, cur:Math.min(streak,7), max:7},
+    {icon:"⏱", title:"٥ ساعات قراية", desc:"٣٠٠ دقيقة إجمالي", done:s.totalMin >= 300, cur:Math.min(s.totalMin,300), max:300},
+    {icon:"🖍", title:"المظلّل", desc:"١٠ تظليلات وملاحظات", done:anns >= 10, cur:Math.min(anns,10), max:10},
+    {icon:"⭐", title:"جامع الكلمات", desc:"٢٠ كلمة في المفضلة", done:favs.size >= 20, cur:Math.min(favs.size,20), max:20},
+    {icon:"💬", title:"فضولي", desc:"اسأل الكتاب أول سؤال", done:asked, cur:asked?1:0, max:1},
+    {icon:"📝", title:"الملخّص الذكي", desc:"اعمل أول ملخص لجزء", done:summarized, cur:summarized?1:0, max:1},
+    {icon:"💡", title:"الفهّيم", desc:"اعمل أول شرح لجزء", done:explained, cur:explained?1:0, max:1}
+  ];
+  return list;
+}
+function renderAchievements(s, streak){
+  const wk = $("#achvWeekly");
+  if(wk){
+    const goal = 120, cur = weekMin(s), pct = Math.min(100, Math.round(cur / goal * 100));
+    wk.innerHTML = '<div class="stat-box goal-box weekly"><strong>⚔ تحدي الأسبوع: ' + cur + ' من ' + goal + ' دقيقة</strong>' +
+      '<div class="progress-wrap"><div class="progress" style="width:' + pct + '%"></div></div>' +
+      '<span class="hint">' + (cur >= goal ? "خلّصت التحدي — بطل 🏆" : "فاضل " + (goal - cur) + " دقيقة على مدار آخر ٧ أيام") + '</span></div>';
+  }
+  const body = $("#achvBody"); if(!body) return;
+  body.innerHTML = "";
+  computeAchievements(s, books, streak).forEach(a=>{
+    const d = document.createElement("div");
+    d.className = "achv" + (a.done ? " done" : "");
+    const pct = a.max > 1 ? Math.min(100, Math.round(a.cur / a.max * 100)) : (a.done ? 100 : 0);
+    d.innerHTML = '<span class="achv-ic">' + a.icon + '</span><strong>' + a.title + '</strong><span class="hint">' + a.desc + '</span>' +
+      '<div class="progress-wrap"><div class="progress" style="width:' + pct + '%"></div></div>';
+    body.appendChild(d);
+  });
 }
 
 /* ---------- التظليل والملاحظات والعلامات ---------- */
