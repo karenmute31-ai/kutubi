@@ -19,7 +19,7 @@ const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 const ALLOWED = ['.topbar', '.tabbar', '#readerTopbar', '.reader-actionbar', '#readerBottomBar', '#readerSidebar',
   '#readerPill', '#selPopup', '.sel-popup', '.consent-overlay', '#updateBanner', '.update-banner', '.resume-bar', '#readProgressTrack',
   '#readRuler', '.sheet-backdrop', '#appearanceCard', '#voiceCard', '#indexCard', '#bookToolsCard',
-  '.more-sheet', '#appToast', '#overlay-root', '.book-cover', '.freelib-cover'];
+  '.more-sheet', '#appToast', '#readerDrawer', '#readerDrawerFab', '#overlay-root', '.book-cover', '.freelib-cover'];
 const rules = css.split('}').map(r => r.trim()).filter(Boolean);
 for (const rule of rules) {
   const m = rule.match(/position\s*:\s*(fixed|sticky)/);

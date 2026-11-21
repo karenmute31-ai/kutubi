@@ -716,3 +716,17 @@ body[data-layout="desktop"].in-reader #moreTransTools{ display:block; margin:0 0
 #moreViewList{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.4rem; margin:.3rem 0; }
 #moreViewList .more-row{ justify-content:center; text-align:center; min-height:44px; border:1px solid var(--border); border-radius:.6rem; }
 #moreViewList .more-row.active{ outline:2px solid var(--accent,#7c3f12); font-weight:800; }
+
+/* ---------- درج أدوات القراءة: شريط الإجراءات + أدوات الكتاب في درج جانبي منزلق، صفحة القراءة صافية ---------- */
+#readerDrawerFab{position:fixed;inset-inline-start:14px;bottom:150px;z-index:26;width:52px;height:52px;border-radius:50%;border:none;background:var(--accent);color:#fff;font-size:1.35rem;cursor:pointer;box-shadow:0 6px 18px rgba(90,50,0,.35);display:flex;align-items:center;justify-content:center;transition:opacity var(--dur-2) var(--ease)}
+html[data-theme="dark"] #readerDrawerFab,html[data-theme="black"] #readerDrawerFab{color:#171008}
+#readerDrawer{position:fixed;top:0;bottom:0;inset-inline-start:0;width:min(360px,92vw);z-index:60;background:var(--surface);border-inline-end:1px solid var(--border);box-shadow:0 0 40px rgba(0,0,0,.22);transform:translateX(110%);transition:transform var(--dur-2) var(--ease);display:flex;flex-direction:column}
+#readerDrawer.open{transform:none}
+#readerDrawer .rd-head{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.7rem .9rem;background:var(--card);border-bottom:1px solid var(--border)}
+#readerDrawer .rd-body{flex:1;overflow-y:auto;padding:.9rem}
+#readerDrawer .reader-actionbar{position:static;top:auto;box-shadow:none}
+#readerDrawer #bookToolsCard{margin-bottom:0}
+/* الدرج وحبّته ساكنين في #overlay-root بره #tab-reader — فحالات الفاضي/المقفول/الانغماس بتتوصّلهم عن طريق مرايا body */
+body.reader-empty #readerDrawer, body.reader-empty #readerDrawerFab,
+body.reader-locked #readerDrawer, body.reader-locked #readerDrawerFab{display:none!important}
+body.chrome-off #readerDrawerFab, body.chrome-scroll-hidden #readerDrawerFab{opacity:0;pointer-events:none}

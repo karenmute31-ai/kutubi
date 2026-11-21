@@ -197,8 +197,10 @@ function syncReaderEmpty(){
   const sec = $("#tab-reader"); if(!sec) return;
   const has = !!currentBook();
   sec.classList.toggle("reader-empty", !has);
+  document.body.classList.toggle("reader-empty", !has); /* مرايا على body: درج القارئ وحبّته ساكنين في #overlay-root بره #tab-reader */
   if(has) return;
   sec.classList.remove("reader-locked");
+  document.body.classList.remove("reader-locked");
   const bb = $("#readerBottomBar"); if(bb) bb.classList.add("hidden");
   const ch = $("#chunks"); if(ch) ch.innerHTML = "";
   pagerBookId = null; renderedUpTo = 0;
@@ -535,9 +537,15 @@ function jumpChunkReader(dir){
 function showBackdrop(on){ const b = $("#sheetBackdrop"); if(b) b.classList.toggle("hidden", !on); }
 function closeReaderPanels(){
   ["#appearanceCard","#voiceCard"].forEach(s=>{ const el = $(s); if(el) el.classList.remove("sheet-open"); });
-  const tm = $("#bookToolsCard"); if(tm) tm.classList.add("hidden");
+  const rd = $("#readerDrawer"); if(rd) rd.classList.remove("open");
   const ic = $("#indexCard"); if(ic) ic.classList.remove("drawer-open");
   showBackdrop(false);
+}
+/* درج أدوات القراءة: شريط الإجراءات وأدوات الكتاب بقوا جوّه درج جانبي واحد — القراءة صافية من غير أزرار فوق النص */
+function openReaderDrawer(){
+  closeReaderPanels();
+  const rd = $("#readerDrawer"); if(rd) rd.classList.add("open");
+  showBackdrop(true);
 }
 function openSheet(which){
   closeReaderPanels();
@@ -869,9 +877,11 @@ function setupChunkPager(){
 }
 function renderReader(book){
   $("#tab-reader").classList.remove("reader-empty"); /* كتاب موجود بيتعرض: أي حالة فاضية قديمة بتتشال قبل الرسم */
+  document.body.classList.remove("reader-empty");
   $("#readerTitle").textContent=book.title;
   const locked=isBookLocked(book);
   $("#tab-reader").classList.toggle("reader-locked", locked);
+  document.body.classList.toggle("reader-locked", locked); /* مرايا للدرج وحبّته في #overlay-root */
   /* شريط التحكم السفلي (أبجد): بيظهر لكتاب مفتوح ومش مقفول بس — سكرولر على آخر موضع، وسطر فرعي بمعلومات الكتاب */
   const bbEl = $("#readerBottomBar"); if(bbEl) bbEl.classList.toggle("hidden", locked);
   if(!locked){
@@ -1426,7 +1436,7 @@ document.addEventListener("DOMContentLoaded", async()=>{
   const fv0=$("#fontSizeVal"); if(fv0) fv0.textContent=settings.font||17;
   const tb0=$(".topbar"); if(tb0) document.documentElement.style.setProperty("--topbar-h", tb0.offsetHeight+"px");
   /* [D-04] نظام الطبقات: كل عنصر عائم بيتنقل لحاوية #overlay-root (بره حاوية القارئ) قبل أي تفاعل */
-  const OVERLAY_FLOATERS=["updateBanner","resumeBar","readProgressTrack","readRuler","selPopup","sheetBackdrop","moreSheet","quizOverlay","wordSheet","appearanceCard","voiceCard","bookToolsCard","indexCard","readerBottomBar"];
+  const OVERLAY_FLOATERS=["updateBanner","resumeBar","readProgressTrack","readRuler","selPopup","sheetBackdrop","moreSheet","quizOverlay","wordSheet","appearanceCard","voiceCard","bookToolsCard","indexCard","readerBottomBar","readerDrawer","readerDrawerFab"];
   const overlayRootEl=$("#overlay-root");
   if(overlayRootEl) OVERLAY_FLOATERS.forEach(id=>{ const el=document.getElementById(id); if(el && el.parentNode!==overlayRootEl) overlayRootEl.appendChild(el); });
   /* [D-04] ارتفاع الشريط العام بيتقاس لحظيًا — مفيش قيمة قديمة تخلي أشرطة القارئ تطفو فوق النص */
@@ -1637,14 +1647,16 @@ document.addEventListener("DOMContentLoaded", async()=>{
   }, {passive:true});
   /* لمسة على الورقة نفسها بتخفي/تظهر كل الكروم (الشريطين + الحبة) للانغماس — اللمس على أزرار أو كلمات أو تحديد نص مبيعملش حاجة */
   $("#tab-reader").addEventListener("click", (e)=>{
-    if(e.target.closest("#readerTopbar, #readerActionBar, #readerBottomBar, #appearanceCard, #voiceCard, #bookToolsCard, #indexCard, #askPanel, #summaryCard, #quizOverlay, #lockCard, button, a, input, select, textarea, label, details, mark, .tapword, .annot-box")) return;
+    if(e.target.closest("#readerTopbar, #readerActionBar, #readerBottomBar, #readerDrawer, #readerDrawerFab, #appearanceCard, #voiceCard, #bookToolsCard, #indexCard, #askPanel, #summaryCard, #quizOverlay, #lockCard, button, a, input, select, textarea, label, details, mark, .tapword, .annot-box")) return;
     try{ if(String(window.getSelection() || "").length) return; }catch(err){}
     const b = currentBook(); if(!b || isBookLocked(b)) return;
     $("#tab-reader").classList.toggle("chrome-off");
     document.body.classList.toggle("chrome-off", $("#tab-reader").classList.contains("chrome-off")); /* [D-04] مرايا لـ body */
   });
   /* أزرار الشريط العائم وقائمة الأدوات واللوحات */
-  $("#btnReaderMenu").addEventListener("click", ()=>{ const tm = $("#bookToolsCard"); if(!tm) return; const willOpen = tm.classList.contains("hidden"); closeReaderPanels(); if(willOpen){ tm.classList.remove("hidden"); showBackdrop(true); } });
+  $("#btnReaderMenu").addEventListener("click", ()=>openReaderDrawer());
+  const rdfab=$("#readerDrawerFab"); if(rdfab) rdfab.addEventListener("click", ()=>openReaderDrawer());
+  const rdclose=$("#readerDrawerClose"); if(rdclose) rdclose.addEventListener("click", ()=>closeReaderPanels());
   $("#btnMenuVoice").addEventListener("click", ()=>openSheet("voice"));
   $("#btnReaderSearch").addEventListener("click", ()=>{ openIndexDrawer(); const s = $("#bookSearch"); if(s){ s.focus(); if(s.select) s.select(); } });
   $("#sheetBackdrop").addEventListener("click", ()=>{ closeReaderPanels(); closeMoreSheet(); });

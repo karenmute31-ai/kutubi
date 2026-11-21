@@ -225,6 +225,25 @@
 	        <button id="btnReaderSearch" class="icon-btn" type="button" title="بحث في الكتاب">🔍</button>
 	        <button id="btnReaderMenu" class="icon-btn" type="button" title="أدوات الكتاب">⋯</button>
 	      </div>
+	    </div>
+	    <div id="lockCard" class="card">
+	      <h2>🔒 الفترة التجريبية خلصت</h2>
+	      <p class="hint">الفترة التجريبية المجانية يومين من أول تشغيل للتطبيق — وخلصت. فعّل الاشتراك الشهري عشان تفتح كل كتبك: ترجمة وشرح وتصدير كاملين.</p>
+	      <div class="sub-panel"></div>
+	    </div>
+	    <div id="readerEmpty" class="card">
+	      <p class="reader-empty-msg">📖 لسه مفيش كتاب مفتوح — افتح كتابًا من المكتبة</p>
+	      <button type="button" id="readerEmptyLib" class="primary">📚 افتح المكتبة</button>
+	    </div>
+
+    <!-- درج أدوات القراءة: كل أزرار التحكم في درج جانبي منزلق — صفحة القراءة صافية، مفيش حاجة بتحجب النص -->
+    <button id="readerDrawerFab" class="reader-hide" type="button" title="أدوات القراءة">⚙</button>
+    <aside id="readerDrawer" class="reader-hide" aria-label="درج أدوات القراءة">
+      <div class="rd-head">
+        <strong>🎛 أدوات القراءة</strong>
+        <button id="readerDrawerClose" class="icon-btn" type="button" title="قفل الدرج">✕</button>
+      </div>
+      <div class="rd-body">
 	      <!-- المنطقة ١: شريط الإجراءات (ثابت تحت الهيدر) + شريط الحالة -->
 	      <div id="readerActionBar" class="reader-actionbar reader-hide">
 	        <div class="row action-row">
@@ -252,16 +271,35 @@
 	          <p id="basicNote" class="basic-note hidden">ترجمة آلية أساسية — للأسلوب المصري الكامل ضيف مفتاحك في الإعدادات</p>
 	        </div>
 	      </div>
-	    </div>
-	    <div id="lockCard" class="card">
-	      <h2>🔒 الفترة التجريبية خلصت</h2>
-	      <p class="hint">الفترة التجريبية المجانية يومين من أول تشغيل للتطبيق — وخلصت. فعّل الاشتراك الشهري عشان تفتح كل كتبك: ترجمة وشرح وتصدير كاملين.</p>
-	      <div class="sub-panel"></div>
-	    </div>
-	    <div id="readerEmpty" class="card">
-	      <p class="reader-empty-msg">📖 لسه مفيش كتاب مفتوح — افتح كتابًا من المكتبة</p>
-	      <button type="button" id="readerEmptyLib" class="primary">📚 افتح المكتبة</button>
-	    </div>
+    <!-- المنطقة ٣: أدوات الكتاب -->
+    <div class="card reader-hide tools-menu" id="bookToolsCard">
+      <h2>🧰 أدوات الكتاب</h2>
+      <div class="row wrap">
+        <button id="btnMenuVoice" class="ghost">🔊 الصوت والنبرة</button>
+      </div>
+      <div class="tools-grid">
+        <button id="btnCleanup" class="ghost">🧹 تنظيف النص</button>
+        <div class="tool-cell">
+          <button id="btnRepair" class="ghost">🔧 إصلاح النص البايظ</button>
+          <button id="btnStopRepair" class="ghost hidden">إيقاف الإصلاح</button>
+        </div>
+        <button id="btnRestoreOrig" class="ghost">↩️ استرجاع النص الأصلي</button>
+        <button id="btnClearTrans" class="ghost">🗑 مسح الترجمات</button>
+        <button id="btnAskBook" class="ghost">💬 اسأل الكتاب</button>
+        <button id="btnQuiz" class="ghost">🧠 اختبرني</button>
+        <button id="btnReloadBook" class="ghost">🔄 إعادة تحميل الكتاب</button>
+        <button id="btnExportBook" class="ghost">⬇ تصدير الكتاب</button>
+        <button id="btnPrintBook" class="ghost">🖨 طباعة</button>
+        <label class="tool-date">🎯 أخلص الكتاب يوم
+          <input id="finishByInput" type="date">
+        </label>
+      </div>
+      <p id="finishPlanHint" class="hint"></p>
+      <p id="restoreHint" class="hint"></p>
+      <p id="cleanupStatus" class="hint"></p>
+    </div>
+      </div>
+    </aside>
 
     <!-- المنطقة ٢: مظهر القراءة (قابل للطي — مقفول افتراضيًا) -->
     <div class="card reader-hide" id="appearanceCard">
@@ -367,34 +405,6 @@
         <div id="voiceLists"></div>
         <p id="noArabicVoice" class="msg hidden">جهازك مش بيقدّم أصوات عربية في المتصفح — هيتستخدم صوت الجهاز الافتراضي. جرّب تثبّت صوت عربي من إعدادات الموبايل (تحويل النص لكلام).</p>
       </div>
-    </div>
-
-    <!-- المنطقة ٣: أدوات الكتاب -->
-    <div class="card reader-hide hidden tools-menu" id="bookToolsCard">
-      <h2>🧰 أدوات الكتاب</h2>
-      <div class="row wrap">
-        <button id="btnMenuVoice" class="ghost">🔊 الصوت والنبرة</button>
-      </div>
-      <div class="tools-grid">
-        <button id="btnCleanup" class="ghost">🧹 تنظيف النص</button>
-        <div class="tool-cell">
-          <button id="btnRepair" class="ghost">🔧 إصلاح النص البايظ</button>
-          <button id="btnStopRepair" class="ghost hidden">إيقاف الإصلاح</button>
-        </div>
-        <button id="btnRestoreOrig" class="ghost">↩️ استرجاع النص الأصلي</button>
-        <button id="btnClearTrans" class="ghost">🗑 مسح الترجمات</button>
-        <button id="btnAskBook" class="ghost">💬 اسأل الكتاب</button>
-        <button id="btnQuiz" class="ghost">🧠 اختبرني</button>
-        <button id="btnReloadBook" class="ghost">🔄 إعادة تحميل الكتاب</button>
-        <button id="btnExportBook" class="ghost">⬇ تصدير الكتاب</button>
-        <button id="btnPrintBook" class="ghost">🖨 طباعة</button>
-        <label class="tool-date">🎯 أخلص الكتاب يوم
-          <input id="finishByInput" type="date">
-        </label>
-      </div>
-      <p id="finishPlanHint" class="hint"></p>
-      <p id="restoreHint" class="hint"></p>
-      <p id="cleanupStatus" class="hint"></p>
     </div>
 
     <div id="askPanel" class="card reader-hide hidden">
