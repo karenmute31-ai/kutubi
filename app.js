@@ -12,7 +12,7 @@ const DEFSET = {key:"", base:"/api/ai", model:"gemini-3.5-flash-lite", tone:"cal
 let settings = Object.assign({}, DEFSET);
 try{ Object.assign(settings, JSON.parse(localStorage.getItem("motarjem-settings")||"{}")); }catch(e){}
 /* ترحيل: اللي كان عنده dark بس من غير theme — الثيم بيتبني منها */
-if(!settings.theme) settings.theme = settings.dark===false ? "light" : "dark";
+if(!settings.theme) settings.theme = "dark";
 if(!settings.fontFamily) settings.fontFamily = "system";
 if(typeof settings.lineHeight !== "number" || isNaN(settings.lineHeight)) settings.lineHeight = 1.9;
 if(typeof settings.dailyGoalMin !== "number" || isNaN(settings.dailyGoalMin) || settings.dailyGoalMin <= 0) settings.dailyGoalMin = 15;
