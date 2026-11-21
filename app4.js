@@ -380,7 +380,11 @@ function expandPresentationForms(t){
 async function extractPDFWithOCR(buf, title){
   const pdf = await ocrOpenPdf(buf);
   const layer = await ocrLayerText(pdf);
-  if(!ocrLooksScanned(layer, pdf.numPages)){
+  /* ترميز عربي مكسور من المصنع (خريطة حروف غلط جوه الملف): طبقة النص موجودة بس حروفها ضايعة،
+     فبنعامل الملف كأنه مصوّر ونروح للـ OCR اللي بيقرأ من الصورة — نفس كشف الراوي بالظبط */
+  const _pt = (typeof window !== "undefined" && window.PdfText) ? window.PdfText : null;
+  const layerBroken = !!(_pt && typeof _pt.brokenArabicEncoding === "function" && _pt.brokenArabicEncoding(expandPresentationForms(layer)));
+  if(!ocrLooksScanned(layer, pdf.numPages) && !layerBroken){
     const pageLines = await ocrLayerPages(pdf);
     if(!window.PdfText || typeof window.PdfText.stripRunningHeaders !== "function") return { text: expandPresentationForms(layer), ocr: null, pages: null, pageCount: pdf.numPages };
     const cleaned = window.PdfText.stripRunningHeaders(pageLines);
@@ -388,7 +392,9 @@ async function extractPDFWithOCR(buf, title){
     return { text: pages.join("\n\n"), ocr: null, pages: pages, pageCount: pdf.numPages };
   }
   if(typeof document === "undefined" || !document.getElementById("ocrPanel"))
-    throw new Error("الكتاب ده PDF مصوّر (صور من غير نص) ومفيش واجهة تعرّف ضوئي متاحة هنا.");
+    throw new Error(layerBroken
+      ? "ترميز العربي في ملف الـPDF ده مكسور من مصدره — خريطة الحروف جوه الملف نفسه غلط، فأي برنامج استخراج نص هيطلّع منه نفس الحروف المبهدلة. الحل: نسخة نصية من الكتاب (الصق نصه أو ارفع TXT)."
+      : "الكتاب ده PDF مصوّر (صور من غير نص) ومفيش واجهة تعرّف ضوئي متاحة هنا.");
   const res = await ocrPanelFlow(pdf, title);
   return {
     text: res.text,

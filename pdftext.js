@@ -196,6 +196,17 @@
   }
 
 
+  /* كشف PDF عربي مكسور الترميز: ملفات زي دي خريطة الحروف (ToUnicode) جواها غلط، فأي مستخرج نص
+     بيطلّع حروفًا عربية غلط بشكل منهجي والحروف الصحيحة ضايعة من الملف نفسه.
+     العلامة المميزة: نسبة «اا» عالية جدًا ونسبة الألف مرتفعة عن الطبيعي (العربي السليم ≈ 0.01% و 17%). */
+  function brokenArabicEncoding(t){
+    var letters = (String(t == null ? "" : t).match(/[\u0621-\u064A]/g) || []).length;
+    if(letters < 400) return false;
+    var aa = (t.match(/اا/g) || []).length;
+    var alef = (t.match(/ا/g) || []).length;
+    return aa / letters > 0.015 || alef / letters > 0.28;
+  }
+
   /* رباطات الشدة مع الحركات (U+FC5E–FC63, U+FCF2–FCF4): تفكيك NFKC بتاعها بيحط مسافة/تطويل غلط
      جوه الكلمة («تُقد ِّم»)، فبنفكها بالترتيب الصح: شدة ثم حركة */
   var SHADDA_LIGS = {"\uFC5E":"\u0651\u064C","\uFC5F":"\u0651\u064D","\uFC60":"\u0651\u064E","\uFC61":"\u0651\u064F","\uFC62":"\u0651\u0650","\uFC63":"\u0651\u0670","\uFCF2":"\u0651\u064E","\uFCF3":"\u0651\u064F","\uFCF4":"\u0651\u0650"};
@@ -305,6 +316,7 @@
     classify: classify,
     itemsToLines: itemsToLines,
     expandText: expandText,
+    brokenArabicEncoding: brokenArabicEncoding,
     normLine: normLine,
     stripRunningHeaders: stripRunningHeaders,
     markPage: markPage,
