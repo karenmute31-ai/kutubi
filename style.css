@@ -658,7 +658,7 @@ body.chrome-scroll-hidden .topbar, body.chrome-off .topbar{ transform:translateY
   body[data-layout="desktop"] #readerSidebar select,
   body[data-layout="desktop"] #readerSidebar .action-row button{ width:100%; }
   body[data-layout="desktop"] #readerBottomBar{ inset-inline:auto; left:1rem; right:auto; width:300px; max-width:300px; margin:0; bottom:calc(66px + .5rem + env(safe-area-inset-bottom)); }
-  body[data-layout="desktop"] #readerPill{ display:none; }
+  /* حبة الموضع بتظهر على الديسكتوب برضه — مؤشر الصفحات مطلوب في كل الأجهزة */
   body[data-layout="desktop"].chrome-scroll-hidden .topbar,
   body[data-layout="desktop"].chrome-off .topbar,
   body[data-layout="desktop"].chrome-scroll-hidden #readerBottomBar,
