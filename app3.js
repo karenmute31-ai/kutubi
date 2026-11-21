@@ -228,6 +228,7 @@ function renderAdminContent(root){
     });
   }
   renderErrLogUI();
+  if(typeof renderCloudAdmin === "function") renderCloudAdmin(root);
   $("#btnClearErrLog").addEventListener("click", ()=>clearErrLog());
   /* [F] لوحة الصحة: رسم سجل الإصلاحات + زرار الفحص اليدوي الكامل (فيه إقلاع OCR نشط) */
   if(typeof renderRepairLog === "function") renderRepairLog();
