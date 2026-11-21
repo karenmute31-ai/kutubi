@@ -660,12 +660,16 @@ function changeFontSize(d){
 /* ثيمات القراءة الأربعة: تعيين واحد بيستخدمه السواتش والثيم السريع في شريط التحكم */
 const THEME_ORDER = ["light", "sepia", "dark", "black"];
 function setTheme(val){
-  settings.theme = val; saveSettings(); applyAppearance(); syncAppearanceControls(); syncThemeCycleBtn();
+  settings.theme = val; settings.autoNight = false; /* الاختيار اليدوي بيلغي الليلي التلقائي */
+  saveSettings(); applyAppearance(); syncAppearanceControls(); syncThemeCycleBtn();
+}
+function enableAutoNight(){
+  settings.autoNight = true; saveSettings(); applyAppearance(); syncAppearanceControls(); syncThemeCycleBtn();
 }
 function syncThemeCycleBtn(){
   const b = $("#btnBarTheme"); if(!b) return;
   const names = { light:"فاتح", sepia:"بيج ورقي", dark:"ليلي", black:"أسود" };
-  const s = b.querySelector("span"); if(s) s.textContent = "الثيم: " + (names[settings.theme] || "فاتح");
+  const s = b.querySelector("span"); if(s) s.textContent = settings.autoNight ? "الثيم: تلقائي 🌙" : "الثيم: " + (names[settings.theme] || "فاتح");
   b.firstChild.textContent = (settings.theme === "dark" || settings.theme === "black") ? "☀️" : "🌙";
 }
 /* غلاف مولّد لبطاقة الكتاب: لون من اسم الكتاب + عنوانه — من غير أي صور خارجية */
@@ -1498,9 +1502,12 @@ document.addEventListener("DOMContentLoaded", async()=>{
   $("#btnNavAdmin").addEventListener("click", ()=>switchTab("admin"));
   /* أزرار الإدارة (تفعيل المالك/اللوحة/المولّد) مش موجودة في الصفحة وقت الإقلاع —
      بتتوصل وقت بناء محتوى الإدارة بعد فتح القفل (renderAdminContent) */
-  $("#darkToggle").addEventListener("click",()=>{ const t=settings.theme||"light"; settings.theme=(t==="dark"||t==="black")?"light":"dark"; saveSettings(); applyAppearance(); syncAppearanceControls(); });
+  $("#darkToggle").addEventListener("click",()=>{ settings.autoNight=false; const t=settings.theme||"light"; settings.theme=(t==="dark"||t==="black")?"light":"dark"; saveSettings(); applyAppearance(); syncAppearanceControls(); });
   // شكل القراءة: ثيمات / خط / تباعد / فهرس / وضع تركيز
-  $$(".theme-swatch").forEach(b=>b.addEventListener("click",()=>setTheme(b.dataset.themeVal)));
+  $$(".theme-swatch").forEach(b=>b.addEventListener("click",()=>{ if(b.dataset.themeVal==="auto") enableAutoNight(); else setTheme(b.dataset.themeVal); }));
+  /* مراجعة دورية للوضع الليلي الذكي: كل ١٠ دقايق + أول ما يرجع للتطبيق */
+  setInterval(checkAutoNight, 10*60*1000);
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden) checkAutoNight(); });
   $("#readerFontSel").addEventListener("change",()=>{ settings.fontFamily=$("#readerFontSel").value; saveSettings(); applyAppearance(); });
   $("#lineHeightRange").addEventListener("input",()=>{ settings.lineHeight=parseFloat($("#lineHeightRange").value); saveSettings(); applyAppearance(); const lv=$("#lineHeightVal"); if(lv) lv.textContent=settings.lineHeight.toFixed(1); });
   $("#btnAppearance").addEventListener("click",()=>{ $("#appearanceBody").classList.toggle("hidden"); syncAppearanceControls(); });

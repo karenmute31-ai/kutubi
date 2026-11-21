@@ -33,8 +33,13 @@ if(String(settings.model || "").trim().toLowerCase() === KNOWN_BAD_MODEL){ setti
 
 /* ---------- شكل القراءة (ثيم / خط / تباعد أسطر) ---------- */
 const FONT_STACKS = {system:'"Segoe UI",Tahoma,Arial,sans-serif', amiri:'"Amiri","Traditional Arabic","Segoe UI",serif', tajawal:'"Tajawal","Segoe UI",Tahoma,Arial,sans-serif'};
+/* 🌙 الوضع الليلي الذكي: لما يتفعّل، الثيم بيتبع وقت اليوم (ليلي من ٧ مساءً لـ ٦ الصبح) — وأي اختيار يدوي للثيم بيلغيه */
+function isNightNow(){ const h = new Date().getHours(); return h >= 19 || h < 6; }
+function autoNightTheme(){ return isNightNow() ? (settings.nightTheme || "dark") : "light"; }
+function effectiveTheme(){ return settings.autoNight ? autoNightTheme() : (settings.theme || "light"); }
+function checkAutoNight(){ if(settings.autoNight){ applyAppearance(); syncAppearanceControls(); } }
 function applyAppearance(){
-  const t = settings.theme || "light";
+  const t = effectiveTheme();
   document.documentElement.dataset.theme = t;
   /* لون شريط المتصفح/النظام بيتبع ثيم القراءة: بني العلامة للفاتح، ورمادي غامق للّيلي */
   const mtc = document.querySelector('meta[name="theme-color"]'); if(mtc) mtc.setAttribute("content", t === "dark" ? "#202124" : (t === "black" ? "#000000" : "#7c3f12"));
@@ -45,7 +50,7 @@ function applyAppearance(){
   const dt = $("#darkToggle"); if(dt) dt.textContent = (t === "dark" || t === "black") ? "☀️" : "🌙";
 }
 function syncAppearanceControls(){
-  $$(".theme-swatch").forEach(b=>b.classList.toggle("active", b.dataset.themeVal === (settings.theme || "light")));
+  $$(".theme-swatch").forEach(b=>b.classList.toggle("active", b.dataset.themeVal === (settings.autoNight ? "auto" : (settings.theme || "light"))));
   const fs = $("#readerFontSel"); if(fs) fs.value = settings.fontFamily || "system";
   const lh = $("#lineHeightRange"); if(lh) lh.value = settings.lineHeight || 1.9;
   const lv = $("#lineHeightVal"); if(lv) lv.textContent = (settings.lineHeight || 1.9).toFixed(1);
