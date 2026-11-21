@@ -71,6 +71,31 @@
     /* صفوف الهيدر اللي اتشالت (تحديث) تتحط في المزيد */
     var ms=$("#moreSheetList");
     if(ms){ new MutationObserver(function(){ if(document.body.dataset.layout!=="mobile"||ms.querySelector(".more-upd")||!ms.querySelector(".more-row"))return; var tb=$("#moreSheet .more-sheet-head"); if(tb&&/درج/.test(tb.textContent))return; var r=document.createElement("button"); r.type="button"; r.className="more-row more-upd"; r.innerHTML='<span class="mi">⟳</span><span class="mt"><span class="ml">تحديث التطبيق</span></span>'; r.addEventListener("click",function(){var u=$("#btnNavUpdate"); if(window.closeMoreSheet)closeMoreSheet(); if(u)u.click();}); ms.appendChild(r); }).observe(ms,{childList:true}); }
+    /* ===== المرحلة 3: شريط الذكاء عند تحديد نص (ترجم / اشرح بالمصري / اسمع + تظليل وملاحظة) ===== */
+    function arabicRatio(t){ var a=(t.match(/[\u0600-\u06FF]/g)||[]).length; return a/Math.max(1,t.replace(/\s/g,"").length); }
+    var lastSel=""; document.addEventListener("selectionchange",function(){ var x=String(window.getSelection()||"").trim(); if(x) lastSel=x; });
+    function smartBar(pop){
+      if(pop.querySelector(".smartbar")) return;
+      var row=document.createElement("div"); row.className="smartbar";
+      row.innerHTML='<button type="button" data-a="tr">🌐 ترجم</button><button type="button" data-a="ex">💡 اشرح بالمصري</button><button type="button" data-a="ls">🔊 اسمع</button>';
+      var res=document.createElement("div"); res.className="smartres"; res.hidden=true;
+      pop.insertBefore(res,pop.firstChild); pop.insertBefore(row,pop.firstChild);
+      pop.addEventListener("mousedown",function(e){e.preventDefault()});
+      row.addEventListener("click",async function(e){
+        var b=e.target.closest("button"); if(!b)return; var t=pop.dataset.t||lastSel||""; if(!t)return;
+        var a=b.dataset.a; res.hidden=false;
+        try{
+          if(a==="ls"){ var lang=arabicRatio(t)>0.5?"ar":"en"; if(typeof speakItems==="function") speakItems([{text:t,lang:lang}],"تحديد"); res.textContent="🔊 بيقرأ…"; return; }
+          res.textContent=a==="tr"?"بيترجم…":"بيشرح…";
+          if(a==="tr"){ var q=await quickTranslate(t,"ar-EG"); res.textContent=(q&&q.translation||"")+((q&&q.meaning)?"\n"+q.meaning:""); }
+          else { var dl=explDialect(); var out=await aiChat(dl.sys, dl.ask+"، شرح قصير ومركّز للفقرة دي من الكتاب:\n\n"+t); res.textContent=String(out||"").trim()||"مفيش شرح متاح دلوقتي"; }
+        }catch(err){ res.textContent="وقفت: "+(err&&err.message||err); }
+        var r=pop.getBoundingClientRect(); if(r.bottom>window.innerHeight-8) pop.style.top=Math.max(8,window.innerHeight-r.height-8)+"px";
+      });
+      new MutationObserver(function(){ if(pop.style.display==="block"){ var st=String(window.getSelection()||"").trim(); if(st){ pop.dataset.t=st; } res.hidden=true; res.textContent=""; } else { res.hidden=true; } }).observe(pop,{attributes:true,attributeFilter:["style"]});
+    }
+    var pe=document.getElementById("hlPop"); if(pe) smartBar(pe);
+    new MutationObserver(function(){ var p=document.getElementById("hlPop"); if(p) smartBar(p); }).observe(document.body,{childList:true});
     /* منطقة لمس علوية/سفلية بتظهر وتخفي الكروم حتى لو الكلام كله كلمات قابلة للضغط */
     document.addEventListener("click",function(e){
       if(document.body.dataset.layout!=="mobile"||!document.body.classList.contains("in-reader")) return;

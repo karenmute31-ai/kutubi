@@ -113,3 +113,9 @@ body[data-layout="mobile"] #libAddFab{display:flex;position:fixed;inset-inline-s
 body[data-layout="mobile"]:not(.on-library) #libAddFab,body[data-layout="mobile"].in-reader #libAddFab{display:none}
 body[data-layout="mobile"] #tab-library.add-open ~ #libAddFab{transform:rotate(45deg)}
 body:not(.in-reader) #readerDrawerFab{display:none!important}
+/* شريط الذكاء */
+#hlPop .smartbar{display:flex;gap:.35rem;margin-bottom:.45rem;flex-wrap:nowrap}
+#hlPop .smartbar button{flex:1;white-space:nowrap;font-size:.84rem;padding:.4rem .5rem;background:rgba(232,200,90,.22)}
+#hlPop .smartres{font-size:.88rem;line-height:1.7;white-space:pre-wrap;max-height:30vh;overflow-y:auto;background:rgba(255,255,255,.08);border-radius:10px;padding:.5rem .6rem;margin-bottom:.45rem;min-width:200px}
+#hlPop .smartres[hidden]{display:none}
+@media (max-width:700px){#hlPop{width:min(94vw,380px)}}
