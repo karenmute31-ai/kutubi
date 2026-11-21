@@ -1749,6 +1749,7 @@ function learningLevel(){return LEARNING_LEVELS[settings.explLevel]||LEARNING_LE
 function sanitizeExplDialect(d){ return EXPL_DIALECTS[d] ? d : "egyptian"; }
 function explDialect(){ return EXPL_DIALECTS[sanitizeExplDialect(settings.explDialect||"egyptian")]; }
 const EXPL_SYS="انت شارح مصري بيشرح محتوى الكتب باللهجة المصرية البسيطة اليومية، كأنك بتشرح لصاحبك القاعد جنبك: كلام سهل وأسلوب شيّق يشدّه يكمل، وتبسيط لأي مصطلح أو مفهوم صعب أول ما يظهر، وكل الأمثلة والربط من داخل المحتوى نفسه بس.";
+function explanationMatchesSettings(ch){return !!(ch && ch.explanation && ch.explanation.trim() && ch.explVersion===2 && ch.explLevel===(settings.explLevel||"beginner") && ch.explTone===settings.tone && ch.explDialect===sanitizeExplDialect(settings.explDialect||"egyptian"));}
 async function makeExplanation(book, i, signal){
   const ch=book.chunks[i]; if(!ch) return "";
   const origMode = bookTargetLang(book)==="orig"; /* وضع النص الأصلي: الشرح بيتبني من الأصل نفسه — الجزء مش محتاج يبقى «مترجم» */
@@ -1756,7 +1757,7 @@ async function makeExplanation(book, i, signal){
   const tone=TONES[settings.tone]||TONES.calm;
   /* لهجة المستخدم تسري على كل الشخصيات، مع الحفاظ على هيكل أسلوب بهنسي. */
   const effDialect = sanitizeExplDialect(settings.explDialect||"egyptian");
-  if(ch.explanation && ch.explVersion===2 && ch.explLevel===(settings.explLevel||"beginner") && ch.explTone===settings.tone && ch.explDialect===effDialect) return ch.explanation;
+  if(explanationMatchesSettings(ch)) return ch.explanation;
   let text="";
   if(hasKey()){
     const srcBlock = origMode ? "\n\nالمحتوى (النص الأصلي كما هو):\n"+ch.orig : "\n\nالمحتوى المترجم:\n"+ch.trans+"\n\nالأصل:\n"+ch.orig;
@@ -1826,7 +1827,7 @@ async function explainBook(book){
   if(!hasKey()){ setTransStatus("الشرح بالمصري بيحتاج مفتاح API — ضيفه من تبويب الإعدادات", true); return; }
   const origMode = bookTargetLang(book)==="orig";
   /* «ناقص شرح» = مفيش شرح أصلًا أو شرحه معمول بنبرة قديمة — بيتماشى مع makeExplanation اللي بيجدّد الشرح لما النبرة تتغيّر */
-  const needsExpl = c => !(c.explanation && c.explanation.trim() && c.explTone === settings.tone && c.explDialect === sanitizeExplDialect(settings.explDialect||"egyptian"));
+  const needsExpl = c => !explanationMatchesSettings(c);
   const missing = book.chunks.map((c, i)=>i).filter(i=>{
     const c = book.chunks[i];
     return needsExpl(c) && (origMode || c.status === "done");
@@ -1865,7 +1866,7 @@ async function explainChunkText(book, i){
   if(explaining){ setTransStatus("فيه شرح شغال دلوقتي — وقّفه أو استنى يخلص الأول"); return; }
   if(!hasKey()){ setTransStatus("الشرح بالمصري بيحتاج مفتاح API — ضيفه من تبويب الإعدادات", true); return; }
   const ch = book.chunks[i]; if(!ch) return;
-  if(ch.explanation && ch.explanation.trim()){ openChunkExplanation(i); setTransStatus("الجزء " + (i+1) + " متشرح أصلًا — الشرح مفتوح تحت الجزء"); return; }
+  if(explanationMatchesSettings(ch)){ openChunkExplanation(i); setTransStatus("الجزء " + (i+1) + " متشرح أصلًا — الشرح مفتوح تحت الجزء"); return; }
   explaining = true; explainStop = false; explainRun = makeRunControl();
   const gen = audioGen;
   setExplainBtn();

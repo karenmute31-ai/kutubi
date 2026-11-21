@@ -23,4 +23,5 @@ check('learning review stored with version',source.includes('ch.explVersion=2'))
 check('original-only books can play explanation',app2.includes('b.chunks[i].status==="done" || bookTargetLang(b)==="orig"'));
 check('three learner levels',source.includes('beginner:{label:')&&source.includes('intermediate:{label:')&&source.includes('advanced:{label:')&&ui.includes('id="learningLevelSel"'));
 check('level is part of explanation cache',source.includes('ch.explLevel==='));
+check('text and audio share explanation freshness',source.includes('const needsExpl = c => !explanationMatchesSettings(c)')&&source.includes('if(explanationMatchesSettings(ch)){ openChunkExplanation(i)'));
 console.log(count+' audio checks passed');
