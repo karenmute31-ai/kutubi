@@ -1642,7 +1642,8 @@ document.addEventListener("DOMContentLoaded", async()=>{
   const omdl=$("#oModelSel"); if(omdl){ omdl.value=settings.oModel||"gpt-4o-mini-tts"; omdl.addEventListener("change",()=>{ settings.oModel=omdl.value; fillOVoices(); saveSettings(); }); }
   $("#gTest").addEventListener("click", gFetchVoices);
   $("#gVoiceSel").addEventListener("change",()=>{ settings.gVoice=$("#gVoiceSel").value; settings.gVoiceManual=true; saveSettings(); const b=currentBook(); if(b) refreshChunkAudioStates(b); });
-  $("#ttsProviderSel").addEventListener("change",()=>{ const v=$("#ttsProviderSel").value; if(v!=="device" && !providerReady(v)){ setAudioStatus("المزوّد ده محتاج مفتاح من الإعدادات الأول.", true); syncProviderUI(); return; } const wasEl=elActive; settings.ttsProvider=v; saveSettings(); if(wasEl) stopAllAudio("الصوت وقف."); syncProviderUI(); });
+  $("#btnCloudSetup").addEventListener("click",()=>openCloudSetup());
+  $("#ttsProviderSel").addEventListener("change",()=>{ const v=$("#ttsProviderSel").value; if(v!=="device" && !providerReady(v)){ setAudioStatus("المزوّد ده محتاج مفتاح من الإعدادات الأول.", true); syncProviderUI(); openCloudSetup(v); return; } const wasEl=elActive; settings.ttsProvider=v; saveSettings(); if(wasEl) stopAllAudio("الصوت وقف."); syncProviderUI(); });
   syncProviderUI();
   /* التقاط آخر تحديد نص جوه جزء (احتياطي: ضغطة زرار الحفظ ممكن تضيّع التحديد الحي) */
   document.addEventListener("mouseup",()=>setTimeout(captureChunkSelection,30));

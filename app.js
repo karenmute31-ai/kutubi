@@ -2317,12 +2317,17 @@ function playVoiceItems(items, label){
   if(ttsProvider() !== "device"){ cloudPlaySequence(items, label); }
   else speakItems(items, label);
 }
+function openCloudSetup(provider){
+  closeReaderPanels(); switchTab("settings"); const resume=document.getElementById("resumeBar");if(resume)resume.classList.add("hidden");
+  const id=({azure:"azKey",google:"gKey",eleven:"elKey",openai:"oKey"})[provider]||"cloudSetupHeading";
+  setTimeout(()=>{const e=document.getElementById(id);if(e){e.scrollIntoView({block:"center",behavior:"auto"});e.focus({preventScroll:true});}},100);
+}
 function syncProviderUI(){
   const a = $("#elAudio"); if(a) a.classList.toggle("hidden", ttsProvider() === "device");
   const sel = $("#ttsProviderSel");
   if(sel){
     sel.value = settings.ttsProvider;
-    $$("option", sel).forEach(o=>{ if(o.value !== "device") o.disabled = !providerReady(o.value); });
+    $$("option", sel).forEach(o=>{ o.disabled = false; if(o.value !== "device"){if(!o.dataset.label) o.dataset.label=o.textContent; o.textContent=o.dataset.label+(providerReady(o.value)?" — مفتاح محفوظ":" — يحتاج تفعيل");} });
   }
   const hint = $("#elProviderHint");
   if(hint){
