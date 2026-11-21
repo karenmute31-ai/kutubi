@@ -157,6 +157,13 @@ function renderAdminContent(root){
       '<div class="row wrap"><button type="button" id="btnAdminActivate" class="primary">تفعيل وضع المالك</button></div>' +
       '<p id="adminMsg" class="msg"></p></div>';
   }
+  h += '<div class="card"><h3>🔑 تغيير كلمة سر الجهاز</h3>' +
+    '<p class="hint">دي كلمة سر قفل تبويب الإدارة على الجهاز ده بس (مش باسورد اللوحة السحابية).</p>' +
+    '<label>كلمة السر الحالية<input id="devPwCur" type="password" autocomplete="off" dir="ltr"></label>' +
+    '<label>الجديدة (٦ حروف على الأقل)<input id="devPwNew" type="password" autocomplete="new-password" dir="ltr"></label>' +
+    '<label>أكّد الجديدة<input id="devPwNew2" type="password" autocomplete="new-password" dir="ltr"></label>' +
+    '<div class="row wrap"><button type="button" id="btnDevPwChange" class="ghost">🔑 غيّر كلمة سر الجهاز</button></div>' +
+    '<p id="devPwMsg" class="msg"></p></div>';
   h += '<div class="card"><h3>آخر الأخطاء</h3><div id="adminErrLog"><p class="hint">مفيش أخطاء متسجلة.</p></div>' +
     '<div class="row wrap"><button type="button" id="btnClearErrLog" class="ghost">مسح سجل الأخطاء</button></div></div>';
   /* [F] الصحة والإصلاح الذاتي: فحص عند الإقلاع وعند الطلب + سجل إصلاحات ظاهر */
@@ -227,6 +234,25 @@ function renderAdminContent(root){
       }
     });
   }
+  $("#btnDevPwChange").addEventListener("click", async ()=>{
+    const m = $("#devPwMsg"); if(!m) return;
+    m.textContent = ""; m.classList.remove("err");
+    const cur = $("#devPwCur").value, n1 = $("#devPwNew").value, n2 = $("#devPwNew2").value;
+    if(!cur || !n1){ m.textContent = "املأ الحالية والجديدة."; m.classList.add("err"); return; }
+    if(n1.length < 6){ m.textContent = "الجديدة قصيرة — ٦ حروف على الأقل."; m.classList.add("err"); return; }
+    if(n1 !== n2){ m.textContent = "الجديدة وتأكيدها مش زي بعض."; m.classList.add("err"); return; }
+    let okCur = false;
+    try{ okCur = (await adminPwDigest(cur)) === localStorage.getItem(ADMIN_HASH_KEY); }catch(e){}
+    if(!okCur){ m.textContent = "كلمة السر الحالية غلط."; m.classList.add("err"); return; }
+    try{
+      const bytes = new Uint8Array(16); crypto.getRandomValues(bytes);
+      const salt = Array.from(bytes, b=>b.toString(16).padStart(2,"0")).join("");
+      localStorage.setItem(ADMIN_SALT_KEY, salt);
+      localStorage.setItem(ADMIN_HASH_KEY, await sha256Hex(salt + "|" + n1));
+    }catch(e){ m.textContent = "مقدرتش أحفظ — جرّب تاني."; m.classList.add("err"); return; }
+    $("#devPwCur").value = ""; $("#devPwNew").value = ""; $("#devPwNew2").value = "";
+    m.textContent = "اتغيّرت كلمة سر الجهاز ✔";
+  });
   renderErrLogUI();
   if(typeof renderCloudAdmin === "function") renderCloudAdmin(root);
   $("#btnClearErrLog").addEventListener("click", ()=>clearErrLog());

@@ -101,6 +101,13 @@ function renderCloudAdmin(root){
     '<label>نص صفحة الملاحظات (اختياري)<textarea id="ctNote" rows="4" maxlength="5000"></textarea></label>' +
     '<div class="row wrap"><button type="button" id="btnCtAdd" class="ghost">➕ إضافة التاب</button></div>' +
     '<p class="hint">بعد إضافة/مسح أي حاجة اضغط «💾 حفظ الكونفيج» عشان التغيير يتنشر.</p>' +
+    '<h3>🔑 تغيير باسورد الإدارة السيرفري</h3>' +
+    '<label>الباسورد الحالية<input id="pwCur" type="password" autocomplete="off" dir="ltr"></label>' +
+    '<label>الجديدة (٦ حروف على الأقل)<input id="pwNew" type="password" autocomplete="new-password" dir="ltr"></label>' +
+    '<label>أكّد الجديدة<input id="pwNew2" type="password" autocomplete="new-password" dir="ltr"></label>' +
+    '<div class="row wrap"><button type="button" id="btnPwChange" class="ghost">🔑 غيّر الباسورد</button></div>' +
+    '<p class="hint">التغيير فوري وبيطبق على التطبيقين (كتبي والراوي)، وبيقفل أي جلسة مفتوحة — هتدخل تاني بالجديدة.</p>' +
+    '<p id="pwChangeMsg" class="msg"></p>' +
     '<h3>⭐ سجل المشتركين</h3>' +
     '<div class="row wrap"><input id="subCode" type="text" maxlength="32" dir="ltr" placeholder="كود الاشتراك">' +
     '<input id="subNote" type="text" maxlength="120" placeholder="ملاحظة (اسم العميل مثلًا)">' +
@@ -114,6 +121,7 @@ function renderCloudAdmin(root){
   $("#btnCbAdd").addEventListener("click", cloudAddButton);
   $("#btnSubAdd").addEventListener("click", cloudAddSub);
   $("#btnCtAdd").addEventListener("click", cloudAddTab);
+  $("#btnPwChange").addEventListener("click", cloudChangePw);
   if(cloudToken){ $("#cloudLoginBox").classList.add("hidden"); $("#cloudPanel").classList.remove("hidden"); cloudRefresh(); }
 }
 async function cloudLogin(){
@@ -185,6 +193,25 @@ async function cloudSaveConfig(){
     CLOUD_CFG = d.config; applyCloudConfig();
     msg.textContent = "اتحفظ ✔ هيظهر لكل المستخدمين خلال ثواني."; msg.classList.remove("err");
   }catch(e){ msg.textContent = "السيرفر ماردش — جرّب تاني."; msg.classList.add("err"); }
+}
+async function cloudChangePw(){
+  const m = $("#pwChangeMsg"); m.textContent = ""; m.classList.remove("err");
+  const cur = $("#pwCur").value, n1 = $("#pwNew").value, n2 = $("#pwNew2").value;
+  if(!cur || !n1){ m.textContent = "املأ الباسورد الحالية والجديدة."; m.classList.add("err"); return; }
+  if(n1.length < 6){ m.textContent = "الجديدة قصيرة — ٦ حروف على الأقل."; m.classList.add("err"); return; }
+  if(n1 !== n2){ m.textContent = "الجديدة وتأكيدها مش زي بعض."; m.classList.add("err"); return; }
+  m.textContent = "بيغيّر…";
+  try{
+    const r = await fetch("/api/admin/password", { method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ current: cur, next: n1 }) });
+    const d = await r.json();
+    if(!r.ok){ m.textContent = d.error || "التغيير فشل."; m.classList.add("err"); return; }
+    cloudToken = null;
+    $("#pwCur").value = ""; $("#pwNew").value = ""; $("#pwNew2").value = "";
+    $("#cloudPanel").classList.add("hidden"); $("#cloudLoginBox").classList.remove("hidden");
+    const lm = $("#cloudLoginMsg");
+    if(lm){ lm.textContent = "اتغيّرت الباسورد ✔ على التطبيقين. سجّل دخول تاني بالجديدة."; lm.classList.remove("err"); }
+  }catch(e){ m.textContent = "السيرفر ماردش — جرّب تاني."; m.classList.add("err"); }
 }
 async function cloudLoadSubs(){
   const host = $("#cloudSubList"); if(!host) return;

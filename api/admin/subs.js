@@ -1,14 +1,29 @@
 /* سجل المشتركين السحابي (Edge Config) — كل العمليات بتوكن المالك */
 import crypto from "crypto";
 const ECID=()=>process.env.EDGE_CONFIG_ID, WTOK=()=>process.env.EDGE_CONFIG_WRITE_TOKEN;
-function okToken(req){
-  const secret=process.env.ADMIN_SECRET; if(!secret) return false;
+let _ac={t:0,rec:null};
+function _sha(salt,pw){return crypto.createHmac("sha256","kutubi-admin").update(salt+"|"+pw).digest("hex");}
+async function _adminRec(){
+  if(_ac.rec && Date.now()-_ac.t<30000) return _ac.rec;
+  const r=await fetch("https://api.vercel.com/v1/edge-config/"+ECID()+"/items",{headers:{Authorization:"Bearer "+WTOK()}});
+  if(!r.ok) return null;
+  const d=await r.json();
+  const it=(d.items||[]).find(x=>x.key==="kutubi_admin");
+  if(it&&it.value&&it.value.hash){_ac={t:Date.now(),rec:it.value};return it.value;}
+  const env=process.env.ADMIN_SECRET; if(!env) return null;
+  const salt=crypto.randomBytes(8).toString("hex");
+  const rec={salt:salt,hash:_sha(salt,env),changedAt:new Date().toISOString()};
+  await fetch("https://api.vercel.com/v1/edge-config/"+ECID()+"/items",{method:"PATCH",headers:{Authorization:"Bearer "+WTOK(),"Content-Type":"application/json"},body:JSON.stringify({items:[{operation:"upsert",key:"kutubi_admin",value:rec}]})});
+  _ac={t:Date.now(),rec:rec}; return rec;
+}
+async function okToken(req){
+  const ar=await _adminRec(); if(!ar) return false;
   const h=req.headers["authorization"]||""; const t=h.startsWith("Bearer ")?h.slice(7):"";
   const i=t.lastIndexOf("."); if(i<1) return false;
   const exp=t.slice(0,i), sig=t.slice(i+1);
   if(Number(exp)<Date.now()) return false;
-  const good=crypto.createHmac("sha256",secret).update(exp).digest("hex");
-  return crypto.timingSafeEqual(Buffer.from(sig),Buffer.from(good));
+  const good=crypto.createHmac("sha256",ar.hash).update(exp).digest("hex");
+  try{ return crypto.timingSafeEqual(Buffer.from(sig),Buffer.from(good)); }catch(e){ return false; }
 }
 async function readSubs(){
   const r=await fetch("https://api.vercel.com/v1/edge-config/"+ECID()+"/items",{headers:{Authorization:"Bearer "+WTOK()}});
@@ -28,7 +43,7 @@ export default async function handler(req,res){
   res.setHeader("Access-Control-Allow-Methods","GET, POST, PATCH, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers","Content-Type, Authorization");
   if(req.method==="OPTIONS"){res.status(204).end();return;}
-  if(!okToken(req)){res.status(401).json({error:"محتاج تسجيل دخول المالك."});return;}
+  if(!(await okToken(req))){res.status(401).json({error:"محتاج تسجيل دخول المالك."});return;}
   if(!ECID()||!WTOK()){res.status(503).json({error:"المخزن مش متوصل."});return;}
   let body=req.body; if(typeof body==="string"){try{body=JSON.parse(body||"{}")}catch(e){body={}}}
   body=body||{};
