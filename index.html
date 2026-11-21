@@ -16,7 +16,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script src="./vendor/pdfjs/pdf.min.js" defer></script>
-<!-- كتبي v78: مؤشر الصفحات «صفحة X من Y» في حبة الموضع العائمة — حقيقي لكتب الـPDF وتقديري للنصوص، بيتحدث مع التمرير والتنقل -->
+<!-- كتبي v79: مؤشر الصفحات «صفحة X من Y» في حبة الموضع العائمة — حقيقي لكتب الـPDF وتقديري للنصوص، بيتحدث مع التمرير والتنقل -->
 </head>
 <body>
 <header class="topbar">
@@ -300,22 +300,21 @@
     <!-- المنطقة ٣: أدوات الكتاب -->
     <div class="card reader-hide tools-menu" id="bookToolsCard">
       <h2>🧰 أدوات الكتاب</h2>
-      <div class="row wrap">
-        <button id="btnMenuVoice" class="ghost">🔊 الصوت والنبرة</button>
-      </div>
+      <!-- كل زرار جنب الزرار المرتبط بيه: صوت → تفاعل → تنظيف/إصلاح → استرجاع → تصدير/طباعة → مسح -->
       <div class="tools-grid">
+        <button id="btnMenuVoice" class="ghost wide">🔊 الصوت والنبرة</button>
+        <button id="btnAskBook" class="ghost">💬 اسأل الكتاب</button>
+        <button id="btnQuiz" class="ghost">🧠 اختبرني</button>
         <button id="btnCleanup" class="ghost">🧹 تنظيف النص</button>
         <div class="tool-cell">
           <button id="btnRepair" class="ghost">🔧 إصلاح النص البايظ</button>
           <button id="btnStopRepair" class="ghost hidden">إيقاف الإصلاح</button>
         </div>
         <button id="btnRestoreOrig" class="ghost">↩️ استرجاع النص الأصلي</button>
-        <button id="btnClearTrans" class="ghost">🗑 مسح الترجمات</button>
-        <button id="btnAskBook" class="ghost">💬 اسأل الكتاب</button>
-        <button id="btnQuiz" class="ghost">🧠 اختبرني</button>
         <button id="btnReloadBook" class="ghost">🔄 إعادة تحميل الكتاب</button>
         <button id="btnExportBook" class="ghost">⬇ تصدير الكتاب</button>
         <button id="btnPrintBook" class="ghost">🖨 طباعة</button>
+        <button id="btnClearTrans" class="ghost wide">🗑 مسح الترجمات</button>
         <label class="tool-date">🎯 أخلص الكتاب يوم
           <input id="finishByInput" type="date">
         </label>

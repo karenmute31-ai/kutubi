@@ -999,8 +999,8 @@ body[data-layout="mobile"] #readerDrawer .action-row button{ min-height:36px; }
 #readerDrawer .status-line{ display:flex; justify-content:space-between; gap:.5rem; }
 
 /* أدوات الكتاب: شبكة مضغوطة متسقة */
-#readerDrawer #bookToolsCard .row.wrap{ margin-top:0; }
-#readerDrawer #btnMenuVoice{ width:100%; min-height:34px; font-size:.82rem; font-weight:700; padding:.3rem .5rem; border-radius:.6rem; }
+#readerDrawer #btnMenuVoice{ width:100%; }
+#readerDrawer .tools-grid > button.wide{ grid-column:1 / -1; }
 #readerDrawer .tools-grid{ gap:.35rem; margin-top:.4rem; }
 #readerDrawer .tools-grid > button,
 #readerDrawer .tool-cell > button{
