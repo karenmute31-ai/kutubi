@@ -1,0 +1,91 @@
+/* كُتُبِي — واجهة القراءة الهادية (v80): نص نضيف، كروم رفيع باللمس، زر Aa واحد، سلايدر تنقل */
+#readerFooter,#btnReaderAa,#aaExtras,#dimLayer,#readerPageTap{display:none}
+body[data-layout="mobile"].in-reader #dimLayer{display:block;position:fixed;inset:0;z-index:5;background:#000;pointer-events:none;opacity:var(--dim,0)}
+/* ---- الموبايل ---- */
+body[data-layout="mobile"].in-reader{ --topbar-h:0px; }
+body[data-layout="mobile"].in-reader .topbar,
+body[data-layout="mobile"].in-reader .tabbar,
+body[data-layout="mobile"].in-reader #readerDrawerFab,
+body[data-layout="mobile"].in-reader #readerBottomBar{display:none!important}
+body[data-layout="mobile"].in-reader main{padding-top:0;padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+body[data-layout="mobile"] #tab-reader #readerTopbar{
+  position:fixed; top:0; inset-inline:0; z-index:40; height:48px; margin:0; padding:0 .35rem; gap:.1rem;
+  border:none; border-bottom:1px solid var(--border); border-radius:0; box-shadow:none; background:var(--bar-bg);
+  transition:transform .22s ease,opacity .22s ease}
+body[data-layout="mobile"] #tab-reader #readerTopbar .reader-title-wrap{flex:1;min-width:0;display:block}
+body[data-layout="mobile"] #tab-reader #readerTopbar #readerTitle{font-size:.92rem;font-weight:600;text-align:center;flex:none}
+body[data-layout="mobile"] #tab-reader #readerTopbar #readerSubtitle{display:none}
+body[data-layout="mobile"] #tab-reader #readerTopbar button{background:none;border:none;box-shadow:none;min-width:38px;height:44px;padding:0 .35rem;font-size:1.25rem;line-height:1;color:var(--text);border-radius:.5rem}
+body[data-layout="mobile"] #tab-reader #readerTopbar #backToLib{font-size:0;min-width:38px}
+body[data-layout="mobile"] #tab-reader #readerTopbar #backToLib::before{content:"→";font-size:1.3rem}
+body[data-layout="mobile"] #tab-reader #readerTopbar #btnReaderAa{display:inline-flex;align-items:center;justify-content:center;font-size:1.05rem;font-weight:700;font-family:Georgia,serif}
+body[data-layout="mobile"] #tab-reader #readerTopbar #btnReaderSearch{font-size:1.1rem}
+body[data-layout="mobile"] #tab-reader #readerTopbar #btnReaderMenu{font-size:1.4rem}
+body[data-layout="mobile"] #tab-reader.chrome-off #readerTopbar,
+body[data-layout="mobile"] #tab-reader.chrome-scroll-hidden #readerTopbar{transform:translateY(-100%);opacity:0;pointer-events:none}
+body[data-layout="mobile"] #tab-reader.active{padding-top:.4rem}
+body[data-layout="mobile"] #readerFooter{display:flex;position:fixed;bottom:0;inset-inline:0;z-index:40;height:44px;padding:0 .9rem env(safe-area-inset-bottom);box-sizing:content-box;align-items:center;gap:.7rem;background:var(--bar-bg);border-top:1px solid var(--border);transition:transform .22s ease,opacity .22s ease}
+body[data-layout="mobile"]:not(.in-reader) #readerFooter{display:none}
+body[data-layout="mobile"] #readerFooter #readScrubber{flex:1;min-width:0;height:20px;margin:0}
+body[data-layout="mobile"] #readerFooter #scrubPos{font-size:.75rem;white-space:nowrap;color:var(--muted);min-width:4.2em;text-align:center}
+body[data-layout="mobile"].chrome-off #readerFooter,body[data-layout="mobile"].chrome-scroll-hidden #readerFooter{transform:translateY(100%);opacity:0;pointer-events:none}
+body.reader-empty #readerFooter,body.reader-locked #readerFooter{display:none!important}
+/* الحبة: نص صغير باهت في الانغماس وفوق الفوتر وقت الكروم */
+body[data-layout="mobile"] #readerPill{bottom:calc(54px + env(safe-area-inset-bottom));padding:.2rem .6rem;font-size:.78rem}
+body[data-layout="mobile"] #tab-reader.chrome-off #readerPill{opacity:.55;transform:translate(-50%,0);bottom:calc(6px + env(safe-area-inset-bottom));background:none;border:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;pointer-events:none}
+/* ورقة Aa */
+body[data-layout="mobile"] #appearanceCard{padding:.4rem 1rem calc(.9rem + env(safe-area-inset-bottom));border-radius:1.1rem 1.1rem 0 0;max-height:62vh;overflow-y:auto}
+body[data-layout="mobile"] #appearanceCard .card-toggle,
+body[data-layout="mobile"] #appearanceCard p.hint,
+body[data-layout="mobile"] #appearanceCard #rulerToggle,
+body[data-layout="mobile"] #appearanceCard label.switch-row,
+body[data-layout="mobile"] #appearanceCard .shortcuts-hint,
+body[data-layout="mobile"] #appearanceCard #darkToggle,
+body[data-layout="mobile"] #appearanceCard #sleepTimerSel,
+body[data-layout="mobile"] #appearanceCard #sleepTimerSel+*,
+body[data-layout="mobile"] #appearanceCard #btnFocus{display:none}
+body[data-layout="mobile"] #appearanceCard::before{content:"";display:block;width:36px;height:4px;border-radius:4px;background:var(--border);margin:.1rem auto .6rem}
+body[data-layout="mobile"] #appearanceCard #appearanceBody{display:flex!important;flex-direction:column;gap:.85rem}
+body[data-layout="mobile"] #appearanceCard #appearanceBody>label:first-child{display:none}
+body[data-layout="mobile"] #appearanceCard .swatches{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem}
+body[data-layout="mobile"] #appearanceCard .theme-swatch{min-height:38px;font-size:.78rem;padding:.2rem;border-radius:.7rem}
+body[data-layout="mobile"] #appearanceCard .font-size-row{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+body[data-layout="mobile"] #appearanceCard .font-size-row .icon-btn{min-width:56px;height:40px}
+body[data-layout="mobile"] #appearanceCard label{display:flex;align-items:center;justify-content:space-between;gap:.8rem;font-size:.9rem;margin:0}
+body[data-layout="mobile"] #appearanceCard select{max-width:55%;min-height:38px}
+body[data-layout="mobile"] #appearanceCard input[type=range]{flex:1;max-width:60%}
+body[data-layout="mobile"] #appearanceCard #aaExtras{display:flex;flex-direction:column;gap:.85rem}
+.aa-seg{display:flex;gap:.35rem;flex:1;justify-content:flex-end}
+.aa-seg button{flex:1;max-width:120px;min-height:36px;font-size:.8rem;padding:.2rem .4rem;border-radius:.7rem}
+.aa-seg button.on{background:var(--accent);color:#241a05;border-color:var(--accent)}
+.aa-row{display:flex;align-items:center;justify-content:space-between;gap:.8rem;font-size:.9rem}
+/* درج ⋯ بأقسام قابلة للطي */
+#readerDrawer details.rd-sec{border:1px solid var(--border);border-radius:.9rem;margin-bottom:.6rem;background:var(--card,transparent)}
+#readerDrawer details.rd-sec>summary{list-style:none;cursor:pointer;padding:.65rem .8rem;font-weight:700;font-size:.92rem;display:flex;justify-content:space-between;align-items:center}
+#readerDrawer details.rd-sec>summary::-webkit-details-marker{display:none}
+#readerDrawer details.rd-sec>summary::after{content:"▾";opacity:.6;transition:transform .2s}
+#readerDrawer details.rd-sec[open]>summary::after{transform:rotate(180deg)}
+#readerDrawer details.rd-sec>.rd-sec-body{padding:0 .7rem .7rem;display:flex;flex-direction:column;gap:.5rem}
+#readerDrawer .rd-sec-body .tools-grid,#readerDrawer .rd-sec-body .ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:.45rem}
+#readerDrawer .rd-sec-body button{min-height:40px;font-size:.84rem}
+#readerDrawer .reader-actionbar{border:none;padding:0;margin:0;background:none}
+#readerDrawer #bookToolsCard{border:none;padding:0;background:none;box-shadow:none}
+#readerDrawer #bookToolsCard>h2{display:none}
+#readerDrawer #readerBottomBar{display:none!important}
+/* وضع الصفحات: نقر على الحافتين يقلب الصفحة */
+body[data-layout="mobile"].in-reader.pages-mode #readerPageTap{display:block}
+#readerPageTap{position:fixed;top:48px;bottom:44px;inset-inline:0;z-index:8;pointer-events:none}
+#readerPageTap i{position:absolute;top:0;bottom:0;width:26%;pointer-events:auto}
+#readerPageTap i.l{left:0}#readerPageTap i.r{right:0}
+
+body[data-layout="mobile"] #appearanceCard details.aa-more{border-top:1px solid var(--border);padding-top:.5rem}
+body[data-layout="mobile"] #appearanceCard details.aa-more>summary{cursor:pointer;font-size:.85rem;color:var(--muted);padding:.3rem 0}
+body[data-layout="mobile"] #appearanceCard details.aa-more>*:not(summary){display:flex;margin-top:.7rem}
+body[data-layout="mobile"] #appearanceCard details.aa-more p.hint,body[data-layout="mobile"] #appearanceCard details.aa-more .shortcuts-hint{display:block}
+body[data-layout="mobile"] #tab-reader #readerTopbar #readerTitle{border:none;padding:0}
+body[data-layout="mobile"] #tab-reader #readerTopbar .reader-title-wrap{border:none}
+body[data-layout="mobile"] #tab-reader #readerTopbar .reader-title-wrap::before,body[data-layout="mobile"] #tab-reader #readerTopbar::before,body[data-layout="mobile"] #tab-reader #readerTopbar #readerTitle::before{display:none}
+body[data-layout="mobile"] #tab-reader #readerTopbar{z-index:12}
+body[data-layout="mobile"] #readerFooter{z-index:12}
+body[data-layout="mobile"] #tab-reader.active{padding-top:.9rem}
+body[data-layout="mobile"]:has(#readerDrawer.open) #readerTopbar,body[data-layout="mobile"]:has(#readerDrawer.open) #readerFooter{visibility:hidden}
