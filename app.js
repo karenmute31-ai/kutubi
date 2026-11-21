@@ -2138,6 +2138,7 @@ function azureSSML(text, voiceName, locale, rate, pitch, styleName){
 }
 async function azFetchSegment(text, signal, voiceName){
   const region = (settings.azRegion || "").trim();
+  if(!/^[a-z0-9-]+$/i.test(region)) throw new Error("ريجن Azure غير صالح");
   const voice = voiceName || settings.azVoice;
   const tone = TONES[settings.tone] || TONES.calm;
   const ratePct = 0;
@@ -2251,7 +2252,7 @@ function elStopElement(){
   if(elPendingResolve){ const r = elPendingResolve; elPendingResolve = null; r(); }
 }
 function elPlayBlob(blob, rate){
-  return new Promise((resolve)=>{
+  return new Promise((resolve,reject)=>{
     const a = $("#elAudio");
     if(!a){ resolve(); return; }
     if(elCurrentURL) URL.revokeObjectURL(elCurrentURL);
@@ -2262,11 +2263,11 @@ function elPlayBlob(blob, rate){
     elPlaying = true;
     const cleanup = ()=>{ a.removeEventListener("ended", onEnd); a.removeEventListener("error", onErr); elPendingResolve = null; };
     const onEnd = ()=>{ cleanup(); elPlaying = false; resolve(); };
-    const onErr = ()=>{ cleanup(); elPlaying = false; resolve(); };
+    const onErr = ()=>{ cleanup(); elPlaying = false; reject(new Error("تعذر تشغيل ملف الصوت، جرّب صوتًا آخر أو أعد التشغيل")); };
     elPendingResolve = ()=>{ cleanup(); resolve(); }; /* الإيقاف اليدوي بيحرّر الانتظار فورًا */
     a.addEventListener("ended", onEnd);
     a.addEventListener("error", onErr);
-    const p = a.play(); if(p && p.catch) p.catch(()=>{});
+    const p = a.play(); if(p && p.catch) p.catch(()=>{ cleanup(); elPlaying=false; reject(new Error("اضغط تشغيل للسماح بالصوت في المتصفح")); });
   });
 }
 function offerDeviceFallback(items, label, errMsg){
