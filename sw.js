@@ -1,5 +1,5 @@
 /* كُتُبِي — Service Worker: app-shell cache (offline shell only, لا بيخزّن مفاتيح ولا بيانات كتب) */
-const CACHE = "motarjem-v70";
+const CACHE = "motarjem-v71";
 const SHARE_CACHE = "motarjem-shared-v1"; /* ملفات جاية من هدف المشاركة — برّه كاش النسخ ومبتتمسحش مع التحديثات */
 const SHELL = [
   "./",
@@ -32,7 +32,8 @@ self.addEventListener("install", (e) => {
   // ملحوظة: مش بنعمل skipWaiting تلقائيًا هنا — النسخة الجديدة بتستنى في حالة waiting
   // لحد ما المستخدم يدوس «حدّث دلوقتي» في التطبيق فتوصلها رسالة SKIP_WAITING.
   // أول تثبيت خالص (مفيش نسخة قديمة) بيُفعّل تلقائيًا من غير ما يستنى.
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)));
+  /* cache:"reload" = من الشبكة مباشرة: غير كده addAll بياخد نسخة من كاش المتصفح بحدود/رؤوس قديمة (CSP قديم بيفضل) */
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: "reload" })))));
 });
 self.addEventListener("message", (e) => {
   if (e.data && e.data.type === "SKIP_WAITING") self.skipWaiting();

@@ -209,6 +209,16 @@ async function repairBookData(book){
       try{ const cl = cleanupText(snap); if(cl && cl.text && cl.text.trim()) restored = cl.text; }catch(e){} /* إعادة تنضيف للنص المشتق */
       ch.orig = restored; clearDerivedChunk(ch); fixed++; return;
     }
+    /* مفيش لقطة أصلية سليمة: نجرّب نفك أشكال العرض/نقلب «امل» على النص الحالي نفسه — لو بقى سليم نعتمده */
+    if(d.kind === "shaped-reversed" || d.kind === "garbled"){
+      const _pt2 = (typeof window !== "undefined" && window.PdfText) ? window.PdfText : null;
+      let healed = ch.orig;
+      try{ if(_pt2 && typeof _pt2.expandText === "function") healed = _pt2.expandText(ch.orig); }catch(e){}
+      healed = String(healed).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\uFFFD]/g, "");
+      if(healed !== ch.orig && healed.trim() && !chunkDefect({ orig: healed })){ ch.orig = healed; clearDerivedChunk(ch); fixed++; return; }
+      /* لسه عيبه باقي ومفيش مصدر سليم: منخفيش جزء من كتاب المستخدم — بنعلّمه مشبوه ونسيبه ظاهر (الإخفاء/العزل بس للأجزاء الفاضية أو التالفة هيكليًا) */
+      ch.suspect = d.kind; return;
+    }
     quarantineIdx.push(d.i);
   });
   let quarantined = 0;
