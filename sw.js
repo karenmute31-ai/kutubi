@@ -1,5 +1,5 @@
 /* كُتُبِي — Service Worker: app-shell cache (offline shell only, لا بيخزّن مفاتيح ولا بيانات كتب) */
-const CACHE = "motarjem-v99";
+const CACHE = "motarjem-v100";
 const SHARE_CACHE = "motarjem-shared-v1"; /* ملفات جاية من هدف المشاركة — برّه كاش النسخ ومبتتمسحش مع التحديثات */
 const SHELL = ["./gemini-tts.js","./cloudflare-tts.js","./eleven-owner-tts.js",
   "./",

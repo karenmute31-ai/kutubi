@@ -6,7 +6,7 @@ const context={console,URL,AbortController,Blob,Uint8Array,setTimeout(){},clearT
 context.window=context;vm.createContext(context);vm.runInContext(source+'\n;globalThis.testAPI={settings,TONES,effectiveCloudVoice,voiceGenderHint,OPENAI_SEED,azureSSML};',context);
 const t=context.testAPI,s=t.settings;let count=0;function check(name,ok){assert.ok(ok,name);console.log('ok '+name);count++;}
 check('default rate',s.speed===1&&t.TONES.calm.rate===1);
-for(const id of ['professor','engineer','mentor','founder','playful','simplifier','reverse'])check(id+' exists',!!t.TONES[id]&&ui.includes('value="'+id+'"'));
+for(const id of ['professor','engineer','mentor','founder','playful','simplifier','reverse','hakawati'])check(id+' exists',!!t.TONES[id]&&ui.includes('value="'+id+'"'));
 check('backup excludes OpenAI key',/delete s\.oKey/.test(app2));
 check('restore preserves local OpenAI key',app2.includes('oKey: settings.oKey'));
 s.voiceGender='female';s.azVoice='ar-EG-ShakirNeural';s.azVoiceManual=false;
