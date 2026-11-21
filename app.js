@@ -32,7 +32,7 @@ const KNOWN_BAD_MODEL = "minimax/minimax-m3", GOOD_DEFAULT_MODEL = "MiniMaxAI/Mi
 if(String(settings.model || "").trim().toLowerCase() === KNOWN_BAD_MODEL){ settings.model = GOOD_DEFAULT_MODEL; saveSettings(); }
 
 /* ---------- شكل القراءة (ثيم / خط / تباعد أسطر) ---------- */
-const FONT_STACKS = {system:'"Segoe UI",Tahoma,Arial,sans-serif', amiri:'"Amiri","Traditional Arabic","Segoe UI",serif', tajawal:'"Tajawal","Segoe UI",Tahoma,Arial,sans-serif'};
+const FONT_STACKS = {system:'"Segoe UI",Tahoma,Arial,sans-serif', amiri:'"Amiri","Traditional Arabic","Segoe UI",serif', tajawal:'"Tajawal","Segoe UI",Tahoma,Arial,sans-serif', naskh:'"Noto Naskh Arabic","Traditional Arabic","Segoe UI",serif', scheherazade:'"Scheherazade New","Traditional Arabic","Segoe UI",serif', cairo:'"Cairo","Segoe UI",Tahoma,Arial,sans-serif'};
 /* 🌙 الوضع الليلي الذكي: لما يتفعّل، الثيم بيتبع وقت اليوم (ليلي من ٧ مساءً لـ ٦ الصبح) — وأي اختيار يدوي للثيم بيلغيه */
 function isNightNow(){ const h = new Date().getHours(); return h >= 19 || h < 6; }
 function autoNightTheme(){ return isNightNow() ? (settings.nightTheme || "dark") : "light"; }

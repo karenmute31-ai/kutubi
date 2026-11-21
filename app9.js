@@ -120,6 +120,21 @@
       speechSynthesis.speak=function(u){ try{ u.addEventListener("boundary",function(e){ if(e.name&&e.name!=="word"&&e.name!=="sentence")return; hl(u,e.charIndex||0); }); u.addEventListener("end",clear); u.addEventListener("error",clear); }catch(e){} return sp(u); };
       var cn=speechSynthesis.cancel.bind(speechSynthesis); speechSynthesis.cancel=function(){ clear(); return cn(); };
     })();
+    /* ===== المرحلة 4: تاب الإحصائيات (أيام ودقائق القراءة والسلسلة) ===== */
+    try{ if(typeof MORE_DESTS!=="undefined" && !MORE_DESTS.some(function(d){return d.tab==="insights"})) MORE_DESTS.splice(2,0,{tab:"insights",icon:"📊",label:"إحصائياتي"}); }catch(e){}
+    function renderInsights(){
+      var el=$("#insBody"); if(!el||typeof loadReadStats!=="function")return;
+      var st=loadReadStats(), days=[], names=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"], tk=todayKey(), max=1, wk=0;
+      for(var i=6;i>=0;i--){ var k=shiftDayKey(tk,-i), p=k.split("-").map(Number), d=new Date(p[0],p[1]-1,p[2]), m=st.byDay[k]||0; days.push({n:names[d.getDay()],m:m,t:i===0}); if(m>max)max=m; wk+=m; }
+      var streak=computeStreak(st.byDay,tk), goal=(window.settings&&settings.dailyGoalMin)||15, today=st.byDay[tk]||0;
+      var active=Object.keys(st.byDay).filter(function(k){return st.byDay[k]>=1}).length, best=0, run=0, keys=Object.keys(st.byDay).sort();
+      for(var j=0;j<keys.length;j++){ if(st.byDay[keys[j]]>=1 && (j===0||shiftDayKey(keys[j-1],1)===keys[j])) run++; else run=(st.byDay[keys[j]]>=1?1:0); if(run>best)best=run; }
+      var h='<div class="ins-hero"><div class="ins-streak">🔥 '+streak+'</div><div>يوم متتالي</div><div class="hint">أطول سلسلة: '+best+' يوم</div></div>'
+       +'<div class="ins-grid"><div class="stat-box"><strong>'+today+'</strong><span>دقيقة النهارده من '+goal+'</span></div><div class="stat-box"><strong>'+wk+'</strong><span>دقيقة آخر 7 أيام</span></div><div class="stat-box"><strong>'+st.totalMin+'</strong><span>إجمالي الدقايق</span></div><div class="stat-box"><strong>'+active+'</strong><span>أيام قرأت فيها</span></div></div>'
+       +'<h3>آخر 7 أيام</h3><div class="ins-bars">'+days.map(function(d){return '<div class="ins-col'+(d.t?' today':'')+'"><span class="v">'+d.m+'</span><i style="height:'+Math.max(4,Math.round(d.m/max*100))+'px"></i><span class="d">'+d.n+'</span></div>'}).join("")+'</div>';
+      el.innerHTML=h;
+    }
+    var sw0=window.switchTab; if(typeof sw0==="function"){ window.switchTab=function(name,fb){ var r=sw0.apply(this,arguments); if(name==="insights") renderInsights(); return r; }; }
     /* منطقة لمس علوية/سفلية بتظهر وتخفي الكروم حتى لو الكلام كله كلمات قابلة للضغط */
     document.addEventListener("click",function(e){
       if(document.body.dataset.layout!=="mobile"||!document.body.classList.contains("in-reader")) return;

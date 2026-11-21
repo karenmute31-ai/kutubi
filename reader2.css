@@ -120,3 +120,12 @@ body:not(.in-reader) #readerDrawerFab{display:none!important}
 #hlPop .smartres[hidden]{display:none}
 @media (max-width:700px){#hlPop{width:min(94vw,380px)}}
 ::highlight(kb-read){background-color:rgba(232,200,90,.38);color:inherit}
+/* تاب الإحصائيات */
+.ins-hero{text-align:center;padding:1.2rem 0 .8rem}
+.ins-streak{font-size:3rem;font-weight:800;color:var(--accent);line-height:1.1}
+.ins-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin:.8rem 0}
+.ins-bars{display:flex;align-items:flex-end;justify-content:space-between;gap:.35rem;height:170px;padding:.4rem .2rem 0}
+.ins-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:.25rem;height:100%}
+.ins-col i{display:block;width:70%;max-width:34px;border-radius:8px 8px 3px 3px;background:var(--border)}
+.ins-col.today i{background:var(--accent)}
+.ins-col .v{font-size:.75rem;color:var(--muted)}.ins-col .d{font-size:.68rem;color:var(--muted);white-space:nowrap}
