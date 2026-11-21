@@ -1368,7 +1368,7 @@ async function testConnection(){
   const key=($("#apiKey").value||"").trim();
   const base=(($("#apiBase").value||"").trim()||DEFSET.base).replace(/\/+$/,"");
   const model=($("#apiModel").value||"").trim()||DEFSET.model;
-  if(!key){ msg.textContent="حط مفتاح الـ API الأول في الخانة اللي فوق، وبعدين جرّب الاتصال."; msg.classList.add("err"); return; }
+  if(!key && !isBuiltinAI(base)){ msg.textContent="حط مفتاح الـ API الأول في الخانة اللي فوق، وبعدين جرّب الاتصال."; msg.classList.add("err"); return; }
   msg.textContent="بيجرّب الاتصال…"; msg.classList.remove("err"); btn.disabled=true;
   try{
     /* نفس طريق الترجمة بالظبط: نفس الـ endpoint (chat/completions) ونفس شكل الطلب ونفس القيم اللي في الخانات —
@@ -1390,11 +1390,12 @@ async function fetchAccountModels(){
   const msg=$("#modelsMsg"), btn=$("#btnFetchModels"), sel=$("#modelListSel");
   const key=($("#apiKey").value||"").trim() || (settings.key||"").trim();
   const base=((($("#apiBase").value||"").trim())||DEFSET.base).replace(/\/+$/,"");
-  if(!key){ msg.textContent="حط مفتاح الـ API الأول في خانة المفتاح اللي فوق، وبعدين هات الموديلات."; msg.classList.add("err"); return; }
+  if(!key && !isBuiltinAI(base)){ msg.textContent="حط مفتاح الـ API الأول في خانة المفتاح اللي فوق، وبعدين هات الموديلات."; msg.classList.add("err"); return; }
   msg.textContent="بيجيب الموديلات المتاحة لحسابك…"; msg.classList.remove("err"); btn.disabled=true;
   try{
     const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(), 15000);
-    const r=await fetch(base+"/models", {method:"GET", headers:{"Authorization":"Bearer "+key}, signal:ctl.signal});
+    const hdrs={}; if(key) hdrs["Authorization"]="Bearer "+key;
+    const r=await fetch(base+"/models", {method:"GET", headers:hdrs, signal:ctl.signal});
     clearTimeout(to);
     if(!r.ok){
       const snip=await providerErrSnippet(r);
