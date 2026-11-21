@@ -1,5 +1,6 @@
 /* كُتُبِي — واجهة القراءة الهادية (v80): نص نضيف، كروم رفيع باللمس، زر Aa واحد، سلايدر تنقل */
-#readerFooter,#btnReaderAa,#aaExtras,#dimLayer,#readerPageTap{display:none}
+#readerFooter,#readerPageTap{display:none}
+#dimLayer{display:none}
 body[data-layout="mobile"].in-reader #dimLayer{display:block;position:fixed;inset:0;z-index:5;background:#000;pointer-events:none;opacity:var(--dim,0)}
 /* ---- الموبايل ---- */
 body[data-layout="mobile"].in-reader{ --topbar-h:0px; }
@@ -129,3 +130,18 @@ body:not(.in-reader) #readerDrawerFab{display:none!important}
 .ins-col i{display:block;width:70%;max-width:34px;border-radius:8px 8px 3px 3px;background:var(--border)}
 .ins-col.today i{background:var(--accent)}
 .ins-col .v{font-size:.75rem;color:var(--muted)}.ins-col .d{font-size:.68rem;color:var(--muted);white-space:nowrap}
+
+/* ===== ديسكتوب (ويندوز/لينكس): قائمة منظمة بأقسام وعناوين زي إعدادات Kindle ===== */
+body[data-layout="desktop"] #btnReaderAa{display:inline-flex;font-weight:700;font-family:Georgia,serif}
+body[data-layout="desktop"] #readerDrawerFab{display:none!important}
+body[data-layout="desktop"] #readerDrawer{width:min(430px,92vw)}
+body[data-layout="desktop"] #readerDrawer details.rd-sec>summary{font-size:1.02rem;padding:.8rem 1rem;border-bottom:1px solid var(--border)}
+body[data-layout="desktop"] #readerDrawer details.rd-sec:not([open])>summary{border-bottom:none}
+body[data-layout="desktop"] #readerDrawer .rd-sec-body{padding-top:.8rem}
+body[data-layout="desktop"] #aaExtras{display:flex;flex-direction:column;gap:.85rem;margin-top:.8rem}
+body[data-layout="desktop"] #dimLayer{display:block;position:fixed;inset:0;z-index:5;background:#000;pointer-events:none;opacity:var(--dim,0)}
+body[data-layout="desktop"] #appearanceCard #appearanceBody{display:flex!important;flex-direction:column;gap:.8rem}
+body[data-layout="desktop"] #appearanceCard .card-toggle{display:none}
+body[data-layout="desktop"] #appearanceCard label{display:flex;align-items:center;justify-content:space-between;gap:.8rem}
+body[data-layout="desktop"] #appearanceCard details.aa-more{border-top:1px solid var(--border);padding-top:.5rem}
+body[data-layout="desktop"] #appearanceCard details.aa-more>*:not(summary){margin-top:.7rem}

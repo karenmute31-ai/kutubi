@@ -54,7 +54,7 @@
       sAi.b.appendChild(ai);
       if(ab) sTr.b.appendChild(ab);
       if(tc) sTools.b.appendChild(tc);
-      rdBody.appendChild(sTr.d); rdBody.appendChild(sAi.d); rdBody.appendChild(sTools.d);
+      rdBody.appendChild(sTr.d); rdBody.appendChild(sAi.d); rdBody.appendChild(sTools.d); if(document.body.dataset.layout==='desktop'){ sAi.d.open=true; sTools.d.open=true; }
     }
     /* ===== المرحلة 2 ===== */
     var lib=$("#tab-library");
