@@ -256,7 +256,14 @@
 	              <option value="egyptian">🇪🇬 مصري</option>
 	            </select>
 	          </label>
-	          <button id="btnTranslate" class="primary">ترجم / كمّل الترجمة</button>
+	          <label class="lang-label" id="explDialectWrap">🗣 لهجة الشرح:
+            <select id="explDialectSel">
+              <option value="egyptian">🇪🇬 مصري</option>
+              <option value="fusha">📖 فصحى مبسطة</option>
+              <option value="gulf">🌴 خليجي</option>
+            </select>
+          </label>
+          <button id="btnTranslate" class="primary">ترجم / كمّل الترجمة</button>
 	          <button id="btnStopTrans" class="ghost">⏹ إيقاف الترجمة</button>
 	          <button id="btnExplainBook" class="ghost">💡 اشرح الكتاب بالمصري</button>
 	        </div>
@@ -545,6 +552,13 @@
         <select id="defTStyleSel">
           <option value="fusha">📖 فصحى — عربي سليم زي ترجمة المتصفحات</option>
           <option value="egyptian">🇪🇬 مصري — باللهجة المصرية</option>
+        </select>
+      </label>
+      <label>لهجة الشرح (الشرح النصي والصوتي بيطلع بيها)
+        <select id="defExplDialectSel">
+          <option value="egyptian">🇪🇬 مصري</option>
+          <option value="fusha">📖 فصحى مبسطة</option>
+          <option value="gulf">🌴 خليجي</option>
         </select>
       </label>
       <div class="row wrap">

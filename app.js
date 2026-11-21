@@ -1559,23 +1559,32 @@ async function translateOneChunk(book, i){
 async function retryChunk(book, i){ return translateOneChunk(book, i); }
 
 /* ---------- الشرح الصوتي (نص الشرح) ---------- */
+/* لهجات الشرح: مصري / فصحى مبسطة / خليجي — بتتختار من الإعدادات أو من درج القارئ وبتتخزن مع إعدادات الجهاز */
+const EXPL_DIALECTS={
+  egyptian:{ label:"مصري", sys:"انت شارح مصري بيشرح محتوى الكتب باللهجة المصرية البسيطة اليومية، كأنك بتشرح لصاحبك القاعد جنبك: كلام سهل وأسلوب شيّق يشدّه يكمل، وتبسيط لأي مصطلح أو مفهوم صعب أول ما يظهر، وكل الأمثلة والربط من داخل المحتوى نفسه بس.", ask:"اشرح المحتوى التالي بالمصري " },
+  fusha:{ label:"فصحى مبسطة", sys:"انت شارح بيشرح محتوى الكتب بالعربية الفصحى المبسطة السهلة: لغة واضحة بسيطة من غير تعقيد لغوي، أسلوب شيّق يشدّ القارئ يكمل، وتبسيط لأي مصطلح أو مفهوم صعب أول ما يظهر، وكل الأمثلة والربط من داخل المحتوى نفسه بس.", ask:"اشرح المحتوى التالي بالفصحى المبسطة " },
+  gulf:{ label:"خليجي", sys:"انت شارح بيشرح محتوى الكتب باللهجة الخليجية البيضاء البسيطة اليومية، كأنك تشرح لخويّك الجالس جنبك: كلام سهل وأسلوب شيّق يخليه يكمل، وتبسيط لأي مصطلح أو مفهوم صعب أول ما يظهر، وكل الأمثلة والربط من داخل المحتوى نفسه بس.", ask:"اشرح المحتوى التالي بالخليجي " }
+};
+function sanitizeExplDialect(d){ return EXPL_DIALECTS[d] ? d : "egyptian"; }
+function explDialect(){ return EXPL_DIALECTS[sanitizeExplDialect(settings.explDialect||"egyptian")]; }
 const EXPL_SYS="انت شارح مصري بيشرح محتوى الكتب باللهجة المصرية البسيطة اليومية، كأنك بتشرح لصاحبك القاعد جنبك: كلام سهل وأسلوب شيّق يشدّه يكمل، وتبسيط لأي مصطلح أو مفهوم صعب أول ما يظهر، وكل الأمثلة والربط من داخل المحتوى نفسه بس.";
 async function makeExplanation(book, i, signal){
   const ch=book.chunks[i]; if(!ch) return "";
   const origMode = bookTargetLang(book)==="orig"; /* وضع النص الأصلي: الشرح بيتبني من الأصل نفسه — الجزء مش محتاج يبقى «مترجم» */
   if(!origMode && ch.status!=="done") return "";
-  if(ch.explanation && ch.explTone===settings.tone) return ch.explanation;
+  if(ch.explanation && ch.explTone===settings.tone && ch.explDialect===sanitizeExplDialect(settings.explDialect||"egyptian")) return ch.explanation;
   const tone=TONES[settings.tone]||TONES.calm;
   let text="";
   if(hasKey()){
     const srcBlock = origMode ? "\n\nالمحتوى (النص الأصلي كما هو):\n"+ch.orig : "\n\nالمحتوى المترجم:\n"+ch.trans+"\n\nالأصل:\n"+ch.orig;
-    text = await aiChat(EXPL_SYS, "اشرح المحتوى التالي بالمصري "+tone.style+"، شرح منفصل للتعلّم (ده مش ترجمة — الترجمة موجودة لوحدها). ركّز على المفاهيم والمصطلحات المهمة وأهم المعلومات، من غير ما تزوّد معلومات مش في المحتوى."+srcBlock, 0.5, signal, {maxTokens: 4096});
+    const dl = explDialect();
+    text = await aiChat(dl.sys, dl.ask+tone.style+"، شرح منفصل للتعلّم (ده مش ترجمة — الترجمة موجودة لوحدها). ركّز على المفاهيم والمصطلحات المهمة وأهم المعلومات، من غير ما تزوّد معلومات مش في المحتوى."+srcBlock, 0.5, signal, {maxTokens: 4096});
   } else if(ch.keyPoints && ch.keyPoints.length){
     text = "أهم اللي في الجزء ده: "+ch.keyPoints.join(". ")+".";
   } else {
     text = "الجزء ده بيقول: "+String(origMode ? ch.orig : ch.trans).slice(0,600);
   }
-  ch.explanation=String(text).trim(); ch.explTone=settings.tone;
+  ch.explanation=String(text).trim(); ch.explTone=settings.tone; ch.explDialect=sanitizeExplDialect(settings.explDialect||"egyptian");
   await idbPut(book); renderChunk(book,i);
   return ch.explanation;
 }
@@ -1583,7 +1592,7 @@ async function makeExplanation(book, i, signal){
 /* ---------- 💡 الشرح النصي بالمصري (زرار لوحده، منفصل عن الشرح الصوتي) ----------
    بيشرح كل أجزاء الكتاب اللي لسه من غير شرح، بالترتيب، وبيتوقف بنفس حارس التوليد (audioGen) + إجهاض الطلب الجاري */
 let explaining = false, explainStop = false, explainRun = null;
-function setExplainBtn(){ const b=$("#btnExplainBook"); if(b) b.textContent = explaining ? "⏹ وقّف الشرح" : "💡 اشرح الكتاب بالمصري"; }
+function setExplainBtn(){ const b=$("#btnExplainBook"); if(b) b.textContent = explaining ? "⏹ وقّف الشرح" : "💡 اشرح الكتاب بال"+explDialect().label; }
 function stopExplainBook(){ if(!explaining) return; explainStop = true; if(explainRun) explainRun.stop(); audioGen++; }
 function openChunkExplanation(i){
   const sec = document.getElementById("chunk-" + i); if(!sec) return;
@@ -1596,7 +1605,7 @@ async function explainBook(book){
   if(!hasKey()){ setTransStatus("الشرح بالمصري بيحتاج مفتاح API — ضيفه من تبويب الإعدادات", true); return; }
   const origMode = bookTargetLang(book)==="orig";
   /* «ناقص شرح» = مفيش شرح أصلًا أو شرحه معمول بنبرة قديمة — بيتماشى مع makeExplanation اللي بيجدّد الشرح لما النبرة تتغيّر */
-  const needsExpl = c => !(c.explanation && c.explanation.trim() && c.explTone === settings.tone);
+  const needsExpl = c => !(c.explanation && c.explanation.trim() && c.explTone === settings.tone && c.explDialect === sanitizeExplDialect(settings.explDialect||"egyptian"));
   const missing = book.chunks.map((c, i)=>i).filter(i=>{
     const c = book.chunks[i];
     return needsExpl(c) && (origMode || c.status === "done");

@@ -989,7 +989,7 @@ function fillChunk(book,i){
     le.dataset.role="listen-explain";
   }
   /* شرح نصي للجزء ده بس — بيظهر لما الجزء قابل للشرح (مترجم، أو الكتاب في وضع النص الأصلي) */
-  if(ch.status==="done" || bookTargetLang(book)==="orig") mk("💡 اشرح الجزء بالمصري","ghost",()=>explainChunkText(book,i));
+  if(ch.status==="done" || bookTargetLang(book)==="orig") mk("💡 اشرح الجزء بال"+((typeof explDialect==="function")?explDialect().label:"مصري"),"ghost",()=>explainChunkText(book,i));
   const marked=book.bookmarks.includes(i);
   mk(marked?"🔖 شيل العلامة":"🔖 علامة","ghost",async()=>{ ensureBookExtras(book); const beforeMarks=book.bookmarks.slice(); const p=book.bookmarks.indexOf(i); if(p>=0) book.bookmarks.splice(p,1); else book.bookmarks.push(i); try{ await idbPut(book); }catch(e){ book.bookmarks=beforeMarks; logError("حفظ", e); setTransStatus("حفظ العلامة فشل — جرّب تاني.", true); } fillChunk(book,i); renderIndexPanel(); });
   mk("🖍 ظلّل","ghost",()=>{ const ed=$('[data-role="hledit"]',sec); if(ed) ed.classList.toggle("hidden"); });
@@ -1443,6 +1443,10 @@ document.addEventListener("DOMContentLoaded", async()=>{
   if(tb0 && "ResizeObserver" in window) new ResizeObserver(()=>{ document.documentElement.style.setProperty("--topbar-h", tb0.offsetHeight+"px"); }).observe(tb0);
   $("#apiKey").value=settings.key||""; $("#apiBase").value=settings.base||DEFSET.base; $("#apiModel").value=settings.model||DEFSET.model;
   const dts=$("#defTStyleSel"); if(dts){ dts.value=sanitizeTStyle(settings.tStyle); dts.addEventListener("change",()=>{ settings.tStyle=sanitizeTStyle(dts.value); saveSettings(); const b=currentBook(); if(b) renderReaderControls(b); showTabMsg("#settingsMsg","اتحفظ أسلوب الترجمة الافتراضي ✔"); }); }
+  /* لهجة الشرح: اختيار واحد بيتزامن بين الإعدادات ودرج القارئ، وبيأثر في الشرح الجديد (القديم بيفضل محفوظ زي ما هو) */
+  const syncExplDialect=(v)=>{ settings.explDialect=sanitizeExplDialect(v); saveSettings(); const a=$("#defExplDialectSel"); if(a) a.value=settings.explDialect; const c=$("#explDialectSel"); if(c) c.value=settings.explDialect; setExplainBtn(); showTabMsg("#settingsMsg","اتحفظت لهجة الشرح ✔"); };
+  const deds=$("#defExplDialectSel"); if(deds){ deds.value=sanitizeExplDialect(settings.explDialect||"egyptian"); deds.addEventListener("change",()=>syncExplDialect(deds.value)); }
+  const reds=$("#explDialectSel"); if(reds){ reds.value=sanitizeExplDialect(settings.explDialect||"egyptian"); reds.addEventListener("change",()=>syncExplDialect(reds.value)); }
   const qts=$("#quickTStyleSel"); if(qts) qts.value=sanitizeTStyle(settings.tStyle); /* المترجم السريع بيقرا قيمة الاختيار وقت الترجمة نفسها */
   $("#toneSelect").value=settings.tone||"calm"; $("#speedRange").value=settings.speed||1;
   if(!TARGET_LANGS.some(t=>t.code===settings.targetLang)) settings.targetLang="ar-EG";
@@ -1943,6 +1947,8 @@ function reloadSettingsFromStorage(){
   const set = (id, v)=>{ const el = $(id); if(el) el.value = (v == null ? "" : v); };
   set("#apiKey", settings.key || ""); set("#apiBase", settings.base || DEFSET.base); set("#apiModel", settings.model || DEFSET.model);
   set("#defTStyleSel", settings.tStyle);
+  set("#defExplDialectSel", sanitizeExplDialect(settings.explDialect||"egyptian"));
+  set("#explDialectSel", sanitizeExplDialect(settings.explDialect||"egyptian"));
   set("#toneSelect", settings.tone || "calm"); set("#speedRange", settings.speed || 1);
   set("#elKey", settings.elKey || ""); set("#azKey", settings.azKey || ""); set("#azRegion", settings.azRegion || ""); set("#gKey", settings.gKey || "");
   const fv = $("#fontSizeVal"); if(fv) fv.textContent = settings.font || 17;
