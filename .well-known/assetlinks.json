@@ -1,8 +1,14 @@
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "app.vercel.kutubi.twa",
-    "sha256_cert_fingerprints": ["5B:DE:E8:E3:D5:C8:F7:F4:A1:B0:D9:AB:C8:79:4C:AC:D1:F4:A1:09:45:36:6C:EF:C4:89:32:F6:9C:7F:99:C1"]
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.vercel.kutubi.twa",
+      "sha256_cert_fingerprints": [
+        "B8:91:4B:4B:82:5F:B9:AC:82:19:54:BB:48:45:87:BE:59:DC:AE:21:6A:2C:62:7A:7B:74:78:4E:E8:F2:8E:98"
+      ]
+    }
   }
-}]
+]
