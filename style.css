@@ -875,3 +875,66 @@ html[data-theme="dark"] .badge.done, html[data-theme="black"] .badge.done{ backg
 /* مؤشر التركيز الذهبي */
 html[data-theme="dark"] input:focus,html[data-theme="dark"] textarea:focus,html[data-theme="dark"] select:focus{
   box-shadow:0 0 0 3px rgba(217,169,74,.22); }
+
+/* ================= ثيمان اختياريان: الملكي والمودرن (حرية الاختيار بجانب الفيوجن) ================= */
+/* 👑 الملكي: فخامة كلاسيكية — فحمي دافي + ذهبي ملكي، أميري للعناوين */
+html[data-theme="royal"]{
+  --bg:#14100c; --surface:#1d1712; --card:#241c15; --text:#f2e7d3; --muted:#b3a186;
+  --accent:#d9a94a; --accent2:#f0c96a; --border:#3d2f1e;
+  --canvas:#0f0c09; --paper:#1d1712; --bar-bg:rgba(20,16,12,.9);
+}
+html[data-theme="royal"] body{ background:
+  radial-gradient(1200px 500px at 80% -10%, rgba(217,169,74,.10), transparent 60%),
+  radial-gradient(900px 420px at 10% 110%, rgba(217,169,74,.06), transparent 55%), var(--bg); }
+html[data-theme="royal"] h1, html[data-theme="royal"] h2, html[data-theme="royal"] .home-brand{ font-family:"Amiri","Traditional Arabic","Tajawal",serif; letter-spacing:.2px; }
+html[data-theme="royal"] .home-brand{ background:linear-gradient(120deg,#f5d78a,#c8942e); -webkit-background-clip:text; background-clip:text; color:transparent; }
+html[data-theme="royal"] h1::before{ background:linear-gradient(180deg,var(--accent2),#8a6420); width:5px; }
+html[data-theme="royal"] .card, html[data-theme="royal"] .book-card, html[data-theme="royal"] .stat-box{
+  background:linear-gradient(180deg, rgba(255,255,255,.025), transparent 40%), var(--card);
+  border:1px solid var(--border); border-radius:1.1rem; box-shadow:0 10px 30px rgba(0,0,0,.35); }
+html[data-theme="royal"] button.primary{ background:linear-gradient(135deg,#f0c96a,#c8942e); color:#241a05; font-weight:800;
+  box-shadow:0 6px 18px rgba(200,148,46,.35), inset 0 1px 0 rgba(255,255,255,.5); border:none; }
+html[data-theme="royal"] .topbar{ background:#1d1712; border-bottom-color:var(--border); }
+html[data-theme="royal"] .tabbar{ background:rgba(20,16,12,.92); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-top:1px solid var(--border); }
+html[data-theme="royal"] .tabbar button.active{ color:var(--accent2); }
+html[data-theme="royal"] .tabbar button.active::after{ background:linear-gradient(90deg,#f0c96a,#c8942e); }
+html[data-theme="royal"] input[type=text],html[data-theme="royal"] input[type=url],html[data-theme="royal"] input[type=password],
+html[data-theme="royal"] input[type=search],html[data-theme="royal"] input[type=month],html[data-theme="royal"] textarea,html[data-theme="royal"] select{
+  background:#171310; border-color:#3d2f1e; }
+html[data-theme="royal"] .progress{ background:linear-gradient(90deg,#f0c96a,#c8942e); }
+html[data-theme="royal"] .progress-wrap{ background:#2c2620; }
+html[data-theme="royal"] .banner, html[data-theme="royal"] .update-banner{ background:#2c2410; color:#f5d78a; border-bottom:1px solid var(--border); }
+html[data-theme="royal"] .resume-bar{ background:#241c15; border:1px solid var(--border); box-shadow:0 10px 30px rgba(0,0,0,.35); }
+html[data-theme="royal"] .basic-note{ background:#2c2410; color:#f5d78a; }
+html[data-theme="royal"] .badge.done{ background:#2c2410; color:var(--accent2); }
+html[data-theme="royal"] details summary{ color:var(--accent2); }
+/* 💜 مودرن: أبيض/سليت + نيلي-بنفسجي متدرج، زجاج مصنفر، كروت كبيرة ناعمة */
+html[data-theme="modern"]{
+  --bg:#f4f6fb; --surface:#ffffff; --card:#ffffff; --text:#1b2130; --muted:#667085;
+  --accent:#4f46e5; --accent2:#7c3aed; --border:#e4e8f2;
+  --canvas:#e9edf7; --paper:#ffffff; --bar-bg:rgba(255,255,255,.88);
+}
+html[data-theme="modern"] body{ background:
+  radial-gradient(900px 380px at 85% -5%, rgba(124,58,237,.08), transparent 60%), var(--bg); }
+html[data-theme="modern"] h1::before{ background:linear-gradient(180deg,var(--accent2),var(--accent)); width:5px; }
+html[data-theme="modern"] .card, html[data-theme="modern"] .book-card, html[data-theme="modern"] .stat-box{
+  border:1px solid var(--border); border-radius:1.25rem;
+  box-shadow:0 4px 16px rgba(27,33,48,.05), 0 1px 3px rgba(27,33,48,.04); }
+html[data-theme="modern"] button.primary{ background:linear-gradient(135deg,#6366f1,#7c3aed); border:none; color:#fff;
+  box-shadow:0 8px 20px rgba(99,102,241,.30), inset 0 1px 0 rgba(255,255,255,.25); font-weight:700; }
+html[data-theme="modern"] .topbar{ background:rgba(255,255,255,.88); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-bottom:1px solid var(--border); }
+html[data-theme="modern"] .tabbar{ background:rgba(255,255,255,.88); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-top:1px solid var(--border);
+  box-shadow:0 -10px 30px rgba(27,33,48,.06); }
+html[data-theme="modern"] .tabbar button.active{ color:var(--accent); }
+html[data-theme="modern"] .tabbar button.active::after{ background:linear-gradient(90deg,#6366f1,#7c3aed); }
+html[data-theme="modern"] .home-brand{ background:linear-gradient(120deg,#4f46e5,#7c3aed); -webkit-background-clip:text; background-clip:text; color:transparent; }
+html[data-theme="modern"] input[type=text],html[data-theme="modern"] input[type=url],html[data-theme="modern"] input[type=password],
+html[data-theme="modern"] input[type=search],html[data-theme="modern"] input[type=month],html[data-theme="modern"] textarea,html[data-theme="modern"] select{
+  background:#f8fafd; border-color:#e4e8f2; }
+html[data-theme="modern"] .progress{ background:linear-gradient(90deg,#6366f1,#7c3aed); }
+html[data-theme="modern"] .banner, html[data-theme="modern"] .update-banner{ background:#eef0fe; color:#3c3aa8; border-bottom:1px solid #dfe3fb; }
+html[data-theme="modern"] .resume-bar{ background:#fff; border:1px solid var(--border); box-shadow:0 8px 24px rgba(27,33,48,.08); }
+html[data-theme="modern"] .basic-note{ background:#eef0fe; color:#3c3aa8; }
+/* سواتش الثيمين في الإعدادات */
+.sw-royal{ background:#14100c; color:#f0c96a; border:1px solid #3d2f1e; }
+.sw-modern{ background:linear-gradient(135deg,#6366f1,#7c3aed); color:#fff; border:none; }

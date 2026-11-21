@@ -42,12 +42,12 @@ function applyAppearance(){
   const t = effectiveTheme();
   document.documentElement.dataset.theme = t;
   /* لون شريط المتصفح/النظام بيتبع ثيم القراءة: بني العلامة للفاتح، ورمادي غامق للّيلي */
-  const mtc = document.querySelector('meta[name="theme-color"]'); if(mtc) mtc.setAttribute("content", t === "dark" ? "#131110" : (t === "black" ? "#000000" : "#7c3f12"));
+  const mtc = document.querySelector('meta[name="theme-color"]'); if(mtc) mtc.setAttribute("content", t === "dark" ? "#131110" : (t === "black" ? "#000000" : (t === "royal" ? "#14100c" : (t === "modern" ? "#f4f6fb" : "#7c3f12"))));
   document.documentElement.style.setProperty("--fs", (settings.font||17)+"px");
   document.documentElement.style.setProperty("--lh", settings.lineHeight || 1.9);
   document.documentElement.style.setProperty("--reader-font", FONT_STACKS[settings.fontFamily] || FONT_STACKS.system);
-  settings.dark = (t === "dark"); /* مراية للتوافق مع أي كود قديم بيبص على dark */
-  const dt = $("#darkToggle"); if(dt) dt.textContent = (t === "dark" || t === "black") ? "☀️" : "🌙";
+  settings.dark = (t === "dark" || t === "black" || t === "royal"); /* مراية للتوافق مع أي كود قديم بيبص على dark */
+  const dt = $("#darkToggle"); if(dt) dt.textContent = (t === "dark" || t === "black" || t === "royal") ? "☀️" : "🌙";
 }
 function syncAppearanceControls(){
   $$(".theme-swatch").forEach(b=>b.classList.toggle("active", b.dataset.themeVal === (settings.autoNight ? "auto" : (settings.theme || "light"))));
@@ -105,7 +105,7 @@ function autoMatchVoiceForTone(toneKey){
 let dbPromise = null;
 /* حارس نسخة المخطط الوحيد: أي تغيير مستقبلي في شكل البيانات بيعدي من migrateSchema بس */
 const IDB_VERSION = 2;
-const APP_VERSION_TAG = "motarjem-v57"; /* بيتطابق مع اسم كاش الـ Service Worker */
+const APP_VERSION_TAG = "motarjem-v58"; /* بيتطابق مع اسم كاش الـ Service Worker */
 function migrateSchema(db, oldVersion, newVersion){ /* حاليًا المخطط ثابت من النسخة ٢ — مفيش ترحيلات، والخطّاف جاهز لأي تغيير جاي */
 }
 function idb(){

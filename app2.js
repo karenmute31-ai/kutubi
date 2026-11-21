@@ -706,7 +706,7 @@ function changeFontSize(d){
   const fv = $("#fontSizeVal"); if(fv) fv.textContent = settings.font;
 }
 /* ثيمات القراءة الأربعة: تعيين واحد بيستخدمه السواتش والثيم السريع في شريط التحكم */
-const THEME_ORDER = ["light", "sepia", "dark", "black"];
+const THEME_ORDER = ["light","sepia","dark","black","royal","modern"];
 function setTheme(val){
   settings.theme = val; settings.autoNight = false; /* الاختيار اليدوي بيلغي الليلي التلقائي */
   saveSettings(); applyAppearance(); syncAppearanceControls(); syncThemeCycleBtn();
@@ -716,7 +716,7 @@ function enableAutoNight(){
 }
 function syncThemeCycleBtn(){
   const b = $("#btnBarTheme"); if(!b) return;
-  const names = { light:"فاتح", sepia:"بيج ورقي", dark:"ليلي", black:"أسود" };
+  const names = { light:"فاتح", sepia:"بيج ورقي", dark:"ليلي", black:"أسود", royal:"ملكي 👑", modern:"مودرن 💜" };
   const s = b.querySelector("span"); if(s) s.textContent = settings.autoNight ? "الثيم: تلقائي 🌙" : "الثيم: " + (names[settings.theme] || "فاتح");
   b.firstChild.textContent = (settings.theme === "dark" || settings.theme === "black") ? "☀️" : "🌙";
 }
