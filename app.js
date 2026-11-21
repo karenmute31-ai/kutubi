@@ -939,7 +939,41 @@ function ensureBookExtras(book){
   if(typeof book.quizBest !== "number" || isNaN(book.quizBest)) book.quizBest = 0;
   if(typeof book.finishBy !== "string") book.finishBy = "";
 }
-function updateReadProgress(book, idx){
+/* ---------- مؤشر الصفحات «صفحة X من Y» ----------
+   كتب الـPDF عندها pageCount حقيقي مخزّن وقت الاستيراد (حتى كتب الـOCR المصوّرة) — الرقم بيرتكز عليه.
+   باقي الكتب (نص/EPUB) الإجمالي تقديري بمتوسط حروف الصفحة، وبيتعلّم بـ≈ عشان ميدّعيش دقة مش موجودة.
+   الموضع بيتحسب بنسبة الحروف اللي قبل موضع القراءة لكل حروف الكتاب — ثابت مهما اتغيّر حجم الخط أو الشاشة. */
+const PAGE_CHARS_EST = 1800;
+const pageMapCache = new Map(); /* book.id → خريطة محسوبة مرة واحدة لكل نسخة كتاب */
+function bookPageMap(book){
+  if(!book || !book.chunks || !book.chunks.length) return null;
+  const n = book.chunks.length;
+  const sig = n + ":" + (((book.chunks[0]||{}).orig||"").length) + ":" + (((book.chunks[n-1]||{}).orig||"").length) + ":" + (book.pageCount || 0);
+  const hit = pageMapCache.get(book.id);
+  if(hit && hit.sig === sig) return hit;
+  const cum = new Array(n); let total = 0;
+  for(let i=0;i<n;i++){ cum[i] = total; total += ((book.chunks[i].orig || "").length + 2); }
+  const map = {
+    sig: sig, cum: cum, totalChars: Math.max(total, 1),
+    total: (book.pageCount && book.pageCount > 0) ? Math.round(book.pageCount) : Math.max(1, Math.round(total / PAGE_CHARS_EST)),
+    exact: !!(book.pageCount && book.pageCount > 0)
+  };
+  pageMapCache.set(book.id, map);
+  return map;
+}
+function pageLabelAt(book, idx, frac){
+  const m = bookPageMap(book); if(!m) return "";
+  idx = Math.max(0, Math.min(m.cum.length - 1, idx || 0));
+  const chunkLen = ((book.chunks[idx].orig || "").length + 2);
+  const off = m.cum[idx] + Math.max(0, Math.min(1, frac || 0)) * chunkLen;
+  const page = Math.max(1, Math.min(m.total, 1 + Math.floor(off / m.totalChars * m.total)));
+  return "صفحة " + page + " من " + (m.exact ? "" : "≈") + m.total;
+}
+function updatePagePill(book, idx, frac){
+  const pill = $("#pillPos"); if(!pill) return;
+  pill.textContent = pageLabelAt(book, idx, frac);
+}
+function updateReadProgress(book, idx, frac){
   if(!book || !book.chunks || !book.chunks.length) return;
   ensureBookExtras(book);
   const calc = readProgressCalc(idx, book.chunks.length, remainingWords(book, idx), effectiveWpm());
@@ -954,6 +988,7 @@ function updateReadProgress(book, idx){
   const sm = $("#scrubMeta"); if(sm) sm.textContent = "قريت " + calc.pct + "٪ • باقي ~" + calc.mins + " دقيقة";
   const sc = $("#readScrubber");
   if(sc && document.activeElement !== sc){ sc.max = String(Math.max(0, book.chunks.length - 1)); sc.value = String(idx); const sp = $("#scrubPos"); if(sp) sp.textContent = "جزء " + (idx + 1) + " من " + book.chunks.length; }
+  updatePagePill(book, idx, frac || 0);
 }
 function syncProgressBarVisibility(){
   const b = currentBook();

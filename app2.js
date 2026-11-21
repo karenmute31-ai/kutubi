@@ -941,6 +941,7 @@ function renderReader(book){
     const sc0 = $("#readScrubber"); if(sc0){ sc0.max = String(Math.max(0, book.chunks.length - 1)); sc0.value = String(idx0); }
     const sp0 = $("#scrubPos"); if(sp0) sp0.textContent = "جزء " + (idx0 + 1) + " من " + book.chunks.length;
     const sm0 = $("#scrubMeta"); if(sm0) sm0.textContent = "قريت " + (book.progress || 0) + "٪";
+    updatePagePill(book, idx0, 0); /* حبة الموضع تبدأ على آخر صفحة محفوظة */
     const st0 = $("#readerSubtitle");
     if(st0){ const code0 = bookTargetLang(book); st0.textContent = book.chunks.length + " جزء" + (code0 === "orig" ? " • النص الأصلي كما نزل" : " • ترجمة " + targetLangEntry(code0).name + (code0 === "ar-EG" ? " • " + (bookTStyle(book) === "egyptian" ? "بالمصري" : "فصحى") : "")); }
     syncThemeCycleBtn();
@@ -1704,14 +1705,18 @@ document.addEventListener("DOMContentLoaded", async()=>{
       scrollTick=false;
       const rt=$("#tab-reader"); if(!rt || !rt.classList.contains("active") || !currentId) return;
       const b=currentBook(); if(!b || isBookLocked(b)) return;
+      const pdfOpen=$("#pdfPages"); if(pdfOpen && !pdfOpen.classList.contains("hidden")) return; /* عارض صفحات الـPDF شغال — حبة الموضع بتتبع رقم الصفحة الحقيقي من الكنفس مش من الأجزاء */
       const secs=$$("#chunks .chunk"); if(!secs.length) return;
       const mid=window.scrollY + window.innerHeight*0.4;
-      let idx=0;
+      let idx=0, idxEl=null;
       /* رقم الجزء بييجي من الـ id نفسه مش من ترتيبه في القايمة — مع الترقيم المرسوم جزئي بس */
-      for(let i=0;i<secs.length;i++){ const top=secs[i].getBoundingClientRect().top + window.scrollY; if(top<=mid) idx=parseInt(secs[i].id.slice(6),10)||0; else break; }
+      for(let i=0;i<secs.length;i++){ const top=secs[i].getBoundingClientRect().top + window.scrollY; if(top<=mid){ idx=parseInt(secs[i].id.slice(6),10)||0; idxEl=secs[i]; } else break; }
+      /* نسبة التقدم جوه الجزء الحالي — عشان رقم الصفحة يتحرك بسلاسة جوه الجزء الواحد */
+      let frac=0;
+      if(idxEl){ const r=idxEl.getBoundingClientRect(); if(r.height>0) frac=Math.max(0, Math.min(1, (mid - (r.top + window.scrollY)) / r.height)); }
       const lo=getLastOpen();
       if(!lo || lo.bookId!==currentId || lo.chunkIndex!==idx) saveLastOpen(currentId, idx);
-      updateReadProgress(b, idx);
+      updateReadProgress(b, idx, frac);
     }, 150);
   }, {passive:true});
   /* تفريغ حفظ التقدّم المؤجّل قبل ما التبويب يختفي أو الصفحة تتقفل */
@@ -2203,7 +2208,7 @@ function updateBanner(){
 /* [T3.4b] show the ORIGINAL PDF pages (canvas, lazy, released when far away). Reads the Blob saved by T3.4a; never touches book data. */
 (function(){
   var PDF_WORKER = "./vendor/pdfjs/pdf.worker.min.js";
-  var isOpen = false, loading = false, openId = null, pdfDoc = null, io = null, token = 0;
+  var isOpen = false, loading = false, openId = null, pdfDoc = null, io = null, posIO = null, token = 0;
   function el(id){ return document.getElementById(id); }
   function say(t, err){ try{ setTransStatus(t, !!err); }catch(e){} }
   function curId(){ try{ return (typeof currentId !== "undefined" && currentId) ? currentId : null; }catch(e){ return null; } }
@@ -2239,11 +2244,14 @@ function updateBanner(){
   function closeViewer(){
     token++;
     if(io){ try{ io.disconnect(); }catch(e){} io = null; }
+    if(posIO){ try{ posIO.disconnect(); }catch(e){} posIO = null; }
     var host = el("pdfPages"); if(host){ host.innerHTML = ""; host.classList.add("hidden"); }
     var ch = el("chunks"); if(ch) ch.style.display = "";
     if(pdfDoc && pdfDoc.destroy){ try{ pdfDoc.destroy(); }catch(e){} }
     var wasOpen = isOpen;
     pdfDoc = null; isOpen = false; openId = null; setLabel();
+    /* رجّع حبة الموضع لمؤشر النص بعد قفل عارض الـPDF */
+    try{ if(typeof updatePagePill === "function" && typeof currentBook === "function"){ var cb = currentBook(); if(cb && cb.chunks && cb.chunks.length){ var lo2 = getLastOpen(); updatePagePill(cb, (lo2 && lo2.bookId === cb.id) ? (lo2.chunkIndex || 0) : 0, 0); } } }catch(e){}
     if(wasOpen){ try{ var lo = getLastOpen(); var t = lo && document.getElementById("chunk-" + (lo.chunkIndex || 0)); if(t) t.scrollIntoView({block: "start"}); }catch(e){} }
   }
   async function openViewer(){
@@ -2277,6 +2285,15 @@ function updateBanner(){
           entries.forEach(function(en){ if(en.isIntersecting) renderPage(en.target); else releasePage(en.target); });
         }, {rootMargin: "1200px 0px"});
         pages.forEach(function(p){ io.observe(p); });
+        /* تتبّع الصفحة الظاهرة: حبة الموضع بتعرض رقم صفحة الـPDF الحقيقي (صفحة X من numPages) */
+        if(posIO){ try{ posIO.disconnect(); }catch(e){} }
+        posIO = new IntersectionObserver(function(entries){
+          entries.forEach(function(en){ en.target.__ratio = en.isIntersecting ? en.intersectionRatio : 0; });
+          var cur = 0, bestR = 0;
+          for(var pi = 0; pi < pages.length; pi++){ var rr = pages[pi].__ratio || 0; if(rr > bestR){ bestR = rr; cur = pi + 1; } }
+          if(cur){ var pill = document.getElementById("pillPos"); if(pill) pill.textContent = "صفحة " + cur + " من " + doc.numPages; }
+        }, {threshold: [0, 0.15, 0.35, 0.55, 0.75, 0.95]});
+        pages.forEach(function(p){ posIO.observe(p); });
       } else { pages.slice(0, 20).forEach(renderPage); }
       host.scrollIntoView({block: "start"});
     } finally { loading = false; }

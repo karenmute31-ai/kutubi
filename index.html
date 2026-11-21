@@ -16,7 +16,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <script src="./vendor/pdfjs/pdf.min.js" defer></script>
-<!-- كتبي v72: محتوى الصفحة اتغيّر عمدًا عشان المتصفحات تجيب رأس CSP الجديد (wasm-unsafe-eval) بدل نسخة 304 القديمة -->
+<!-- كتبي v73: مؤشر الصفحات «صفحة X من Y» في حبة الموضع العائمة — حقيقي لكتب الـPDF وتقديري للنصوص، بيتحدث مع التمرير والتنقل -->
 </head>
 <body>
 <header class="topbar">
@@ -472,6 +472,8 @@
     </div>
     <div id="pdfPages" class="hidden" dir="ltr"></div>
     <div id="chunks" class="reader-hide"></div>
+    <!-- حبة الموضع العائمة (أسلوب Drive): رقم الصفحة الحالية من إجمالي الصفحات — بتتحدث مع التمرير والقفز، وبتختفي في الوضع الغامر وخارج القارئ -->
+    <div id="readerPill" class="reader-hide"><span id="pillPos"></span></div>
     <!-- شريط تحكم سفلي (أسلوب أبجد): سكرولر تقدّم + فهرس/مظهر/صوت/ثيم سريع -->
   </section>
 

@@ -445,6 +445,7 @@ html[data-theme="dark"] .book-cover, html[data-theme="black"] .book-cover{ filte
 #readerPill #pillPos{ font-weight:700; white-space:nowrap; }
 #readerPill #pillFontSize{ min-width:1.6em; text-align:center; font-weight:700; }
 #tab-reader.chrome-off #readerPill{ opacity:0; pointer-events:none; transform:translate(-50%, 10px); }
+body:not(.reading) #readerPill{ display:none; } /* الحبة لجوّه القارئ بس — مبتظهرش في باقي التبويبات */
 #tab-reader:fullscreen{ background:var(--canvas); }
 #tab-reader:fullscreen #readerPill{ display:none; }
 
