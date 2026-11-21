@@ -3,6 +3,8 @@
 const $ = (s, r) => (r || document).querySelector(s);
 const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+/* تنظيف علامات الماركداون الخفيفة من نصوص الـ AI قبل عرضها كنص عادي (النجمتين ** للتغميق بتظهر حروف لو اتعرضت زي ما هي) */
+function stripMd(s){return String(s==null?"":s).replace(/\*\*([^*]+)\*\*/g,"$1").replace(/__([^_]+)__/g,"$1").replace(/(^|[^*])\*([^*\n]+)\*/g,"$1$2").replace(/`([^`]+)`/g,"$1").replace(/^#{1,6}\s+/gm,"");}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
 
 /* ---------- الإعدادات (localStorage بس) ---------- */

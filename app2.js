@@ -1010,7 +1010,7 @@ function fillChunk(book,i){
   }
   if(ch.explanation){
     const d=document.createElement("details"); const s=document.createElement("summary"); s.textContent="الشرح (نص)"; d.appendChild(s);
-    const p=document.createElement("p"); p.textContent=ch.explanation; d.appendChild(p); ex.appendChild(d);
+    const p=document.createElement("p"); p.textContent=stripMd(ch.explanation); d.appendChild(p); ex.appendChild(d);
   }
 }
 function renderChunk(book,i){ fillChunk(book,i); }
