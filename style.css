@@ -268,7 +268,7 @@ body.ruler-on #readRuler{display:block}
 }
 html[data-theme="sepia"]{ --bar-bg:rgba(244,236,216,.86); }
 html[data-theme="dark"]{
-  --bar-bg:rgba(23,16,8,.8);
+  --bar-bg:rgba(19,17,16,.8);
   --elev-1:0 1px 3px rgba(0,0,0,.5),0 1px 2px rgba(0,0,0,.4);
   --elev-2:0 6px 18px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.4);
   --elev-3:0 14px 34px rgba(0,0,0,.65);
@@ -380,23 +380,23 @@ html[data-theme="sepia"]{
   --border:#ded0ac; --canvas:#7d7261; --paper:#f8f0da; --bar-bg:rgba(251,245,225,.88);
 }
 html[data-theme="dark"]{
-  --bg:#202124; --surface:#2d2e33; --card:#2d2e33; --text:#e8eaed; --muted:#9aa0a6;
-  --accent:#e0a458; --accent2:#c98d45; --border:#3f4247;
-  --canvas:#17181a; --paper:#28292e; --bar-bg:rgba(32,33,36,.86);
+  --bg:#131110; --surface:#1b1815; --card:#201c18; --text:#f3ede2; --muted:#a89d8c;
+  --accent:#d9a94a; --accent2:#f0c96a; --border:#37302a;
+  --canvas:#0e0c0b; --paper:#1b1815; --bar-bg:rgba(19,17,16,.86);
   --elev-1:0 1px 3px rgba(0,0,0,.5),0 1px 2px rgba(0,0,0,.4);
   --elev-2:0 6px 18px rgba(0,0,0,.55),0 2px 6px rgba(0,0,0,.4);
   --elev-3:0 14px 34px rgba(0,0,0,.65);
 }
 html[data-theme="black"]{
-  --bg:#000000; --surface:#121212; --card:#121212; --text:#dcdcdc; --muted:#9c9c9c;
-  --accent:#e0a458; --accent2:#c98d45; --border:#2e2e2e;
-  --canvas:#000000; --paper:#000000; --bar-bg:rgba(8,8,8,.86);
+  --bg:#000000; --surface:#0b0a09; --card:#121110; --text:#e8e2d6; --muted:#9c948a;
+  --accent:#d9a94a; --accent2:#f0c96a; --border:#2a2622;
+  --canvas:#000000; --paper:#000000; --bar-bg:rgba(8,7,6,.86);
   --elev-1:0 1px 3px rgba(0,0,0,.6),0 1px 2px rgba(0,0,0,.5);
   --elev-2:0 6px 18px rgba(0,0,0,.65),0 2px 6px rgba(0,0,0,.5);
   --elev-3:0 14px 34px rgba(0,0,0,.75);
 }
 .sw-light{ background:#ffffff; }
-.sw-dark{ background:#202124; }
+.sw-dark{ background:#131110; }
 
 /* شريط التبويبات: حبة تمييز على التبويب النشط (Material) */
 .tabbar button{ margin:.3rem .15rem; border-radius:99px; }
@@ -720,7 +720,7 @@ body[data-layout="desktop"].in-reader #moreTransTools{ display:block; margin:0 0
 
 /* ---------- درج أدوات القراءة: شريط الإجراءات + أدوات الكتاب في درج جانبي منزلق، صفحة القراءة صافية ---------- */
 #readerDrawerFab{position:fixed;inset-inline-start:14px;bottom:150px;z-index:26;width:52px;height:52px;border-radius:50%;border:none;background:var(--accent);color:#fff;font-size:1.35rem;cursor:pointer;box-shadow:0 6px 18px rgba(90,50,0,.35);display:flex;align-items:center;justify-content:center;transition:opacity var(--dur-2) var(--ease)}
-html[data-theme="dark"] #readerDrawerFab,html[data-theme="black"] #readerDrawerFab{color:#171008}
+html[data-theme="dark"] #readerDrawerFab,html[data-theme="black"] #readerDrawerFab{color:#241a05}
 #readerDrawer{position:fixed;top:0;bottom:0;inset-inline-start:0;width:min(360px,92vw);z-index:60;background:var(--surface);border-inline-end:1px solid var(--border);box-shadow:0 0 40px rgba(0,0,0,.22);transform:translateX(110%);transition:transform var(--dur-2) var(--ease);display:flex;flex-direction:column}
 #readerDrawer.open{transform:none}
 #readerDrawer .rd-head{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.7rem .9rem;background:var(--card);border-bottom:1px solid var(--border)}
