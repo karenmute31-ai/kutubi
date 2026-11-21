@@ -941,3 +941,14 @@ html[data-theme="modern"] .basic-note{ background:#eef0fe; color:#3c3aa8; }
 html[data-theme="royal"] .resume-banner{ background:#2c2410; color:#f5d78a; border:1px solid #3d2f1e; }
 html[data-theme="modern"] .resume-banner{ background:#eef0fe; color:#3c3aa8; border:1px solid #dfe3fb; }
 html[data-theme="black"] .resume-banner{ background:#121110; color:#f0c96a; border:1px solid #2a2622; }
+
+/* درج أدوات القراءة على الموبايل: عرض الدرج ضيق (حدّ أقصى 360px) فشبكة الصفّين بتخنق الخانات
+   («لغة الترجمة» بتتلّف على سطرين والـ select بيبان مقطوع «العر…») — جوه الدرج كل خانة صف كامل لوحدها */
+body[data-layout="mobile"] #readerDrawer .action-row{display:flex;flex-direction:column;gap:.6rem}
+body[data-layout="mobile"] #readerDrawer .action-row .lang-label,
+body[data-layout="mobile"] #readerDrawer .action-row #tStyleWrap,
+body[data-layout="mobile"] #readerDrawer .action-row #btnTranslate,
+body[data-layout="mobile"] #readerDrawer .action-row #btnStopTrans,
+body[data-layout="mobile"] #readerDrawer .action-row #btnExplainBook{grid-column:auto;width:100%}
+body[data-layout="mobile"] #readerDrawer .action-row .lang-label{white-space:nowrap}
+body[data-layout="mobile"] #readerDrawer .action-row .lang-label select{flex:1;min-width:0;width:auto}
