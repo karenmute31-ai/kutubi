@@ -2210,11 +2210,12 @@ function updateBanner(){
   var PDF_WORKER = "./vendor/pdfjs/pdf.worker.min.js";
   var isOpen = false, loading = false, openId = null, pdfDoc = null, io = null, token = 0;
   var pdfPageEls = [], pdfTotal = 0, pdfScrollT = null;
-  /* رقم صفحة الـPDF الحالية: أول صفحة لسه ظاهرة تحت خط القراءة (أسفل الشريط العلوي) — لو الكتاب كله قد الشاشة يفضل «صفحة 1» لحد ما تسكرّل */
+  /* رقم صفحة الـPDF الحالية: الصفحة المهيمنة أعلى الشاشة — أول صفحة نصها اللي فوق لسه جوه الشاشة.
+     قاعدة ثابتة مع أي حجم صفحة: بتفضل «صفحة 1» لو الكتاب كله قد الشاشة، وبتتقلب لما نص الصفحة يطلع برّه */
   function pdfPosUpdate(){
     if(!pdfPageEls.length) return;
-    var line = Math.min(window.innerHeight * 0.45, 160), cur = pdfPageEls.length;
-    for(var i = 0; i < pdfPageEls.length; i++){ var r = pdfPageEls[i].getBoundingClientRect(); if(r.bottom > line){ cur = i + 1; break; } }
+    var cur = pdfPageEls.length;
+    for(var i = 0; i < pdfPageEls.length; i++){ var r = pdfPageEls[i].getBoundingClientRect(); if(r.top + r.height * 0.5 > 8){ cur = i + 1; break; } }
     var pill = document.getElementById("pillPos"); if(pill) pill.textContent = "صفحة " + cur + " من " + pdfTotal;
   }
   function onPdfScroll(){ if(pdfScrollT) return; pdfScrollT = setTimeout(function(){ pdfScrollT = null; pdfPosUpdate(); }, 120); }
