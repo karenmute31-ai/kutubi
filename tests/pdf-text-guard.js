@@ -93,5 +93,12 @@ check('h classify Arabic', PdfText.classify('ابت'), 'A');
 check('h classify digits', PdfText.classify('12'), 'L');
 check('h classify whitespace', PdfText.classify(' '), 'N');
 
+// i) stray Latin-extended garbage inside otherwise clean Arabic (WinAnsi subset fonts with a bad ToUnicode map)
+var cleanAr = 'الضوابط الأساسية للأمن السيبراني تحدد متطلبات حماية المعلومات والأنظمة في الجهات الوطنية. '.repeat(12);
+check('i clean Arabic not flagged', PdfText.brokenArabicEncoding(cleanAr), false);
+var dirtyAr = cleanAr + ' ǵŴĳŖǔ ĪťŉŁũ őĝŚŻ ŔǺȊȡ ǵŴĳŖǔ ĪťŉŁũ őĝŚŻ ŔǺȊȡ ǵŴĳŖǔ '.repeat(3);
+check('i stray Latin-extended flagged', PdfText.brokenArabicEncoding(dirtyAr), true);
+check('i a few accented names not flagged', PdfText.brokenArabicEncoding(cleanAr + ' José Müller'), false);
+
 console.log('pdf-text guard: ' + (checks - failures) + '/' + checks + ' passed');
 process.exit(failures ? 1 : 0);

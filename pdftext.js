@@ -210,6 +210,7 @@
     return t;
   }
 
+  var STRAY_LATIN_EXT = /[\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u1E00-\u1EFF]/g;
   function brokenArabicEncoding(t){
     var letters = (String(t == null ? "" : t).match(/[ء-ي]/g) || []).length;
     if(letters < 400) return false;
@@ -220,7 +221,12 @@
     var hamzaDoubles = (t.match(/[أإآ]{2}/g) || []).length;
     /* بقايا «امل» بعد الإصلاح (أشكال تانية من نفس العطل مش بيغطيها القلب) */
     var amlLeft = (t.match(/(^|[^ء-يٱ-ۓ])امل(?=[ء-يً-ْٰ])/gm) || []).length;
+    /* حروف لاتينية موسّعة/IPA/تشكيلات (Ǵ Ŵ ĳ Ŗ…) جوه نص عربي: خطوط TrueType بترميز WinAnsi وخريطة ToUnicode ناقصة
+       بتخلي pdf.js يطلّع الحروف دي بدل العربي في مقاطع متفرقة (عناوين وأوائل فقرات) والنص الباقي سليم —
+       فالنسب العامة فوق بتعدّي. العربي السليم فيه قرابة صفر من الحروف دي */
+    var weird = (t.match(STRAY_LATIN_EXT) || []).length;
     return aa / letters > 0.015 || alef / letters > 0.28
+      || (weird >= 20 && weird / letters > 0.004)
       || (hamzaDoubles >= 3 && hamzaDoubles / letters > 0.0008)
       || amlLeft >= 20;
   }
