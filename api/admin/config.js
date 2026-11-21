@@ -22,11 +22,11 @@ export default async function handler(req,res){
   res.setHeader("Access-Control-Allow-Methods","GET, PUT, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers","Content-Type, Authorization");
   if(req.method==="OPTIONS"){res.status(204).end();return;}
-  if(!ECID()||!WTOK()){res.status(200).json({config:{customButtons:[],announcement:""},degraded:true});return;}
+  if(!ECID()||!WTOK()){res.status(200).json({config:{customButtons:[],customTabs:[],announcement:""},degraded:true});return;}
   try{
     if(req.method==="GET"){
       const all=await readAll();
-      res.status(200).json({config:all["kutubi_config"]||{customButtons:[],announcement:""}}); return;
+      res.status(200).json({config:all["kutubi_config"]||{customButtons:[],customTabs:[],announcement:""}}); return;
     }
     if(req.method==="PUT"){
       if(!okToken(req)){res.status(401).json({error:"محتاج تسجيل دخول المالك."});return;}
@@ -36,7 +36,10 @@ export default async function handler(req,res){
       const clean={announcement:String(cfg.announcement||"").slice(0,500),
         customButtons:(Array.isArray(cfg.customButtons)?cfg.customButtons:[]).slice(0,12).map(b=>({
           icon:String(b.icon||"🔹").slice(0,8), label:String(b.label||"").slice(0,40),
-          tab:String(b.tab||"").slice(0,24), url:String(b.url||"").slice(0,300)})).filter(b=>b.label&&(b.tab||b.url))};
+          tab:String(b.tab||"").slice(0,24), url:String(b.url||"").slice(0,300)})).filter(b=>b.label&&(b.tab||b.url)),
+        customTabs:(Array.isArray(cfg.customTabs)?cfg.customTabs:[]).slice(0,12).map(t=>({
+          icon:String(t.icon||"📑").slice(0,8), label:String(t.label||"").slice(0,40),
+          url:String(t.url||"").slice(0,300), note:String(t.note||"").slice(0,5000)})).filter(t=>t.label&&(t.url||t.note))};
       const r=await fetch("https://api.vercel.com/v1/edge-config/"+ECID()+"/items",{method:"PATCH",
         headers:{Authorization:"Bearer "+WTOK(),"Content-Type":"application/json"},
         body:JSON.stringify({items:[{operation:"upsert",key:"kutubi_config",value:clean}]})});

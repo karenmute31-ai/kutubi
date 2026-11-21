@@ -2,7 +2,7 @@
    - بيجيب كونفيج التطبيق من /api/admin/config (قراءة عامة): أزرار مخصصة + إعلان من المالك.
    - بيضيف قسم «لوحة المالك السحابية» جوه تبويب الإدارة بعد فتح القفل المحلي.
    - أي عطل في الشبكة/المخزن = التطبيق يشتغل عادي من غير الإضافات (degrade مفتوح). */
-let CLOUD_CFG = { customButtons: [], announcement: "" };
+let CLOUD_CFG = { customButtons: [], customTabs: [], announcement: "" };
 let cloudToken = null; /* توكن المالك في الذاكرة بس — بيتمسح مع قفل الإدارة */
 async function loadCloudConfig(){
   try{
@@ -43,6 +43,31 @@ function renderCloudButtons(){
     });
     host.appendChild(el);
   }
+  (CLOUD_CFG.customTabs || []).forEach((t)=>{
+    const el = document.createElement("button");
+    el.type = "button"; el.className = "cloud-btn cloud-tab";
+    el.textContent = (t.icon || "📑") + " " + t.label;
+    el.addEventListener("click", ()=>{
+      if(t.url){ window.open(t.url, "_blank", "noopener"); }
+      else openCloudNote(t);
+    });
+    host.appendChild(el);
+  });
+}
+function openCloudNote(t){
+  let ov = $("#cloudNoteOv");
+  if(!ov){
+    ov = document.createElement("div"); ov.id = "cloudNoteOv";
+    ov.innerHTML = '<div class="cloud-note-card card"><div class="row wrap" style="justify-content:space-between"><h2 id="cloudNoteTitle"></h2><button type="button" class="ghost" id="cloudNoteClose">✕ اقفل</button></div><div id="cloudNoteBody" style="white-space:pre-wrap;line-height:1.9"></div></div>';
+    const st = document.createElement("style");
+    st.textContent = "#cloudNoteOv{position:fixed;inset:0;background:rgba(10,8,6,.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px}.cloud-note-card{max-width:640px;width:100%;max-height:85vh;overflow:auto}";
+    document.head.appendChild(st);
+    ov.addEventListener("click", e=>{ if(e.target===ov) ov.remove(); });
+  }
+  ov.querySelector("#cloudNoteTitle").textContent = (t.icon||"📑") + " " + t.label;
+  ov.querySelector("#cloudNoteBody").textContent = t.note || "";
+  ov.querySelector("#cloudNoteClose").onclick = ()=>ov.remove();
+  document.body.appendChild(ov);
 }
 /* قسم اللوحة السحابية جوه الإدارة المفتوحة */
 function renderCloudAdmin(root){
@@ -68,6 +93,14 @@ function renderCloudAdmin(root){
     '<div class="row wrap"><button type="button" id="btnCbAdd" class="ghost">➕ إضافة الزرار</button>' +
     '<button type="button" id="btnCloudSave" class="primary">💾 حفظ الكونفيج</button></div>' +
     '<p id="cloudCfgMsg" class="msg"></p>' +
+    '<h3>📑 التابات المخصصة (لينك أو صفحة ملاحظات من كتابتك)</h3>' +
+    '<div id="cloudTabList"></div>' +
+    '<label>إيموجي<input id="ctIcon" type="text" maxlength="8" placeholder="📑"></label>' +
+    '<label>اسم التاب<input id="ctLabel" type="text" maxlength="40"></label>' +
+    '<label>لينك (اختياري — لو فاضي هيبقى صفحة ملاحظات)<input id="ctUrl" type="url" maxlength="300" dir="ltr" placeholder="https://…"></label>' +
+    '<label>نص صفحة الملاحظات (اختياري)<textarea id="ctNote" rows="4" maxlength="5000"></textarea></label>' +
+    '<div class="row wrap"><button type="button" id="btnCtAdd" class="ghost">➕ إضافة التاب</button></div>' +
+    '<p class="hint">بعد إضافة/مسح أي حاجة اضغط «💾 حفظ الكونفيج» عشان التغيير يتنشر.</p>' +
     '<h3>⭐ سجل المشتركين</h3>' +
     '<div class="row wrap"><input id="subCode" type="text" maxlength="32" dir="ltr" placeholder="كود الاشتراك">' +
     '<input id="subNote" type="text" maxlength="120" placeholder="ملاحظة (اسم العميل مثلًا)">' +
@@ -80,6 +113,7 @@ function renderCloudAdmin(root){
   $("#btnCloudSave").addEventListener("click", cloudSaveConfig);
   $("#btnCbAdd").addEventListener("click", cloudAddButton);
   $("#btnSubAdd").addEventListener("click", cloudAddSub);
+  $("#btnCtAdd").addEventListener("click", cloudAddTab);
   if(cloudToken){ $("#cloudLoginBox").classList.add("hidden"); $("#cloudPanel").classList.remove("hidden"); cloudRefresh(); }
 }
 async function cloudLogin(){
@@ -95,7 +129,7 @@ async function cloudLogin(){
 }
 function cloudRefresh(){
   $("#cloudAnn").value = CLOUD_CFG.announcement || "";
-  renderCloudBtnList(); cloudLoadSubs();
+  renderCloudBtnList(); renderCloudTabList(); cloudLoadSubs();
 }
 function renderCloudBtnList(){
   const host = $("#cloudBtnList"); if(!host) return;
@@ -119,11 +153,33 @@ function cloudAddButton(){
   msg.textContent = ""; msg.classList.remove("err");
   renderCloudBtnList();
 }
+function renderCloudTabList(){
+  const host = $("#cloudTabList"); if(!host) return;
+  const tabs = CLOUD_CFG.customTabs || [];
+  host.innerHTML = tabs.length ? "" : '<p class="hint">مفيش تابات مخصصة لسه.</p>';
+  tabs.forEach((t, i)=>{
+    const row = document.createElement("div"); row.className = "row wrap";
+    const s2 = document.createElement("span"); s2.textContent = (t.icon||"📑")+" "+t.label+(t.url?" 🔗":" 📝");
+    const del = document.createElement("button"); del.type="button"; del.className="ghost"; del.textContent="🗑";
+    del.addEventListener("click", ()=>{ CLOUD_CFG.customTabs.splice(i,1); renderCloudTabList(); });
+    row.append(s2, del); host.appendChild(row);
+  });
+}
+function cloudAddTab(){
+  const msg = $("#cloudCfgMsg");
+  const t = { icon: $("#ctIcon").value || "📑", label: $("#ctLabel").value.trim(), url: $("#ctUrl").value.trim(), note: $("#ctNote").value };
+  if(!t.label || (!t.url && !t.note.trim())){ msg.textContent = "اكتب اسم التاب وحدّد لينك أو نص ملاحظات."; msg.classList.add("err"); return; }
+  CLOUD_CFG.customTabs = CLOUD_CFG.customTabs || [];
+  CLOUD_CFG.customTabs.push(t);
+  $("#ctIcon").value=""; $("#ctLabel").value=""; $("#ctUrl").value=""; $("#ctNote").value="";
+  msg.textContent = ""; msg.classList.remove("err");
+  renderCloudTabList();
+}
 async function cloudSaveConfig(){
   const msg = $("#cloudCfgMsg"); msg.textContent = "بيحفظ…"; msg.classList.remove("err");
   try{
     const r = await fetch("/api/admin/config", { method:"PUT", headers:{"Content-Type":"application/json", Authorization:"Bearer "+cloudToken},
-      body: JSON.stringify({ config: { announcement: $("#cloudAnn").value, customButtons: CLOUD_CFG.customButtons || [] } }) });
+      body: JSON.stringify({ config: { announcement: $("#cloudAnn").value, customButtons: CLOUD_CFG.customButtons || [], customTabs: CLOUD_CFG.customTabs || [] } }) });
     const d = await r.json();
     if(!r.ok){ msg.textContent = d.error || "الحفظ فشل."; msg.classList.add("err"); return; }
     CLOUD_CFG = d.config; applyCloudConfig();
