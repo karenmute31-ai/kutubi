@@ -91,6 +91,12 @@
   synth.speak = function (u) {
     var location = locate(u);
     if (!location) return nativeSpeak(u);
+    // Native selection paints over Custom Highlights. Once the text is mapped,
+    // dismiss that selection and its popup so the spoken sentence stays visible.
+    var selection = getSelection();
+    if (selection && !selection.isCollapsed) selection.removeAllRanges();
+    var popup = document.getElementById("hlPop");
+    if (popup) popup.style.display = "none";
     var token = ++generation, units = sentences(u.text, u.lang), index = 0, elapsed = 0;
     function next() {
       if (token !== generation) return;
