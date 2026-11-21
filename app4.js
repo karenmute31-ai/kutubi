@@ -584,10 +584,28 @@ function offerOcrAiRepair(book){
   if(typeof hasKey !== "function" || !hasKey()) return;
   if(typeof isBookLocked === "function" && isBookLocked(book)) return;
   if(typeof repairBook !== "function") return;
-  setTimeout(()=>{
-    const ok = confirm("النص بتاع «" + book.title + "» جاي من تعرّف ضوئي (OCR) فغالبًا فيه غلطات حروف وكلمات مقلوبة.\n\nتحب أشغّل «إصلاح النص بالذكاء الاصطناعي» عليه دلوقتي؟ الإصلاح بيبعت نص الكتاب لخدمة الذكاء الاصطناعي وبيستهلك من رصيد مفتاحك.\n\nلو رفضت، الكتاب موجود زي ما هو وتقدر تشغّل الإصلاح في أي وقت من أدوات الكتاب.");
-    if(ok) repairBook(book, {skipConfirm: true});
-  }, 700);
+  /* [H] إصلاح جذري لتجميد ما بعد الـ OCR: confirm() الأصلي كان بيوقف الخيط الرئيسي للصفحة كلها —
+     والمستخدم غالبًا ساب الجهاز أثناء دقايق التعرّف، فيرجع يلاقي الصفحة متجمدة على صندوق نظام مفتوح
+     والكتاب «مختفي» (هو فعليًا اتحفظ). بانر غير مانع مكانه: الكتاب يفتح عادي والقرار بيفضل للمستخدم */
+  setTimeout(()=>{ try{ showOcrRepairOffer(book); }catch(e){} }, 700);
+}
+function showOcrRepairOffer(book){
+  const old = document.getElementById("ocrAiOffer"); if(old) old.remove();
+  if(!document.body) return;
+  const box = document.createElement("div");
+  box.id = "ocrAiOffer";
+  box.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);bottom:130px;z-index:126;background:#1e1b4b;color:#fff;border-radius:14px;padding:.8rem 1rem;max-width:92vw;direction:rtl;box-shadow:0 6px 24px rgba(0,0,0,.35);font-size:.95rem";
+  const ttl = String(book.title || "").slice(0, 60);
+  box.innerHTML =
+    '<div style="margin-bottom:.55rem">📷 نص «' + esc(ttl) + '» جاي من تعرّف ضوئي (OCR) فغالبًا فيه غلطات حروف. تشغّل «إصلاح النص بالذكاء الاصطناعي» عليه؟ <span style="opacity:.75">الإصلاح بيبعت نص الكتاب لخدمة الذكاء الاصطناعي وبيستهلك من رصيد مفتاحك — ولو رفضت الكتاب موجود زي ما هو وتقدر تشغّله في أي وقت من أدوات الكتاب.</span></div>' +
+    '<div class="row wrap" style="display:flex;gap:.4rem;flex-wrap:wrap">' +
+      '<button type="button" class="primary" id="ocrAiYes">🔧 إصلح دلوقتي</button>' +
+      '<button type="button" class="ghost" id="ocrAiNo">لاحقًا</button>' +
+    '</div>';
+  document.body.appendChild(box);
+  const done = ()=>{ try{ box.remove(); }catch(e){} };
+  box.querySelector("#ocrAiYes").addEventListener("click", ()=>{ done(); repairBook(book, {skipConfirm: true}); });
+  box.querySelector("#ocrAiNo").addEventListener("click", done);
 }
 
 /* خطافات للاختبار الآلي (Node): نفس الدوال اللي الواجهة بتستخدمها */
