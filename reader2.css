@@ -119,3 +119,4 @@ body:not(.in-reader) #readerDrawerFab{display:none!important}
 #hlPop .smartres{font-size:.88rem;line-height:1.7;white-space:pre-wrap;max-height:30vh;overflow-y:auto;background:rgba(255,255,255,.08);border-radius:10px;padding:.5rem .6rem;margin-bottom:.45rem;min-width:200px}
 #hlPop .smartres[hidden]{display:none}
 @media (max-width:700px){#hlPop{width:min(94vw,380px)}}
+::highlight(kb-read){background-color:rgba(232,200,90,.38);color:inherit}
