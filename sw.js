@@ -1,5 +1,5 @@
 /* كُتُبِي — Service Worker: app-shell cache (offline shell only, لا بيخزّن مفاتيح ولا بيانات كتب) */
-const CACHE = "motarjem-v88";
+const CACHE = "motarjem-v89";
 const SHARE_CACHE = "motarjem-shared-v1"; /* ملفات جاية من هدف المشاركة — برّه كاش النسخ ومبتتمسحش مع التحديثات */
 const SHELL = [
   "./",
@@ -85,3 +85,4 @@ self.addEventListener("fetch", (e) => {
     })
   );
 });
+

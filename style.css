@@ -126,6 +126,11 @@ html[data-theme="dark"] .ocr-badge{color:#b7e4c7;background:#123524}
 .owner-card p{margin:.15rem 0}
 .rbb-credit{text-align:center;font-size:.68rem;opacity:.55;padding:.1rem 0 .3rem;letter-spacing:.02em}
 .resume-bar{position:fixed;bottom:74px;inset-inline:.7rem;z-index:28;display:flex;justify-content:space-between;align-items:center;gap:.6rem;background:var(--card);border:1px solid var(--accent2);border-radius:.9rem;padding:.5rem .8rem;box-shadow:0 6px 20px rgba(90,50,0,.18);font-weight:700}
+/* شريط «أكمِل القراءة» العائم: المحتوى بياخد مساحة سفلية إضافية لما الشريط ظاهر عشان ميغطّيش نتيجة المترجم السريع ولا أي محتوى آخر الصفحة */
+body.has-resume-bar .tab.active{padding-bottom:96px}
+/* زرار إيقاف الصوت العائم: بيظهر طالما فيه قراية صوتية شغالة — تحكم ظاهر دايمًا حتى جوه القارئ */
+#voiceStopFab{position:fixed;bottom:calc(140px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:29;background:var(--bad);color:#fff;border:none;border-radius:999px;padding:.55rem 1.1rem;font-weight:700;font-family:inherit;font-size:1rem;box-shadow:0 6px 20px rgba(0,0,0,.28);cursor:pointer}
+#voiceStopFab.hidden{display:none}
 .resume-bar span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .resume-banner{display:flex;justify-content:space-between;align-items:center;gap:.6rem;background:#fdeec9;border:1px solid var(--border);border-radius:.8rem;padding:.45rem .8rem;margin-bottom:.8rem;font-weight:700}
 html[data-theme="dark"] .resume-banner{background:#3a2a08}
@@ -1021,3 +1026,4 @@ html[data-theme="dark"] #readerDrawer .tool-date input,
 html[data-theme="black"] #readerDrawer .tool-date input,
 html[data-theme="royal"] #readerDrawer .tool-date input{ color-scheme:dark; }
 #readerDrawer #bookToolsCard .hint{ font-size:.72rem; margin:.25rem 0 0; }
+

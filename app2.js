@@ -60,7 +60,7 @@ async function downloadChunkMp3(book, i, kind){
   a.click();
   setTimeout(()=>URL.revokeObjectURL(url), 4000);
 }
-function setAudioStatus(t,err){ const el=$("#audioStatus"); if(el){ el.textContent=t||""; el.classList.toggle("err",!!err);} }
+function setAudioStatus(t,err){ const el=$("#audioStatus"); if(el){ el.textContent=t||""; el.classList.toggle("err",!!err);} if(typeof syncVoiceStopFab==="function") syncVoiceStopFab(); }
 function setTransStatus(t,err){ const el=$("#transStatus"); if(el){ el.textContent=t||""; el.style.color=err?"var(--bad)":""; } }
 
 function renderVoices(){
@@ -237,7 +237,7 @@ function switchTab(name, fromBack){
   $$(".tab").forEach(s=>s.classList.toggle("active", s.id==="tab-"+name));
   document.body.classList.toggle("in-reader", name==="reader");
   /* [D-04] بره القارئ: اقفل نوافذ القارئ العائمة وشيل مرايا كلاسات الكروم من body */
-  if(name!=="reader"){ document.body.classList.remove("chrome-off","chrome-scroll-hidden"); const ws=$("#wordSheet"); if(ws) ws.classList.add("hidden"); const spx=$("#selPopup"); if(spx) spx.classList.add("hidden"); }
+  if(name!=="reader"){ document.body.classList.remove("chrome-off","chrome-scroll-hidden"); const ws=$("#wordSheet"); if(ws) ws.classList.add("hidden"); const spx=$("#selPopup"); if(spx) spx.classList.add("hidden"); if(typeof anyAudioPlaying==="function" && anyAudioPlaying()) stopAllAudio("وقفنا الصوت لأنك خرجت من القارئ."); }
   syncMoreBtn();
   if(name==="home"){ renderLibSubStatus(); deferIdle(()=>renderHomeStats()); } /* الإحصائيات مش حرجة: بتترسم في وقت الخمول */
   if(name==="glossary") renderGlossary();
@@ -1661,6 +1661,7 @@ document.addEventListener("DOMContentLoaded", async()=>{
   $("#btnFetchModels").addEventListener("click", fetchAccountModels);
   $("#modelListSel").addEventListener("change",()=>{ const v=$("#modelListSel").value; if(v) $("#apiModel").value=v; });
   $("#resumeBarBtn").addEventListener("click", resumeToLast);
+  const vsf=$("#voiceStopFab"); if(vsf) vsf.addEventListener("click",()=>stopAllAudio());
   $("#resumeBannerBtn").addEventListener("click", resumeToLast);
   // الرئيسية: أكمِل القراءة + أزرار سريعة
   $("#homeResumeBtn").addEventListener("click", resumeToLast);
@@ -2325,3 +2326,4 @@ function updateBanner(){
   }
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();
+

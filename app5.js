@@ -274,14 +274,25 @@ async function recipeBooks(){
 }
 
 /* ---------- وصفة ٥: الشل — كاش نسخة قديمة/بايظ: بنفرّغ كاش الشل بس ونعيد التحميل مرة (بحارس حلقة) ---------- */
-function staleShellCaches(keys){
-  return (keys || []).filter(k=>/^motarjem-v\d+$/.test(k) && k !== APP_VERSION_TAG);
+/* اسم كاش الشل الحالي بيتحدد وقت التشغيل من sw.js نفسه — ثابت مكتوب هنا كان قديم (v71) فكانت الوصفة
+   بتمسح الكاش الحالي على كل إقلاع والكاش يفضل فاضي بعد كل تحديث */
+async function currentShellCacheName(){
+  try{
+    const t = await (await fetch("./sw.js", { cache: "no-store" })).text();
+    const m = t.match(/const\s+CACHE\s*=\s*["'`]([^"'`]+)["'`]/);
+    return m ? m[1] : null;
+  }catch(e){ return null; }
+}
+function staleShellCaches(keys, currentName){
+  if(!currentName) return []; /* مش قادرين نحدد الكاش الحالي: منمسحش حاجة — الأمان أولًا */
+  return (keys || []).filter(k=>/^motarjem-v\d+$/.test(k) && k !== currentName);
 }
 async function recipeShell(opts){
   if(typeof caches === "undefined" || !caches.keys) return healthResult("shell", "شل التطبيق", 0, 0, 0, ["Cache Storage مش متاح في البيئة دي — اتخطّت"]);
   let keys = [];
   try{ keys = await caches.keys(); }catch(e){ return healthResult("shell", "شل التطبيق", 0, 0, 0, []); }
-  const stale = staleShellCaches(keys);
+  const currentName = await currentShellCacheName();
+  const stale = staleShellCaches(keys, currentName);
   for(const k of stale){ try{ await caches.delete(k); }catch(e){} }
   if(stale.length && opts && opts.allowReload){
     try{
@@ -368,3 +379,4 @@ let KutubiHealth = {
   loadRepairLog: loadRepairLog
 };
 if(typeof window !== "undefined") window.KutubiHealth = KutubiHealth;
+

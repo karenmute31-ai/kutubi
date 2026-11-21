@@ -105,7 +105,6 @@ function autoMatchVoiceForTone(toneKey){
 let dbPromise = null;
 /* حارس نسخة المخطط الوحيد: أي تغيير مستقبلي في شكل البيانات بيعدي من migrateSchema بس */
 const IDB_VERSION = 2;
-const APP_VERSION_TAG = "v71"; /* بيتطابق مع اسم كاش الـ Service Worker */
 function migrateSchema(db, oldVersion, newVersion){ /* حاليًا المخطط ثابت من النسخة ٢ — مفيش ترحيلات، والخطّاف جاهز لأي تغيير جاي */
 }
 function idb(){
@@ -782,12 +781,13 @@ function renderResumeUI(){
     if(bar) bar.classList.add("hidden");
     if(ban) ban.classList.add("hidden");
     if(hr) hr.classList.add("hidden");
+    document.body.classList.remove("has-resume-bar");
     if(lo) try{ localStorage.removeItem(LAST_OPEN_KEY); }catch(e){}
     return;
   }
   const txt = "📖 أكمِل: " + book.title + " — الجزء " + ((lo.chunkIndex||0)+1);
   const activeTab = ($(".tab.active")||{}).id || "";
-  if(bar){ $("#resumeBarText").textContent = txt; bar.classList.toggle("hidden", activeTab==="tab-reader" || activeTab==="tab-library" || activeTab==="tab-home"); }
+  if(bar){ $("#resumeBarText").textContent = txt; const hideBar = activeTab==="tab-reader" || activeTab==="tab-library" || activeTab==="tab-home"; bar.classList.toggle("hidden", hideBar); document.body.classList.toggle("has-resume-bar", !hideBar); }
   if(ban){ $("#resumeBannerText").textContent = txt; ban.classList.remove("hidden"); }
   if(hr){ $("#homeResumeText").textContent = txt; hr.classList.remove("hidden"); renderHomeResumeExtras(hr, book, lo); }
 }
@@ -1875,6 +1875,15 @@ function nextUtterStatus(){
   setAudioStatus((playChain.label||"شغال دلوقتي") + ": جزء " + (playChain.idx+1) + " من " + playChain.items.length + sleepSuffix());
 }
 /* إيقاف صوت كامل: بيكنسل النطق + أي تجهيز شرح جاري + مؤقّت النوم، وبيفك حالة الـ pause العالقة */
+/* زرار الإيقاف العائم: بيظهر في أي مكان في التطبيق طالما فيه صوت شغال (جهاز أو سحابي) —
+   عشان «اسمع الأصل» جوه القارئ ميبقاش من غير تحكم ظاهر */
+function anyAudioPlaying(){ return !!playChain || !!elActive; }
+function syncVoiceStopFab(){
+  const on = anyAudioPlaying();
+  try{ document.body.classList.toggle("audio-playing", on); }catch(e){}
+  const f = (typeof $ === "function") ? $("#voiceStopFab") : null;
+  if(f) f.classList.toggle("hidden", !on);
+}
 function stopAllAudio(msg){
   audioGen++;
   clearSleepTimer(true);
@@ -2258,3 +2267,4 @@ async function azFetchVoices(){
   });
   document.addEventListener('visibilitychange', function(){ if(!document.hidden){ arm(); } });
 })();
+
