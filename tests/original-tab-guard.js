@@ -172,7 +172,7 @@ async function run() {
       return { wrapTrans: !!wrap && wrap.classList.contains('rv-trans'), active: active ? active.getAttribute('data-readview') : null, lastOpenAfterSwitch: lo && lo.bookId === window.__otg_bid ? lo.chunkIndex : null };
     })()`);
     ok(afterSwitch.wrapTrans && afterSwitch.active === 'trans', 'switching to "trans" applies rv-trans', JSON.stringify(afterSwitch));
-    ok(afterSwitch.lastOpenAfterSwitch > 0, 'switching view keeps reading position (not reset to 0)', JSON.stringify(afterSwitch));
+    ok(afterSwitch.lastOpenAfterSwitch === 5, 'switching view keeps reading position (not reset to 0)', JSON.stringify(afterSwitch));
 
     // Persist across reload
     await cdp.send('Page.reload');
@@ -197,7 +197,7 @@ async function run() {
       const bid = localStorage.getItem('__otg_bid');
       return { lastOpen: lo && lo.bookId === bid ? lo.chunkIndex : null, visibleChunks: $$('#chunks .chunk').length };
     })()`);
-    ok(pos2.lastOpen > 0 && pos2.lastOpen <= 7, 'reading position kept across reload (not reset to 0)', JSON.stringify(pos2));
+    ok(pos2.lastOpen === 5, 'reading position kept across reload (not reset to 0)', JSON.stringify(pos2));
 
     cdp.close();
   } catch (e) { failures++; console.log('  ERROR test (a): ' + e.message); }

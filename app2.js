@@ -517,7 +517,7 @@ async function openBook(id, atChunk){
   saveLastOpen(id, idx);
   if(isBookLocked(b)) return; /* كتاب مقفول: شاشة القفل بس، من غير ترجمة تلقائية */
   updateReadProgress(b, idx);
-  if(idx>0){ ensureChunksRendered(b, idx); const el=document.getElementById("chunk-"+idx); if(el) setTimeout(()=>el.scrollIntoView({block:"start"}), 80); }
+  if(idx>0){ ensureChunksRendered(b, idx); const el=document.getElementById("chunk-"+idx); if(el) setTimeout(()=>scrollChunkToReadingAnchor(el), 80); }
   /* الفتح قراءة بس: مفيش أي ترجمة بتبدأ من هنا — الترجمة بتبدأ من زرار «ترجم» صراحة بس (في القارئ أو في كرت الكتاب) */
 }
 /* زرار «ترجم» في كروت المكتبة وملفاتي: فتح الكتاب + بدء الترجمة — بيعدي على نفس طريق زرار القارئ بالظبط (startTranslateForBook)
@@ -529,6 +529,11 @@ async function openAndTranslate(id){
   startTranslateForBook(b);
 }
 /* قفزة لجزء معيّن: حفظ الموضع + تحديث التقدم + رسم الصفحة لو لسه مترسمتش + تمرير — بتستخدمها الأسهم والسكرولر والفهرس */
+function scrollChunkToReadingAnchor(el){
+  if(!el)return;
+  const rect=el.getBoundingClientRect(),mid=window.innerHeight*0.4;
+  window.scrollTo({top:window.scrollY+rect.top-Math.max(0,mid-Math.min(rect.height*0.5,mid)),behavior:"instant"});
+}
 function goToChunk(b, target){
   if(!b || !b.chunks || !b.chunks.length) return;
   target = Math.max(0, Math.min(b.chunks.length - 1, target));
@@ -536,7 +541,7 @@ function goToChunk(b, target){
   updateReadProgress(b, target);
   ensureChunksRendered(b, target);
   const el = document.getElementById("chunk-" + target);
-  if(el) el.scrollIntoView({block:"start"});
+  if(el) scrollChunkToReadingAnchor(el);
 }
 /* تنقّل بين الأجزاء بأسهم لوحة المفاتيح (كمبيوتر): الاتجاه بالمنطق العربي — الشمال = اللي بعده */
 function jumpChunkReader(dir){
@@ -2219,8 +2224,18 @@ function updateBanner(){
   document.addEventListener("click", function(e){
     var b = (e.target && e.target.closest) ? e.target.closest("#readViewBar [data-readview]") : null;
     if(!b) return;
+    const book=currentBook(), lo=getLastOpen();
+    const idx=book&&lo&&lo.bookId===book.id ? lo.chunkIndex||0 : 0;
     setView(b.getAttribute("data-readview"));
     applyView();
+    /* CSS changes chunk heights. Keep the same chunk at the reading anchor,
+       before the scroll observer can save a different chapter. */
+    if(book){
+      ensureChunksRendered(book,idx);
+      const el=document.getElementById("chunk-"+idx);
+      if(el)scrollChunkToReadingAnchor(el);
+      saveLastOpen(book.id,idx);
+    }
   });
   function start(){
     load();
