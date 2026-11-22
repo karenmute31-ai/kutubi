@@ -92,9 +92,9 @@ body[data-layout="mobile"] #tab-reader.active{padding-top:.9rem}
 body[data-layout="mobile"]:has(#readerDrawer.open) #readerTopbar,body[data-layout="mobile"]:has(#readerDrawer.open) #readerFooter{visibility:hidden}
 
 /* ===== المرحلة 2: تابات سفلية 3 فقط + هيدر رفيع + مكتبة أنضف (موبايل) ===== */
-body[data-layout="mobile"] .tabbar button:not([data-tab="home"]):not([data-tab="library"]):not(#btnNavMore){display:none}
+body[data-layout="mobile"] .tabbar button:not([data-tab="home"]):not([data-tab="library"]):not([data-tab="freelib"]):not([data-tab="reader"]):not(#btnNavMore){display:none}
 body[data-layout="mobile"] .tabbar{height:auto;justify-content:space-around;padding-top:.15rem}
-body[data-layout="mobile"] .tabbar button{min-height:50px;margin:.15rem .4rem;font-size:1.2rem;flex:1}
+body[data-layout="mobile"] .tabbar button{min-height:50px;margin:.15rem .1rem;font-size:1.2rem;flex:1 1 0;min-width:0}
 body[data-layout="mobile"] .tabbar button span{font-size:.7rem}
 body[data-layout="mobile"] .topbar{display:flex;align-items:center;gap:.5rem;min-height:0;height:48px;padding:0 .6rem;flex-wrap:nowrap}
 body[data-layout="mobile"] .topbar .top-actions,

@@ -25,8 +25,30 @@
     return typeof value === "number" && isFinite(value) ? value : fallback;
   }
 
+  /* رباطة لام-ألف (لا / لأ / لإ / لآ): خطوط كتير بتطلّع الألف كعنصر عرضه صفر قبل عنصر اللام على نفس الموضع،
+     فبتطلع «ال» بدل «لا» و«أال» بدل «الأ». بنبدّل ترتيب الاتنين عشان الترتيب المنطقي يرجع صح */
+  function fixLamAlefOrder(list){
+    function pos(it){ var t = it && Array.isArray(it.transform) ? it.transform : []; return [numberOr(t[4], 0), numberOr(t[5], 0)]; }
+    for(var i = 0; i + 1 < list.length; i++){
+      var a = list[i];
+      if(!a || a.str == null || numberOr(a.width, 0) > 0.5 || !/^[\u0622\u0623\u0625\u0627]$/.test(a.str)) continue;
+      var pa = pos(a), j = i + 1;
+      while(j < list.length && list[j] && list[j].str != null && list[j].str.trim() === "" && numberOr(list[j].width, 0) <= 0.5 && Math.abs(pos(list[j])[0] - pa[0]) < 1.5) j++;
+      var b = list[j];
+      if(!b || b.str == null || b.str.trim() === "" || numberOr(b.width, 0) <= 0.5) continue;
+      var pb = pos(b);
+      if(Math.abs(pa[0] - pb[0]) < 1.5 && Math.abs(pa[1] - pb[1]) < 2){
+        list.splice(i, j - i); list.splice(i + 1, 0, a); /* ال-أ: نشيل مسافات العرض-صفر ونحط الألف بعد اللام */
+        i++;
+      }
+    }
+    return list;
+  }
+
   function prepareItems(items){
-    return (Array.isArray(items) ? items : []).filter(function(item){
+    var src = Array.isArray(items) ? items.slice() : [];
+    try { fixLamAlefOrder(src); } catch(e){}
+    return src.filter(function(item){
       return item && item.str !== "";
     }).map(function(item, index){
       var t = Array.isArray(item.transform) ? item.transform : [];

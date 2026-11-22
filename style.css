@@ -556,14 +556,15 @@ body[data-layout="desktop"] .more-sheet.sheet-open{ transform:none; }
 
 /* شريط الموبايل: خمس خانات بس بترتيب أبجد (الرئيسية/المكتبة/مترجم سريع/القاموس/المزيد) —
    القارئ وملفاتي والتثبيت والإعدادات والإدارة مكانهم شيت «المزيد» */
-body[data-layout="mobile"] .tabbar button[data-tab="reader"],
+body[data-layout="mobile"] .tabbar button[data-tab="quick"],
+body[data-layout="mobile"] .tabbar button[data-tab="glossary"],
 body[data-layout="mobile"] .tabbar button[data-tab="files"],
 body[data-layout="mobile"] .tabbar button[data-tab="install"],
 body[data-layout="mobile"] .tabbar button[data-tab="settings"]{ display:none; }
 body[data-layout="mobile"] .tabbar button[data-tab="home"]{ order:1; }
 body[data-layout="mobile"] .tabbar button[data-tab="library"]{ order:2; }
-body[data-layout="mobile"] .tabbar button[data-tab="quick"]{ order:3; }
-body[data-layout="mobile"] .tabbar button[data-tab="glossary"]{ order:4; }
+body[data-layout="mobile"] .tabbar button[data-tab="reader"]{ order:3; }
+body[data-layout="mobile"] .tabbar button[data-tab="freelib"]{ order:4; }
 body[data-layout="mobile"] #btnNavMore{ order:5; }
 body[data-layout="mobile"] .tabbar button{ flex:1 1 0; min-height:56px; }
 /* وانت في القارئ على الموبايل الشريط العام بيختفي خالص — القارئ عنده شريط تحكّمه السفلي،

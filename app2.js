@@ -238,7 +238,7 @@ function applyLayoutMode(){
 function syncMoreBtn(){
   const mb = $("#btnNavMore"); if(!mb) return;
   const barSlots = document.body.dataset.layout === "mobile"
-    ? ["home","library","quick","glossary","freelib"]
+    ? ["home","library","reader","freelib"]
     : ["home","library","reader","glossary","quick","files","install","settings","freelib"];
   mb.classList.toggle("active", barSlots.indexOf(currentTabName) === -1);
 }
@@ -584,6 +584,7 @@ function openIndexDrawer(){
 const MORE_DESTS = [
   { tab:"home",     icon:"🏠", label:"الرئيسية" },
   { tab:"library",  icon:"📚", label:"المكتبة" },
+  { tab:"freelib",  icon:"🌍", label:"الكتب المجانية" },
   { tab:"reader",   icon:"📖", label:"القارئ", reader:true },
   { tab:"glossary", icon:"📖", label:"القاموس" },
   { tab:"quick",    icon:"⚡", label:"مترجم سريع" },
@@ -598,7 +599,7 @@ function adminEntryVisible(){
   if(b.classList.contains("hidden")) return false;
   try{ return getComputedStyle(b).display !== "none"; }catch(e){ return true; }
 }
-const MORE_GROUP_OF = { home:"التنقل", library:"التنقل", reader:"التنقل", glossary:"التنقل", quick:"التنقل", files:"مكتبتي", install:"التطبيق", settings:"التطبيق", admin:"التطبيق" };
+const MORE_GROUP_OF = { home:"التنقل", library:"التنقل", freelib:"التنقل", reader:"التنقل", glossary:"التنقل", quick:"التنقل", files:"مكتبتي", install:"التطبيق", settings:"التطبيق", admin:"التطبيق" };
 /* [R5] الترجمة والعرض جوه قايمة المزيد: نسخ متزامنة بتنادي على الأصل (الأصل ما بيتغيرش) */
 function syncMoreTrans(){
   const box = document.getElementById("moreTransTools"); if(!box) return;

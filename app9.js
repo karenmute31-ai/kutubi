@@ -66,7 +66,7 @@
       new MutationObserver(syncLib).observe(lib,{attributes:true,attributeFilter:["class"]}); syncLib();
     }
     /* التابات السفلية: الرئيسية/المكتبة/المزيد بس — خانة المزيد بتنشط لأي تاب تاني */
-    window.syncMoreBtn=function(){ var mb=$("#btnNavMore"); if(!mb||typeof currentTabName==="undefined")return; var slots=document.body.dataset.layout==="mobile"?["home","library"]:["home","library","reader","glossary","quick","files","install","settings","freelib"]; mb.classList.toggle("active",slots.indexOf(currentTabName)===-1); };
+    window.syncMoreBtn=function(){ var mb=$("#btnNavMore"); if(!mb||typeof currentTabName==="undefined")return; var slots=document.body.dataset.layout==="mobile"?["home","library","reader","freelib"]:["home","library","reader","glossary","quick","files","install","settings","freelib"]; mb.classList.toggle("active",slots.indexOf(currentTabName)===-1); };
     var bnm=$("#btnNavMore"); if(bnm) bnm.addEventListener("click",function(e){ if(document.body.dataset.layout!=="mobile")return; if(bnm._lpFired)return; e.stopImmediatePropagation(); var sh=$("#moreSheet"); if(sh&&sh.classList.contains("sheet-open")) closeMoreSheet(); else openMoreSheet(); },true);
     /* صفوف الهيدر اللي اتشالت (تحديث) تتحط في المزيد */
     var ms=$("#moreSheetList");
