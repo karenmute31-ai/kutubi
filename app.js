@@ -2441,30 +2441,4 @@ async function azFetchVoices(){
 }
 
 
-// ===== الخروج بضغطتي رجوع (أندرويد) =====
-(function(){
-  if(window.__exitGuard) return; window.__exitGuard=1;
-  var lastBack=0, toastEl=null, toastT=null;
-  function arm(){ try{ history.pushState({__exitGuard:1}, document.title, location.href); }catch(e){} }
-  function toast(msg){
-    if(!toastEl){
-      toastEl=document.createElement('div');
-      toastEl.style.cssText='position:fixed;bottom:64px;left:50%;transform:translateX(-50%);background:#1c1c1e;color:#fff;padding:10px 18px;border-radius:24px;font-size:14px;z-index:99999;opacity:0;transition:opacity .2s;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.35);';
-      (document.body||document.documentElement).appendChild(toastEl);
-    }
-    toastEl.textContent=msg;
-    requestAnimationFrame(function(){ toastEl.style.opacity='1'; });
-    clearTimeout(toastT);
-    toastT=setTimeout(function(){ toastEl.style.opacity='0'; }, 2000);
-  }
-  arm();
-  window.addEventListener('popstate', function(){
-    var now=Date.now();
-    if(now-lastBack<2500){ lastBack=0; return; }
-    lastBack=now;
-    toast('اضغط رجوع تاني للخروج 🔙');
-    arm();
-  });
-  document.addEventListener('visibilitychange', function(){ if(!document.hidden){ arm(); } });
-})();
-
+// Back navigation is handled by app-navigation.js.

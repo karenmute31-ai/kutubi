@@ -243,6 +243,7 @@ function syncMoreBtn(){
   mb.classList.toggle("active", barSlots.indexOf(currentTabName) === -1);
 }
 function switchTab(name, fromBack){
+  if(window.appNavigation)window.appNavigation.route(name);
   if(name !== "admin") lockAdminGate(); /* سيبت تبويب الإدارة؟ قفل كلمة السر بيرجع ومحتوى الإدارة بيتمسح من الصفحة */
   if(name !== currentTabName){
     if(!fromBack && currentTabName) tabHistory.push(currentTabName);
