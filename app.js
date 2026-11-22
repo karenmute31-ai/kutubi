@@ -279,10 +279,14 @@ function scheduleProgressSave(book){
   if(progSaveTimer) return;
   progSaveTimer = setTimeout(flushProgressSave, 2000);
 }
+function discardProgressSave(){
+  if(progSaveTimer){ clearTimeout(progSaveTimer); progSaveTimer = null; }
+  progSaveBook = null;
+}
 function flushProgressSave(){
   if(progSaveTimer){ clearTimeout(progSaveTimer); progSaveTimer = null; }
   const b = progSaveBook; progSaveBook = null;
-  if(b){ const p = idbPut(b); if(p && p.catch) p.catch(()=>{}); } /* وعد طليق: رفضه لازم يتبتلع هنا بدل ما يبقى rejection غير معالَج */
+  if(b && books.includes(b)){ const p = idbPut(b); if(p && p.catch) p.catch(()=>{}); } /* وعد طليق: رفضه لازم يتبتلع هنا بدل ما يبقى rejection غير معالَج */
 }
 function saveFavs(){ localStorage.setItem("motarjem-favs", JSON.stringify(Array.from(favs))); }
 function saveWordsStore(){ localStorage.setItem("motarjem-saved", JSON.stringify(savedWords)); }

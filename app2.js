@@ -1432,6 +1432,8 @@ function buildBackup(){
 }
 function isValidBackup(o){ return !!o && typeof o === "object" && o.app === "kotobgy-backup" && Array.isArray(o.books); }
 async function importBackupObject(o){
+  if(translating || repairing || explaining) throw new Error("وقف الترجمة أو الشرح أو الإصلاح الشغال قبل استعادة النسخة.");
+  stopAllAudio(); discardProgressSave(); currentId = null;
   await idbClear();
   books = [];
   for(const b of o.books){ if(b && b.id && Array.isArray(b.chunks)){ ensureBookExtras(b); await idbPut(b); books.push(b); } }
@@ -1688,7 +1690,7 @@ document.addEventListener("DOMContentLoaded", async()=>{
     inp.type = show ? "text" : "password";
     b.textContent = show ? "🙈" : "👁";
   }));
-  $("#btnWipe").addEventListener("click",async()=>{ if(confirm("مسح نهائي لكل الكتب والترجمات من الجهاز؟")){ stopAllAudio(); try{ await idbClear(); await idbClearAudio(); await idbPdfClear(); }catch(e){ logError("مسح البيانات", e); alert("المسح فشل — جرّب تاني."); return; } books=[]; currentId=null; savedWords=[]; saveWordsStore(); favs=new Set(); saveFavs(); try{ localStorage.removeItem(READSTATS_KEY); localStorage.removeItem("mk_goal_day"); }catch(e){} clearLastOpen(); renderLibrary(); renderGlossary(); renderHomeStats(); switchTab("library"); } });
+  $("#btnWipe").addEventListener("click",async()=>{ if(confirm("مسح نهائي لكل الكتب والترجمات من الجهاز؟")){ if(translating || repairing || explaining){ alert("وقف الترجمة أو الشرح أو الإصلاح الشغال قبل مسح البيانات."); return; } stopAllAudio(); discardProgressSave(); currentId=null; try{ await idbClear(); await idbClearAudio(); await idbPdfClear(); }catch(e){ logError("مسح البيانات", e); alert("المسح فشل — جرّب تاني."); return; } books=[]; currentId=null; savedWords=[]; saveWordsStore(); favs=new Set(); saveFavs(); try{ localStorage.removeItem(READSTATS_KEY); localStorage.removeItem("mk_goal_day"); }catch(e){} clearLastOpen(); renderLibrary(); renderGlossary(); renderHomeStats(); switchTab("library"); } });
   $("#testConn").addEventListener("click", testConnection);
   $("#btnFetchModels").addEventListener("click", fetchAccountModels);
   $("#modelListSel").addEventListener("change",()=>{ const v=$("#modelListSel").value; if(v) $("#apiModel").value=v; });
