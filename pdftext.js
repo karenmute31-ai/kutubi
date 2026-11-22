@@ -49,6 +49,48 @@
     return list;
   }
 
+
+  /* رباطات «لا/لأ/لإ/لآ» اللي خطها بيسجّل الرباطة كحرفين عاديين (مش الشكل المركب ﻻ): pdf.js بيعكس النص
+     حرف حرف فبتطلع «ال» بدل «لا» جوه الكلمة (السالمة، يالحظ). الحقيقة موجودة في الـ operator list:
+     كل جليف ومعاه نصه. runs = مصفوفة (واحدة لكل showText) من مصفوفات نصوص الجليفات بالترتيب.
+     بنطابق كل عنصر نص مع الجليفات اللي كوّنته (بالعكس لأنه عربي)، ولو التطابق تام بنعيد بناءه بحيث
+     الجليف المركب يفضل كتلة واحدة. لو التطابق مش مضبوط العنصر بيفضل زي ما هو (مفيش ضرر). */
+  function fixLigatureItems(items, runs){
+    if(!Array.isArray(items) || !Array.isArray(runs) || !runs.length) return items;
+    var hasMulti = runs.some(function(r){ return r.some(function(g){ return g && g.length > 1 && /[\u0644][\u0627\u0622\u0623\u0625]|[\u0627\u0622\u0623\u0625][\u0644]/.test(g); }); });
+    if(!hasMulti) return items;
+    function strip(x){ return String(x).replace(/\s+/g, ""); }
+    var p = 0, fixedCount = 0;
+    for(var i = 0; i < items.length; i++){
+      var it = items[i];
+      if(!it || it.str == null) continue;
+      var target = strip(it.str);
+      if(!target || !ARABIC.test(target) || LATIN.test(target)) continue;
+      var done = false;
+      for(var off = 0; off < 10 && !done && p + off < runs.length; off++){
+        var units = [];
+        for(var k = 0; k < 60 && p + off + k < runs.length && !done; k++){
+          units = units.concat(runs[p + off + k]);
+          var fwd = units.join("");
+          var naive = Array.from(fwd).reverse().join("");
+          if(strip(naive).length > target.length) break;
+          if(strip(naive) === target){
+            done = true; p = p + off + k + 1;
+            var glyphRev = units.slice().reverse().join("");
+            if(glyphRev !== naive){
+              var core = it.str.trim();
+              if(core === naive.trim()){
+                var lead = it.str.slice(0, it.str.indexOf(core)), trail = it.str.slice(lead.length + core.length);
+                it.str = lead + glyphRev.trim() + trail; fixedCount++;
+              }
+            }
+          }
+        }
+      }
+    }
+    return items;
+  }
+
   function prepareItems(items){
     var src = Array.isArray(items) ? items.slice() : [];
     try { fixLamAlefOrder(src); } catch(e){}
@@ -367,6 +409,7 @@
   return {
     classify: classify,
     itemsToLines: itemsToLines,
+    fixLigatureItems: fixLigatureItems,
     expandText: expandText,
     repairVisualLamMeem: repairVisualLamMeem,
     brokenArabicEncoding: brokenArabicEncoding,

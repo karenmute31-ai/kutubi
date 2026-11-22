@@ -253,12 +253,27 @@ async function ocrOpenPdf(buf){
   if(!pdf || !pdf.numPages) throw new Error("الملف ده مفيهوش صفحات قابلة للقراية — شكله تالف أو فاضي.");
   return pdf;
 }
+/* رباطات لا/لأ اللي بتتسجل حرفين عاديين بتتعكس في pdf.js («السالمة»): بنصلحها من جليفات الـ operator list (صفحات حروفها الأساسية بس) */
+async function fixPageLigatures(page, tc){
+  try{
+    const helper = window.PdfText;
+    if(!helper || !helper.fixLigatureItems || !window.pdfjsLib || !pdfjsLib.OPS) return;
+    let basic = 0; for(const it of tc.items){ const m = String(it.str||"").match(/[\u0627\u0644]/g); if(m) basic += m.length; if(basic > 6) break; }
+    if(basic <= 6) return;
+    const ol = await page.getOperatorList(), runs = [];
+    for(let q = 0; q < ol.fnArray.length; q++){
+      if(ol.fnArray[q] === pdfjsLib.OPS.showText){ const a = ol.argsArray[q] && ol.argsArray[q][0]; if(Array.isArray(a)) runs.push(a.filter(g=>g && typeof g === "object").map(g=>String(g.unicode == null ? "" : g.unicode))); }
+    }
+    helper.fixLigatureItems(tc.items, runs);
+  }catch(e){}
+}
 async function ocrLayerText(pdf){
   const out = [];
   for(let p = 1; p <= pdf.numPages; p++){
     const page = await pdf.getPage(p);
     /* disableNormalization: تطبيع pdf.js بيفك الحروف المركبة (في/لا/المجموعات المشكولة) وبعدين بيقلبها كعربي، فتطلع مقلوبة («يف» بدل «في») */
     const tc = await page.getTextContent({disableNormalization: true});
+    await fixPageLigatures(page, tc);
     out.push(tc.items.map(it=>it.str).join(" "));
     if(page.cleanup) page.cleanup();
   }
@@ -269,6 +284,7 @@ async function ocrLayerPages(pdf){
   for(let p = 1; p <= pdf.numPages; p++){
     const page = await pdf.getPage(p);
     const tc = await page.getTextContent({disableNormalization: true});
+    await fixPageLigatures(page, tc);
     const fallback = tc.items.map(it=>it.str).join(" ").trim();
     const helper = typeof window !== "undefined" ? window.PdfText : null;
     const lines = helper && typeof helper.itemsToLines === "function" ? helper.itemsToLines(tc.items) : (fallback ? [fallback] : []);
