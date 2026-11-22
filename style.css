@@ -442,14 +442,14 @@ html[data-theme="dark"] .book-cover, html[data-theme="black"] .book-cover{ filte
 #tab-reader.chrome-scroll-hidden .reader-actionbar, #tab-reader.chrome-off .reader-actionbar{
   transform:translateY(-170%); opacity:0; pointer-events:none; }
 /* حبة الموضع العائمة (Drive) */
-#readerPill{ position:fixed; bottom:calc(82px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); z-index:26;
+#readerPill{ position:static; transform:none; margin:.4rem auto; flex-shrink:0;
   display:flex; align-items:center; gap:.55rem; width:max-content; max-width:94vw;
   background:var(--bar-bg); -webkit-backdrop-filter:blur(14px) saturate(1.35); backdrop-filter:blur(14px) saturate(1.35);
   border:1px solid var(--border); border-radius:99px; padding:.35rem .7rem; box-shadow:var(--elev-3);
   transition:opacity var(--dur-2) var(--ease), transform var(--dur-2) var(--ease); }
 #readerPill #pillPos{ font-weight:700; white-space:nowrap; }
 #readerPill #pillFontSize{ min-width:1.6em; text-align:center; font-weight:700; }
-#tab-reader.chrome-off #readerPill{ opacity:0; pointer-events:none; transform:translate(-50%, 10px); }
+#tab-reader.chrome-off #readerPill{ opacity:0; pointer-events:none; transform:none; }
 body:not(.reading) #readerPill{ display:none; } /* الحبة لجوّه القارئ بس — مبتظهرش في باقي التبويبات */
 #tab-reader:fullscreen{ background:var(--canvas); }
 #tab-reader:fullscreen #readerPill{ display:none; }
