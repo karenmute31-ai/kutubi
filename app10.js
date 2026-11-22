@@ -148,4 +148,25 @@
   }
 
   ready(function(){ var n=0; (function tryB(){ if(buildSection()||++n>40) return; setTimeout(tryB,250); })(); });
+
+  /* مقبض صغير دايم فوق في القارئ (موبايل): لما الأدوات مخفية بيظهر خط رفيع، ولمسه بيظهر/يخفي الشريط. مع تلميح مرة واحدة */
+  ready(function(){
+    if($("#rdHandle")) return;
+    var h=document.createElement("button"); h.id="rdHandle"; h.type="button"; h.setAttribute("aria-label","إظهار أدوات القراءة"); h.innerHTML="<i></i><span>الأدوات</span>";
+    document.body.appendChild(h);
+    h.addEventListener("click",function(e){
+      e.stopPropagation(); e.preventDefault();
+      var tab=$("#tab-reader"); if(!tab) return;
+      var off=tab.classList.toggle("chrome-off"); document.body.classList.toggle("chrome-off",off);
+      document.body.classList.remove("chrome-scroll-hidden"); tab.classList.remove("chrome-scroll-hidden");
+      try{ localStorage.setItem("kutubi.rdHandleSeen","1"); }catch(_){}
+    });
+    var tip=null;
+    function showTip(){
+      try{ if(localStorage.getItem("kutubi.rdHandleSeen")) return; }catch(_){}
+      if(tip) return; tip=document.createElement("div"); tip.id="rdHandleTip"; tip.textContent="المس الخط اللي فوق (أو أعلى/أسفل الصفحة) عشان تظهر الأدوات";
+      document.body.appendChild(tip); setTimeout(function(){ if(tip){ tip.remove(); tip=null; } try{ localStorage.setItem("kutubi.rdHandleSeen","1"); }catch(_){} },6000);
+    }
+    var seen=false; new MutationObserver(function(){ var inR=document.body.classList.contains("in-reader"); if(inR&&!seen){ seen=true; setTimeout(showTip,900); } else if(!inR) seen=false; }).observe(document.body,{attributes:true,attributeFilter:["class"]});
+  });
 })();

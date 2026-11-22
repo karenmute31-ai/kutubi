@@ -29,17 +29,21 @@
      فبتطلع «ال» بدل «لا» و«أال» بدل «الأ». بنبدّل ترتيب الاتنين عشان الترتيب المنطقي يرجع صح */
   function fixLamAlefOrder(list){
     function pos(it){ var t = it && Array.isArray(it.transform) ? it.transform : []; return [numberOr(t[4], 0), numberOr(t[5], 0)]; }
+    var ALEF = /^[\u0622\u0623\u0625\u0627]$/;
     for(var i = 0; i + 1 < list.length; i++){
       var a = list[i];
-      if(!a || a.str == null || numberOr(a.width, 0) > 0.5 || !/^[\u0622\u0623\u0625\u0627]$/.test(a.str)) continue;
+      if(!a || a.str == null || numberOr(a.width, 0) > 0.5 || !ALEF.test(a.str)) continue;
       var pa = pos(a), j = i + 1;
-      while(j < list.length && list[j] && list[j].str != null && list[j].str.trim() === "" && numberOr(list[j].width, 0) <= 0.5 && Math.abs(pos(list[j])[0] - pa[0]) < 1.5) j++;
+      /* بين الألف واللام ساعات بتيجي عناصر مسافة (بأي عرض) على نفس السطر: بنعدّيها */
+      while(j < list.length && list[j] && list[j].str != null && list[j].str.trim() === "" && Math.abs(pos(list[j])[1] - pa[1]) < 2) j++;
       var b = list[j];
       if(!b || b.str == null || b.str.trim() === "" || numberOr(b.width, 0) <= 0.5) continue;
       var pb = pos(b);
       if(Math.abs(pa[0] - pb[0]) < 1.5 && Math.abs(pa[1] - pb[1]) < 2){
-        list.splice(i, j - i); list.splice(i + 1, 0, a); /* ال-أ: نشيل مسافات العرض-صفر ونحط الألف بعد اللام */
-        i++;
+        /* ندمجهم في عنصر واحد: اللام ثم الألف (من غير مسافات ولا فجوات) ونشيل المسافات اللي كانت بينهم */
+        /* العنصر اللي بعدها بيخلص باللام اللي الألف بتاعتها: نحط الألف في آخره */
+        var merged = Object.assign({}, b, { str: b.str + a.str });
+        list.splice(i, j - i + 1, merged);
       }
     }
     return list;
@@ -263,6 +267,7 @@
     t = t.replace(/[\uFC5E-\uFC63\uFCF2-\uFCF4]/g, function(c){ return SHADDA_LIGS[c] || c; });
     if(/[\uFB50-\uFDFF\uFE70-\uFEFF]/.test(t)) t = t.normalize("NFKC");
     t = t.replace(/(\S) +([\u064B-\u0652\u0670\u06D6-\u06ED]+)/g, "$1$2 ");
+    t = t.replace(/(^|\s)ل ا(?=\s|$)/g, "$1لا"); /* «لا» اتفصلت بمسافة (رباطة اتقسمت على عنصرين) */
     t = repairVisualLamMeem(t);
     return t;
   }
