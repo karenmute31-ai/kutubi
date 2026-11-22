@@ -1,5 +1,5 @@
 /* كُتُبِي — Service Worker: app-shell cache (offline shell only, لا بيخزّن مفاتيح ولا بيانات كتب) */
-const CACHE = "motarjem-v114-story-preview-2";
+const CACHE = "motarjem-v114-story-release-1";
 const SHARE_CACHE = "motarjem-shared-v1"; /* ملفات جاية من هدف المشاركة — برّه كاش النسخ ومبتتمسحش مع التحديثات */
 const SHELL = ["./luxe-ui.css","./luxe-ui.js","./ocr-lines.js","./android-shell-tts.js","./gemini-tts.js","./cloudflare-tts.js","./eleven-owner-tts.js",
   "./",
