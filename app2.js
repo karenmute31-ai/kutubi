@@ -2044,16 +2044,32 @@ $("#moreReaderTools")?.addEventListener("click", e => { const b = e.target.close
 
 /* ---------- إشعار تحديث التطبيق (Service Worker update flow) ---------- */
 let swReg=null, swWaiting=null, updateLaterDismissed=false, updateNotified=false, reloadPending=false, reloadDone=false;
+function swVersionOf(name){ const m=/motarjem-v(\d+)/.exec(name||""); return m?+m[1]:0; }
+/* فحص إن التحديث اللي ظهر أحدث فعلًا من النسخة المتثبتة — مهم وقت نشر نسخة جديدة:
+   سيرفرات Vercel ممكن تقدّم sw.js قديم مؤقتًا (edge لسه متحدثش)، فالمتصفح يسجّل نسخة
+   أقدم كـ waiting ويظهر بانر تحديث وهمي، ولو المستخدم دوس حدّث هيرجع لنسخة أقدم (downgrade).
+   لو الفحص نفسه وقع بنرجع true (نفس السلوك القديم) عشان منخبّيش تحديث حقيقي. */
+async function updateIsNewer(){
+  try{
+    const keys=await caches.keys();
+    const cur=Math.max(0,...keys.map(swVersionOf));
+    const txt=await (await fetch("sw.js?nc="+Date.now(),{cache:"no-store"})).text();
+    return swVersionOf(txt)>cur;
+  }catch(e){ return true; }
+}
 function showUpdateBanner(){
   const b=$("#updateBanner"); if(!b) return;
-  if(!updateNotified){
-    updateNotified=true;
-    if(swReg && "Notification" in window && Notification.permission==="granted"){
-      try{ swReg.showNotification("كُتُبِي", {body:"فيه تحديث جديد جاهز — افتح التطبيق وحدّث.", icon:"icons/icon-192.png"}); }catch(e){}
+  updateIsNewer().then((newer)=>{
+    if(!newer){ swWaiting=null; b.classList.add("hidden"); return; }
+    if(!updateNotified){
+      updateNotified=true;
+      if(swReg && "Notification" in window && Notification.permission==="granted"){
+        try{ swReg.showNotification("كُتُبِي", {body:"فيه تحديث جديد جاهز — افتح التطبيق وحدّث.", icon:"icons/icon-192.png"}); }catch(e){}
+      }
     }
-  }
-  if(updateLaterDismissed) return; /* «لاحقًا» بتخفيه لباقي الجلسة بس */
-  b.classList.remove("hidden");
+    if(updateLaterDismissed) return; /* «لاحقًا» بتخفيه لباقي الجلسة بس */
+    b.classList.remove("hidden");
+  });
 }
 let appToastTimer=null; /* [D-04] التوست بقى عنصر #appToast على حافة الشاشة — مش سطر جوه الشريط بيكبّره وبيزحلق النص */
 function appToast(t){ const el = $("#appToast"); if(!el) return; el.textContent = t || ""; el.classList.add("show"); clearTimeout(appToastTimer); appToastTimer = setTimeout(()=>el.classList.remove("show"), 2000); }
