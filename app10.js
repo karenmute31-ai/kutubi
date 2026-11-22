@@ -100,7 +100,7 @@
       var worker=await ocrGetWorker();
       for(var i=0;i<files.length;i++){
         stat("بيقرا الصورة "+(i+1)+" من "+files.length+"…");
-        var c=await fileToCanvas(files[i]); var r=await worker.recognize(c); var t=((r&&r.data&&r.data.text)||"").trim(); if(t) out.push(t);
+        var c=await fileToCanvas(files[i]); var r=await (window.LocalOcrLines ? window.LocalOcrLines.recognize(worker,c) : worker.recognize(c)); var t=((r&&r.data&&r.data.text)||"").trim(); if(t) out.push(t);
       }
     }catch(e){ stat("التعرف الضوئي فشل: "+(e&&e.message||e),true); return; }
     if(!out.length){ stat("ملقيتش نص في الصور — جرّب صورة أوضح وإضاءة أحسن.",true); return; }

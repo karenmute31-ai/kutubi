@@ -361,7 +361,7 @@ async function ocrPdfToText(pdf, opts){
     let pageText = "";
     try{
       /* [E] الثابت العام: ولا مرحلة تلف من غير سقف — تعليقة قراءة صفحة بتقتل العامل المعلّق وبتطلع خطأ مرحلي بدل لفّ أبدي */
-      const r = await ocrRaceTimeout(worker.recognize(canvas), ocrPageTimeoutMs);
+      const r = await ocrRaceTimeout(window.LocalOcrLines ? window.LocalOcrLines.recognize(worker,canvas,{isCancelled:isC}) : worker.recognize(canvas), ocrPageTimeoutMs);
       pageText = (r && r.data && r.data.text) || "";
     }catch(e){
       if(e && e.message === "OCR_TIMEOUT"){
