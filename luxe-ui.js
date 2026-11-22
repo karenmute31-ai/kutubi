@@ -1,6 +1,7 @@
 /* Story-shelf presentation. Existing storage, readers, providers and controls remain authoritative. */
 (function(){'use strict';function start(){
 const $=s=>document.querySelector(s),A=!!$('#view-home'),home=$(A?'#view-home':'#tab-home');document.body.classList.add('luxe-ui',A?'luxe-alrawi':'luxe-kutubi','story-ui');
+if(!A&&typeof switchTab==='function'&&typeof stopAllAudio==='function'){const nav=switchTab,stop=stopAllAudio;let moving=false;switchTab=function(){moving=true;try{return nav.apply(this,arguments)}finally{moving=false}};stopAllAudio=function(){if(moving)return;return stop.apply(this,arguments)}}
 const icons={book:'<path d="M3 4h6a4 4 0 0 1 3 1 4 4 0 0 1 3-1h6v16h-6a4 4 0 0 0-3 1 4 4 0 0 0-3-1H3zM12 5v16"/>',play:'<path d="m9 5 11 7-11 7z"/>',pause:'<path d="M8 5v14M16 5v14"/>',plus:'<path d="M12 4v16M4 12h16"/>',head:'<path d="M4 14v-2a8 8 0 0 1 16 0v2M4 13h4v8H4zM16 13h4v8h-4z"/>',close:'<path d="m6 6 12 12M6 18 18 6"/>',search:'<circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/>',more:'<path d="M4 6h16M4 12h16M4 18h16"/>'};
 function icon(k){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+icons[k]+'</svg>'}
 function node(tag,cls,text){const n=document.createElement(tag);n.className=cls||'';if(text)n.textContent=text;return n}
