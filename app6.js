@@ -106,7 +106,7 @@ function renderCloudAdmin(root){
     '<label>الجديدة (٦ حروف على الأقل)<input id="pwNew" type="password" autocomplete="new-password" dir="ltr"></label>' +
     '<label>أكّد الجديدة<input id="pwNew2" type="password" autocomplete="new-password" dir="ltr"></label>' +
     '<div class="row wrap"><button type="button" id="btnPwChange" class="ghost">🔑 غيّر الباسورد</button></div>' +
-    '<p class="hint">التغيير فوري وبيقفل أي جلسة مفتوحة — هتدخل تاني بالجديدة. لو مزامنة الراوي متوصلة (قيم ALRAWI_* على السيرفر) بيتطبق على التطبيقين مع بعض، والرد هيقولك بالظبط حصل إيه.</p>' +
+    '<p class="hint">التغيير فوري وبيقفل أي جلسة مفتوحة — هتدخل تاني بالجديدة. السيرفر بيحاول يزامنها مع الراوي تلقائيًا، والرد هيقولك بالظبط حصل إيه.</p>' +
     '<p id="pwChangeMsg" class="msg"></p>' +
     '<h3>⭐ سجل المشتركين</h3>' +
     '<div class="row wrap"><input id="subCode" type="text" maxlength="32" dir="ltr" placeholder="كود الاشتراك">' +

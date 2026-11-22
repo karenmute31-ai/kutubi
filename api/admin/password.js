@@ -23,16 +23,14 @@ async function writeRec(rec){
   const r=await fetch("https://api.vercel.com/v1/edge-config/"+ECID()+"/items",{method:"PATCH",headers:{Authorization:"Bearer "+WTOK(),"Content-Type":"application/json"},body:JSON.stringify({items:[{operation:"upsert",key:"kutubi_admin",value:rec}]})});
   if(!r.ok) throw new Error("write");
 }
-/* مزامنة نفس الباسورد مع الراوي: مخزنه منفصل (Edge Config تاني) ومفتاح HMAC بتاعه مختلف،
-   فبنحسب تجزئة الراوي بمفتاحها ونكتبها هناك. لو القيم مش متظبطة بنقول skipped بصراحة. */
-const A_EC=()=>process.env.ALRAWI_EDGE_CONFIG_ID, A_WTOK=()=>process.env.ALRAWI_EDGE_CONFIG_WRITE_TOKEN;
-function asha(salt,pw){return crypto.createHmac("sha256","alrawi-admin").update(salt+"|"+pw).digest("hex");}
-async function mirrorAlrawi(next){
-  if(!A_EC()||!A_WTOK()) return "skipped";
+/* مزامنة نفس الباسورد مع الراوي: مناداش على مخزنه — بينادي إندبوينت الراوي نفسه بالباسورد الحالية
+   (اللي معانا أصلًا من الطلب) فبيتحقق منها عنده ويحدّث مخزنه بنفسه. مفيش قيم بيئة جديدة مطلوبة.
+   ترويسة x-mirror-from بتمنع اللوب: الطلب الجاي من مرآة مبيعكسش تاني. */
+const ALRAWI_PASSWORD_URL="https://khabeer-books.vercel.app/api/admin/password";
+async function mirrorAlrawi(cur,next,incoming){
+  if(incoming) return "origin"; /* ده طلب مرآة جاي من الراوي — منعكسش تاني */
   try{
-    const salt=crypto.randomBytes(8).toString("hex");
-    const rec={salt:salt,hash:asha(salt,next),changedAt:new Date().toISOString()};
-    const r=await fetch("https://api.vercel.com/v1/edge-config/"+A_EC()+"/items",{method:"PATCH",headers:{Authorization:"Bearer "+A_WTOK(),"Content-Type":"application/json"},body:JSON.stringify({items:[{operation:"upsert",key:"alrawi_admin",value:rec}]})});
+    const r=await fetch(ALRAWI_PASSWORD_URL,{method:"POST",headers:{"Content-Type":"application/json","x-mirror-from":"kutubi"},body:JSON.stringify({current:cur,next:next})});
     return r.ok?"synced":"failed";
   }catch(e){return "failed";}
 }
@@ -65,7 +63,7 @@ export default async function handler(req,res){
     const salt=crypto.randomBytes(8).toString("hex");
     const nw={salt:salt,hash:sha(salt,next),changedAt:new Date().toISOString()};
     await writeRec(nw);
-    const mirror=await mirrorAlrawi(next);
+    const mirror=await mirrorAlrawi(String(body.current||""),next,String(req.headers["x-mirror-from"]||""));
     tries.delete(key);
     res.status(200).json({ok:true,changedAt:nw.changedAt,mirror:mirror});
   }catch(e){res.status(502).json({error:"المخزن ماردش — جرّب تاني."});}
