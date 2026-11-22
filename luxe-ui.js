@@ -1,42 +1,34 @@
-/* Presentation-only layer. Original controls, storage and provider logic are retained. */
-(function(){
-'use strict';
-function start(){
- const $=s=>document.querySelector(s);
- const isAlrawi=!!$('#view-home');
- document.body.classList.add('luxe-ui',isAlrawi?'luxe-alrawi':'luxe-kutubi');
- function fold(card,title){
-  if(!card||card.closest('.luxe-fold'))return;
-  const details=document.createElement('details');details.className='luxe-fold';
-  const summary=document.createElement('summary');summary.textContent=title;
-  card.before(details);details.append(summary,card);
- }
- const home=$(isAlrawi?'#view-home':'#tab-home');
- const marker=document.createElement('p');marker.className='luxe-preview-note';marker.textContent='معاينة التصميم • النسخة الحالية محفوظة';home.prepend(marker);
- if(isAlrawi){
-  const subtitle=$('.hero-sub');if(subtitle)fold(subtitle,'عن الراوي وإمكانياته');
-  const stats=$('#heroStats');if(stats)fold(stats,'معلومات القراءة والترجمة');
-  const listen=$('#view-listen');if(listen){
-   Array.from(listen.children).filter(x=>x.classList.contains('card')).slice(1).forEach(card=>{
-    const h=card.querySelector('h3,h2');fold(card,h?h.textContent.trim():'خيارات الاستماع');
-   });
-  }
- }else{
-  const more=$('#btnNavMore');if(more)more.addEventListener('click',e=>{e.stopImmediatePropagation();if(typeof openMoreSheet==='function')openMoreSheet();},true);
-  const stats=$('#readStatsBody');if(stats)fold(stats.closest('.card'),'قراءتي • الإحصائيات والإنجازات');
-  const owner=$('#tab-home .owner-footer');if(owner)fold(owner,'عن التطبيق وصاحبه');
-  const actions=$('.home-actions');if(actions){
-   const secondary=document.createElement('div');secondary.className='luxe-secondary-actions';
-   ['homeFreeLibrary','homeFiles','homeSub'].forEach(id=>{const b=document.getElementById(id);if(b)secondary.append(b)});
-   actions.after(secondary);fold(secondary,'المكتبة المجانية وملفاتي والاشتراك');
-  }
- }
- document.addEventListener('keydown',e=>{
-  if(e.key!=='Escape')return;
-  if(isAlrawi){if(typeof closeDrawer==='function')closeDrawer();}
-  else{if(typeof closeReaderPanels==='function')closeReaderPanels();if(typeof closeMoreSheet==='function')closeMoreSheet();}
- });
- document.documentElement.dataset.luxeReady='true';
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
-})();
+/* Story-shelf presentation. Existing storage, readers, providers and controls remain authoritative. */
+(function(){'use strict';function start(){
+const $=s=>document.querySelector(s),A=!!$('#view-home'),home=$(A?'#view-home':'#tab-home');document.body.classList.add('luxe-ui',A?'luxe-alrawi':'luxe-kutubi','story-ui');
+const icons={book:'<path d="M3 4h6a4 4 0 0 1 3 1 4 4 0 0 1 3-1h6v16h-6a4 4 0 0 0-3 1 4 4 0 0 0-3-1H3zM12 5v16"/>',play:'<path d="m9 5 11 7-11 7z"/>',pause:'<path d="M8 5v14M16 5v14"/>',plus:'<path d="M12 4v16M4 12h16"/>',head:'<path d="M4 14v-2a8 8 0 0 1 16 0v2M4 13h4v8H4zM16 13h4v8h-4z"/>',close:'<path d="m6 6 12 12M6 18 18 6"/>',search:'<circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/>',more:'<path d="M4 6h16M4 12h16M4 18h16"/>'};
+function icon(k){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+icons[k]+'</svg>'}
+function node(tag,cls,text){const n=document.createElement(tag);n.className=cls||'';if(text)n.textContent=text;return n}
+function button(text,k,fn,cls){const n=node('button',cls||'story-button');n.type='button';n.innerHTML=icon(k);n.append(document.createTextNode(text));n.onclick=fn;return n}
+function allBooks(){try{return books.slice()}catch(e){return []}}
+function navigate(v){if(A)go(v);else{const n=$('.tabbar [data-tab="'+v+'"]');if(n)n.click()}}
+function add(){if(A)go('add');else{$('#homeAdd').click();$('#tab-library').classList.add('add-open')}}
+function cover(b,i){const n=node('div','story-cover cover-'+(i%5));n.append(node('span','cover-edition',A?'ALRAWI / مكتبتك':'KUTUBI / EDITION'));n.append(node('strong','',b.title));n.append(node('span','cover-author',b.author||'من مكتبتك'));return n}
+function open(b,listen){if(A){currentId=b.id;if(typeof applyFlagshipStyleForBook==='function')applyFlagshipStyleForBook(b);go(listen?'listen':'reader')}else{openBook(b.id).then(()=>{if(listen)$('#btnPlayOrig').click()})}refresh()}
+const dialog=node('dialog','story-detail');dialog.setAttribute('aria-label','تفاصيل الكتاب');document.body.append(dialog);dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
+function detail(b,i){dialog.replaceChildren();dialog.append(button('إغلاق','close',()=>dialog.close(),'story-close'));dialog.append(cover(b,i),node('p','story-eyebrow','من مكتبتك الخاصة'),node('h2','',b.title),node('p','story-meta',b.author||'كتابك • النص الأصلي محفوظ'));dialog.append(node('p','story-meta',(b.chunks||[]).length+' جزء • القراءة والترجمة والاستماع في مكان واحد'));const actions=node('div','story-detail-actions');actions.append(button('اقرأ الآن','book',()=>{dialog.close();open(b,false)},'story-primary'),button('استمع','head',()=>{dialog.close();open(b,true)},'story-button'));dialog.append(actions);dialog.append(button('كل أدوات الكتاب','more',()=>{dialog.close();if(A){go('library')}else navigate('library')},'story-text-button'));dialog.showModal()}
+const drawer=node('dialog','story-tools');drawer.setAttribute('aria-label','أدوات الرئيسية');drawer.append(button('إغلاق الأدوات','close',()=>drawer.close(),'story-close'),node('h2','','أدواتك، وقت ما تحتاجها'));document.body.append(drawer);
+const hero=$(A?'.hero':'.home-hero');const legacy=node('div','story-legacy');for(const c of Array.from(home.children)){if(c!==hero)legacy.append(c)}drawer.append(legacy);
+if(A){for(const c of Array.from(hero.children)){if(!c.matches('img,h1'))legacy.prepend(c)}}else{const brand=$('.home-brand');if(brand)brand.textContent='كُتُبِي';}
+if(A){const listen=$('#view-listen');if(listen)Array.from(listen.children).filter(x=>x.classList.contains('card')).slice(1).forEach(card=>{const d=node('details','luxe-fold'),su=node('summary','',card.querySelector('h3,h2')?.textContent.trim()||'خيارات الاستماع');card.before(d);d.append(su,card)})}else{const more=$('#btnNavMore');if(more)more.addEventListener('click',e=>{e.stopImmediatePropagation();if(typeof openMoreSheet==='function')openMoreSheet()},true)}
+const note=node('p','luxe-preview-note','معاينة جديدة • مكتبتك أولًا');home.prepend(note);
+const greeting=node('div','story-greeting');greeting.append(node('div','',A?'مساحتك للقراءة':'مكتبتك، بتجربة أرقى'),button('أدواتك','more',()=>drawer.showModal(),'story-icon-text'));hero.after(greeting);
+const intro=node('div','story-intro');intro.append(node('p','story-eyebrow',A?'READ. LISTEN. DISCOVER.':'YOUR PRIVATE READING CLUB'),node('h2','',A?'حكايتك الجاية هنا.':'كل كتاب، عالم كامل.'),node('p','story-meta',A?'كتبك بلغتك. قراءة واستماع ببساطة.':'قراءة، ترجمة وشرح. تجربة واحدة لكتبك.'));const quick=node('div','story-quick');quick.append(button('أضف كتابك','plus',add,'story-primary'),button('ابحث في مكتبتك','search',()=>navigate('library'),'story-button'));intro.append(quick);greeting.after(intro);
+const resume=node('section','story-continue');resume.setAttribute('aria-label','أكمل من حيث توقفت');intro.after(resume);
+function shelf(title,subtitle){const s=node('section','story-shelf-section'),h=node('div','story-section-head');h.append(node('h2','',title),node('span','story-meta',subtitle));const track=node('div','story-track');s.append(h,track);return {s,track}}
+const mine=shelf('على رفّك','اسحب لاكتشاف كتبك'),samples=shelf('ابدأ بحكاية قصيرة','عينات أصلية للتجربة، وليست متجر كتب');resume.after(mine.s);mine.s.after(samples.s);
+const demos=[{title:'فن التركيز',author:'عينة تجريبية',text:'التركيز مساحة نصنعها لأنفسنا. نبدأ بخطوة صغيرة، نغلق ما يشتت انتباهنا، ونختار فكرة واحدة تستحق وقتنا. القراءة رحلة هادئة، وكل صفحة فرصة لفهم جديد.'},{title:'رحلة المعرفة',author:'عينة تجريبية',text:'كل سؤال نافذة جديدة. حين نقرأ نتعلم أن نرى الأشياء من أكثر من زاوية. لا نحتاج إلى كل الإجابات في يوم واحد، يكفينا أن نترك مساحة للفضول والتجربة.'},{title:'دقائق هادئة',author:'عينة تجريبية',text:'خذ وقتك. تأمل ما حولك، واستمع إلى الأصوات البعيدة. في اللحظات الهادئة نعيد ترتيب أفكارنا، ونجد كلمات جديدة لما نشعر به. هذه بداية صغيرة ليوم أهدأ.'}];
+for(const[b,i]of demos.map((b,i)=>[b,i])){const card=node('button','story-book');card.type='button';card.append(cover(b,i+1),node('strong','story-book-title',b.title),node('span','story-meta','عينة • أضفها إلى مكتبتك'));card.onclick=async()=>{if(A){go('add');$('#addTitle').value=b.title;$('#addText').value=b.text;$('#addLangSel').value='ar'}else{navigate('library');$('#tab-library').classList.add('add-open');$('#bookTitle').value=b.title;$('#pasteText').value=b.text;$('#pasteText').scrollIntoView({block:'center'})}};samples.track.append(card)}
+const mini=node('aside','story-mini');mini.setAttribute('aria-label','المشغّل المصغّر');const miniTitle=button('اختر كتابًا للاستماع','head',()=>navigate('library'),'story-mini-title');const miniPlay=button('تشغيل','play',()=>{const b=chosen();if(!b)return;open(b,true);if(A)$('#btnPlay').click()},'story-mini-control');const miniPause=button('إيقاف مؤقت','pause',()=>$(A?'#btnPause':'#btnPauseAudio').click(),'story-mini-control');for(const [x,label]of [[miniPlay,'تشغيل'],[miniPause,'إيقاف مؤقت']]){x.setAttribute('aria-label',label);x.lastChild.textContent=''}mini.append(miniTitle,miniPlay,miniPause);document.body.append(mini);
+function chosen(){const list=allBooks();try{const b=list.find(b=>b.id===currentId);if(b)return b;if(!A){const lo=getLastOpen();return list.find(b=>b.id===lo?.bookId)||list[0]}}catch(e){}return list[0]}
+let signature='';function refresh(){const list=allBooks(),b=chosen(),sig=JSON.stringify(list.map(b=>[b.id,b.title,b.author,b.progress,b.lastChunk]));miniTitle.lastChild.textContent=b?b.title:'اختر كتابًا للاستماع';miniPlay.disabled=!b;miniPause.disabled=!b;if(sig===signature)return;signature=sig;mine.track.replaceChildren();list.forEach((b,i)=>{const card=node('button','story-book');card.type='button';card.append(cover(b,i),node('strong','story-book-title',b.title),node('span','story-meta',b.author||'من مكتبتك'));card.onclick=()=>detail(b,i);mine.track.append(card)});if(!list.length){const empty=button('أضف أول كتاب إلى رفّك','plus',add,'story-empty-shelf');mine.track.append(empty)}resume.replaceChildren();const copy=node('div','story-continue-copy');copy.append(node('p','story-eyebrow',b?'أكمل من حيث توقفت':'لكل رحلة، صفحة أولى'),node('h2','',b?b.title:'كتابك يستنّاك.'),node('p','story-meta',b?'موضعك محفوظ. ارجع لعالم كتابك.':'أضف ملفًا أو نصًا، وابدأ القراءة والاستماع.'));copy.append(button(b?'كمّل القراءة':'ابدأ مكتبتك',b?'play':'plus',()=>b?open(b,false):add(),'story-primary'));resume.append(copy,cover(b||{title:A?'اقرأ على راحتك':'عالمك الخاص',author:'Don Eslam'},0))}
+// Replace unsupported pictographs in home UI with local SVG, without touching text, IDs or handlers.
+if(!A){const walker=document.createTreeWalker(home,NodeFilter.SHOW_TEXT);const texts=[];while(walker.nextNode())texts.push(walker.currentNode);for(const t of texts){if(/[\p{Extended_Pictographic}\uFE0F\u200D]/u.test(t.textContent)){t.textContent=t.textContent.replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu,'');if(t.parentElement?.tagName==='BUTTON')t.parentElement.insertAdjacentHTML('afterbegin',icon('book'))}}const brand=$('.topbar .brand');if(brand){for(const t of brand.childNodes)if(t.nodeType===3)t.textContent=t.textContent.replace(/[\p{Extended_Pictographic}\uFE0F]/gu,'');}}
+if(!A){document.querySelectorAll('.tabbar button[data-tab]').forEach(b=>{Array.from(b.childNodes).filter(n=>n.nodeType===3).forEach(n=>n.textContent='');b.insertAdjacentHTML('afterbegin',icon(b.dataset.tab==='home'?'book':b.dataset.tab==='quick'?'search':'book'))})}
+let pending;function queue(){clearTimeout(pending);pending=setTimeout(refresh,100)}for(const id of A?['homeRecent','libGrid']:['bookList','homeResumeText']){const target=document.getElementById(id);if(target)new MutationObserver(queue).observe(target,{childList:true,subtree:true,characterData:true})}document.addEventListener('click',()=>{queue();setTimeout(queue,700)});document.addEventListener('keydown',e=>{if(e.key==='Escape'){dialog.close();drawer.close();if(A&&typeof closeDrawer==='function')closeDrawer();if(!A&&typeof closeReaderPanels==='function')closeReaderPanels()}});refresh();document.documentElement.dataset.luxeReady='true';document.documentElement.dataset.storyReady='true';
+}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start()})();
