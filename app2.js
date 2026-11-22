@@ -1648,7 +1648,10 @@ document.addEventListener("DOMContentLoaded", async()=>{
   syncProviderUI();
   /* التقاط آخر تحديد نص جوه جزء (احتياطي: ضغطة زرار الحفظ ممكن تضيّع التحديد الحي) */
   document.addEventListener("mouseup",()=>setTimeout(captureChunkSelection,30));
-  document.addEventListener("touchend",()=>setTimeout(captureChunkSelection,300));
+  document.addEventListener("touchend",()=>setTimeout(()=>{
+    captureChunkSelection();
+    try{ if(window.getSelection) window.getSelection().removeAllRanges(); }catch(e){} /* نخفي قائمة التحديد الأصلية (بحث جوجل) بعد ما نلتقط النص */
+  },300));
   /* وقت القراءة: بنعدّ كل 10 ثواني طول ما القارئ مفتوح والصفحة ظاهرة، وبنرحّل بالدقيقة */
   let readPendingSec=0;
   setInterval(()=>{
