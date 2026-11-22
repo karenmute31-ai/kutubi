@@ -106,7 +106,7 @@ function renderCloudAdmin(root){
     '<label>الجديدة (٦ حروف على الأقل)<input id="pwNew" type="password" autocomplete="new-password" dir="ltr"></label>' +
     '<label>أكّد الجديدة<input id="pwNew2" type="password" autocomplete="new-password" dir="ltr"></label>' +
     '<div class="row wrap"><button type="button" id="btnPwChange" class="ghost">🔑 غيّر الباسورد</button></div>' +
-    '<p class="hint">التغيير فوري وبيطبق على التطبيقين (كتبي والراوي)، وبيقفل أي جلسة مفتوحة — هتدخل تاني بالجديدة.</p>' +
+    '<p class="hint">التغيير فوري وبيقفل أي جلسة مفتوحة — هتدخل تاني بالجديدة. لو مزامنة الراوي متوصلة (قيم ALRAWI_* على السيرفر) بيتطبق على التطبيقين مع بعض، والرد هيقولك بالظبط حصل إيه.</p>' +
     '<p id="pwChangeMsg" class="msg"></p>' +
     '<h3>⭐ سجل المشتركين</h3>' +
     '<div class="row wrap"><input id="subCode" type="text" maxlength="32" dir="ltr" placeholder="كود الاشتراك">' +
@@ -210,7 +210,12 @@ async function cloudChangePw(){
     $("#pwCur").value = ""; $("#pwNew").value = ""; $("#pwNew2").value = "";
     $("#cloudPanel").classList.add("hidden"); $("#cloudLoginBox").classList.remove("hidden");
     const lm = $("#cloudLoginMsg");
-    if(lm){ lm.textContent = "اتغيّرت الباسورد ✔ على التطبيقين. سجّل دخول تاني بالجديدة."; lm.classList.remove("err"); }
+    if(lm){
+      if(d.mirror==="synced") lm.textContent = "اتغيّرت الباسورد ✔ على التطبيقين (كتبي والراوي). سجّل دخول تاني بالجديدة.";
+      else if(d.mirror==="failed") lm.textContent = "اتغيّرت في كتبي ✔ بس مزامنة الراوي فشلت — غيّرها كمان من لوحة الراوي عشان تفضل واحدة.";
+      else lm.textContent = "اتغيّرت في كتبي ✔ بس. مزامنة الراوي مش متوصلة على السيرفر — لو عايزها واحدة غيّرها من لوحة الراوي.";
+      lm.classList.remove("err");
+    }
   }catch(e){ m.textContent = "السيرفر ماردش — جرّب تاني."; m.classList.add("err"); }
 }
 async function cloudLoadSubs(){
