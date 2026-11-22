@@ -1035,3 +1035,6 @@ html[data-theme="royal"] #readerDrawer .tool-date input{ color-scheme:dark; }
 #geminiTtsPreview .toolrow { display:flex; flex-wrap:wrap; gap:8px; }
 #geminiTtsPreview { scroll-margin-top:76px; }
 #geminiTtsPreview a { color:inherit; text-decoration:underline; text-underline-offset:3px; }
+#moreThemeTools{ display:grid; gap:.4rem; margin:0 0 .6rem; }
+#moreThemeTools .more-swatches{ display:flex; flex-wrap:wrap; gap:.4rem; }
+#moreThemeTools .theme-swatch{ padding:.45rem .7rem; font-size:.85rem; }
