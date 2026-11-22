@@ -1083,7 +1083,7 @@ function fillChunk(book,i){
       const sb=document.createElement("button"); sb.className="ghost"; sb.textContent="📤 مشاركة"; sb.addEventListener("click",()=>shareQuote(book,a.quote));
       const ib=document.createElement("button"); ib.className="ghost"; ib.textContent="🖼 كارت"; ib.title="مشاركة الاقتباس كصورة بهوية كُتُبِي"; ib.addEventListener("click",()=>shareQuoteImage(book,a.quote));
       const db=document.createElement("button"); db.className="ghost"; db.textContent="🗑 حذف"; db.addEventListener("click",async()=>{ const beforeAnns=book.annotations; book.annotations=book.annotations.filter(x=>x.id!==a.id); try{ await idbPut(book); }catch(e){ book.annotations=beforeAnns; logError("حفظ", e); setTransStatus("حذف التظليل فشل — جرّب تاني.", true); } fillChunk(book,i); renderIndexPanel(); });
-      row.append(sb,db); box.appendChild(row);
+      row.append(sb,ib,db); box.appendChild(row);
     });
     ex.appendChild(box);
   }
