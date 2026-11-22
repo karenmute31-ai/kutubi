@@ -114,7 +114,7 @@
     /* منطقة لمس علوية/سفلية بتظهر وتخفي الكروم حتى لو الكلام كله كلمات قابلة للضغط */
     document.addEventListener("click",function(e){
       if(document.body.dataset.layout!=="mobile"||!document.body.classList.contains("in-reader")) return;
-      if(e.target.closest("button,a,input,select,textarea,label,summary,details,#readerDrawer,#appearanceCard,#voiceCard,#indexCard,#wordSheet,#readerTopbar,#readerFooter,#readerPageTap,.sheet,.modal")) return;
+      if(e.target.closest("button,a,input,select,textarea,label,summary,details,#readerDrawer,#appearanceCard,#voiceCard,#indexCard,#wordSheet,#readerTopbar,#readerFooter,#readerPageTap,#sheetBackdrop,.sheet,.modal")) return;
       var y=e.clientY, H=window.innerHeight; if(!(y<80||y>H-90)) return;
       e.stopPropagation(); e.preventDefault();
       var off=tab.classList.toggle("chrome-off"); document.body.classList.toggle("chrome-off",off);
