@@ -1,6 +1,6 @@
 {
-  "versionCode": 3,
-  "versionName": "1.0.2",
+  "versionCode": 4,
+  "versionName": "1.0.3",
   "url": "https://kutubi-app.vercel.app/downloads.html",
   "notes": "مصدر الحقيقة لأحدث نسخة أندرويد. لما تنزل نسخة APK أحدث: ارفع الـAPK الجديد مكان Kutubi.apk، وحدّث versionCode و versionName هنا في نفس النشر، وحدّث بصمة SHA-256 في downloads.html. النسخ الجديدة من الـAPK لازم تفتح رابط البداية على الشكل https://kutubi-app.vercel.app/index.html?av=<versionCode> عشان التطبيق يعرف نسخته."
 }

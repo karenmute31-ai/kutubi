@@ -1,0 +1,13 @@
+{
+  "appId": "app.vercel.kutubi.twa",
+  "appName": "كتبي",
+  "webDir": "www",
+  "server": {
+    "url": "https://kutubi-app.vercel.app/index.html?av=4",
+    "cleartext": false
+  },
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true
+  }
+}

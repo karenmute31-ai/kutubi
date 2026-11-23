@@ -25,17 +25,19 @@ function sync(){button.hidden=view==='home';button.style.display=view==='home'?'
 function navigate(name){restoring=true;try{if(isAlrawi)go(name);else switchTab(name,true)}finally{restoring=false}view=current();sync()}
 function notice(){if(isAlrawi&&typeof toast==='function')toast('اضغط رجوع مرة أخرى للخروج من الرئيسية');else if(typeof showToast==='function')showToast('اضغط رجوع مرة أخرى للخروج من الرئيسية');else{const t=document.createElement('div');t.setAttribute('role','status');t.textContent='اضغط رجوع مرة أخرى للخروج من الرئيسية';t.style.cssText='position:fixed;bottom:60px;inset-inline:10%;background:#222;color:#fff;padding:12px;z-index:99999;text-align:center';document.body.append(t);setTimeout(()=>t.remove(),2200)}}
 function back(fromPop){
- if(closeOverlay()){if(fromPop)arm();return 'overlay'}
+ if(closeOverlay()){lastHomeBack=0;if(fromPop)arm();return 'overlay'}
  view=current();
  if(view!=='home'){navigate(view==='reader'?'library':'home');lastHomeBack=0;if(fromPop)arm();else arm();return view}
  if(!fromPop)return 'home';
- const now=Date.now();if(now-lastHomeBack<2500){lastHomeBack=0;return 'exit-allowed'}lastHomeBack=now;notice();arm();return 'confirm-exit';
+ const now=Date.now();if(lastHomeBack&&now-lastHomeBack<2500){lastHomeBack=0;return 'exit-allowed'}lastHomeBack=now;notice();arm();return 'confirm-exit';
 }
 window.appNavigation={route(name){view=name;lastHomeBack=0;sync();if(!restoring)arm()},back:()=>back(false),current};
 button.addEventListener('click',()=>back(false));
 window.addEventListener('popstate',()=>back(true));
-// Future APKs with @capacitor/app can use this same screen/overlay policy.
-// Existing APKs do not include that plugin, so do not claim native exit control.
-window.addEventListener('app-native-back',()=>back(false));
+// Capacitor App owns Android system Back. Existing older shells retain browser fallback.
+let nativeBusy=false;
+async function nativeBack(){if(nativeBusy)return;nativeBusy=true;try{const result=back(true);if(result==='exit-allowed'){const app=window.Capacitor?.Plugins?.App;if(app&&typeof app.exitApp==='function')await app.exitApp();}}catch(e){console.warn('Native Back could not complete');}finally{nativeBusy=false;}}
+window.addEventListener('app-native-back',nativeBack);
+try{const cap=window.Capacitor;if(cap&&cap.isNativePlatform&&cap.isNativePlatform()&&cap.isPluginAvailable&&cap.isPluginAvailable('App')){cap.Plugins.App.addListener('backButton',nativeBack).catch(()=>console.warn('Native Back listener unavailable'));}}catch(e){console.warn('Native Back listener unavailable');}
 try{history.replaceState({appNavigation:1,view},'',location.href)}catch(_){}arm();sync();
 })();
