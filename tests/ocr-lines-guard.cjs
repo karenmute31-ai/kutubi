@@ -11,7 +11,7 @@ check(()=>{let im=image(400,200);[25,80,135].forEach(y=>ink(im,50,y,300,20));con
 check(()=>{let im=image(400,160);ink(im,70,15,220,3);ink(im,60,22,250,20);ink(im,60,90,250,20);assert.equal(bandsFromPixels(im.p,im.w,im.h).length,2)});
 check(()=>{let im=image(400,160);for(let y of [20,80]){ink(im,10,y,110,20);ink(im,265,y,120,20)}assert.equal(bandsFromPixels(im.p,im.w,im.h).length,0,'Keep columns on page OCR, never invent column order')});
 check(()=>{let im=image(400,850);for(let i=0;i<65;i++)ink(im,50,i*13+2,300,6);assert.equal(bandsFromPixels(im.p,im.w,im.h).length,0,'Bound the retry cost')});
-check(()=>{const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8'),sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');assert(html.indexOf('src="ocr-lines.js"')<html.indexOf('src="app.js"'));assert(sw.includes('./ocr-lines.js'),'Fallback must be available offline')});
+check(()=>{const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8'),sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');assert(html.search(/src="ocr-lines\.js(?:\?[^"]*)?"/)<html.search(/src="app\.js(?:\?[^"]*)?"/));assert(sw.includes('./ocr-lines.js'),'Fallback must be available offline')});
 (async()=>{
  const original={data:{text:'unchanged English and العربية',confidence:95}};let mutated=0;
  const worker={recognize:async()=>original,setParameters:async()=>{mutated++}};
