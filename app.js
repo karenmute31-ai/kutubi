@@ -1973,7 +1973,7 @@ function nextUtter(){
   u.rate=settings.speed||1; u.pitch=tone.pitch;
   nextUtterStatus();
   u.onend=utterAdvanced;
-  u.onerror=utterAdvanced;
+  u.onerror=function(e){ playChain=null; setAudioStatus("تعذر نطق النص على الجهاز: "+(e.error||"خطأ في محرك الصوت"),true); };
   speechSynthesis.speak(u);
 }
 /* نهاية جزء صوتي: بنكمّل اللي بعده — أو بنقف هنا لو مؤقّت النوم على «نهاية الجزء الحالي» */

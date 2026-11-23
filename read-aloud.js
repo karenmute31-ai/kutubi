@@ -84,9 +84,19 @@
     var location = locate(current.utterance);
     if (location) paint(location, current.unit);
   }).observe(root, {childList: true, subtree: true});
+  // Capacitor fallback utterances are not necessarily browser EventTargets.
+  function listen(u, type, handler) {
+    if (typeof u.addEventListener === "function") u.addEventListener(type, handler);
+    else u["on" + type] = handler;
+  }
   function event(u, type, details) {
-    var data = Object.assign({utterance: u}, details || {});
-    u.dispatchEvent(type === "error" ? new SpeechSynthesisErrorEvent(type, data) : new SpeechSynthesisEvent(type, data));
+    var data = Object.assign({utterance: u, charIndex: 0, elapsedTime: 0}, details || {});
+    if (typeof u.dispatchEvent === "function") {
+      var e;
+      try { e = type === "error" ? new SpeechSynthesisErrorEvent(type, data) : new SpeechSynthesisEvent(type, data); }
+      catch (_) { e = new Event(type); Object.keys(data).forEach(function (key) { Object.defineProperty(e, key, {value: data[key]}); }); }
+      u.dispatchEvent(e);
+    } else if (typeof u["on" + type] === "function") u["on" + type](Object.assign({target: u, type: type}, data));
   }
   synth.speak = function (u) {
     var location = locate(u);
@@ -102,25 +112,25 @@
       if (token !== generation) return;
       var unit = units[index], part = new SpeechSynthesisUtterance(unit.text);
       part.lang = u.lang; part.voice = u.voice; part.rate = u.rate; part.pitch = u.pitch; part.volume = u.volume;
-      part.addEventListener("start", function () {
+      listen(part, "start", function () {
         if (token !== generation) return;
         current = {utterance: u, unit: unit};
         paint(location, unit);
         if (!index) event(u, "start", {charIndex: 0});
       });
-      part.addEventListener("boundary", function (e) {
-        if (token === generation) event(u, "boundary", {charIndex: unit.index + e.charIndex, charLength: e.charLength, name: e.name, elapsedTime: elapsed + e.elapsedTime});
+      listen(part, "boundary", function (e) {
+        if (token === generation) event(u, "boundary", {charIndex: unit.index + (e.charIndex || 0), charLength: e.charLength, name: e.name, elapsedTime: elapsed + (e.elapsedTime || 0)});
       });
-      ["pause", "resume"].forEach(function (type) { part.addEventListener(type, function (e) { if (token === generation) event(u, type, {charIndex: unit.index + e.charIndex, elapsedTime: elapsed + e.elapsedTime}); }); });
-      part.addEventListener("end", function (e) {
+      ["pause", "resume"].forEach(function (type) { listen(part, type, function (e) { if (token === generation) event(u, type, {charIndex: unit.index + (e.charIndex || 0), elapsedTime: elapsed + (e.elapsedTime || 0)}); }); });
+      listen(part, "end", function (e) {
         if (token !== generation) return;
         elapsed += e.elapsedTime || 0;
         if (++index < units.length) next();
         else { clear(); event(u, "end", {charIndex: u.text.length, elapsedTime: elapsed}); }
       });
-      part.addEventListener("error", function (e) {
+      listen(part, "error", function (e) {
         if (token !== generation) return;
-        clear(); event(u, "error", {error: e.error, charIndex: unit.index + e.charIndex});
+        clear(); event(u, "error", {error: e.error, charIndex: unit.index + (e.charIndex || 0)});
       });
       nativeSpeak(part);
     }
