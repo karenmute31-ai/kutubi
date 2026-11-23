@@ -9,6 +9,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 public class MainActivity extends BridgeActivity {
     @Override public void onCreate(Bundle state) {
+        registerPlugin(ReadingRotationPlugin.class);
         super.onCreate(state);
         // Keep the whole WebView outside system bars, cutouts and the keyboard.
         // Do not rely on CSS safe-area support in the installed WebView version.
