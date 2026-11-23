@@ -23,5 +23,13 @@ public class MainActivity extends BridgeActivity {
                 .build();
         });
         ViewCompat.requestApplyInsets(decor);
+        bridge.addWebViewListener(new com.getcapacitor.WebViewListener() {
+            @Override public void onPageLoaded(android.webkit.WebView view) {
+                try (java.io.InputStream stream=getAssets().open("reader-rotation.js")) {
+                    String script=new String(stream.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);
+                    view.evaluateJavascript(script,null);
+                } catch (java.io.IOException ignored) {}
+            }
+        });
     }
 }
