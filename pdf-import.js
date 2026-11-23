@@ -2,6 +2,7 @@
 (function(root){
 'use strict';
 const version=1, MAX=800;
+async function timed(promise){let timer;try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('الصفحة أخدت وقت أطول من المتوقع. التقدم محفوظ، جرّب الاستكمال.')),90000);})]);}finally{clearTimeout(timer);}}
 function policy(nav){const mem=Number(nav.deviceMemory)||4,cores=Number(nav.hardwareConcurrency)||2;return {workers:mem>=2&&cores>=2?2:1,scale:3,maxPixels:6500000};}
 async function layer(page){const tc=await page.getTextContent({disableNormalization:true});await fixPageLigatures(page,tc);const raw=window.PdfText.itemsToLines(tc.items).join('\n'),text=expandPresentationForms(raw);return {text,usable:text.trim().length>0};}
 async function run(pdf,opts){
@@ -12,12 +13,12 @@ async function run(pdf,opts){
   if(!r.usable){
    // Preserve short text-only title/blank pages. OCR is only for image or broken-font pages.
    const list=await page.getOperatorList(),ops=pdfjsLib.OPS;
-   const image=list.fnArray.some(x=>x===ops.paintImageXObject||x===ops.paintInlineImageXObject||x===ops.paintImageMaskXObject);
+   const image=list.fnArray.some(x=>x===ops.paintImageXObject||x===ops.paintInlineImageXObject||x===ops.paintImageMaskXObject||x===ops.paintImageXObjectRepeat||x===ops.paintInlineImageXObjectGroup||x===ops.paintJpegXObject);
    if(image&&!r.text.trim()){
-    method='ocr';if(!workers[slot]){if(!await ocrLoadLib().then(()=>true))throw new Error('محرك OCR محتاج إنترنت أول مرة.');workers[slot]=await Tesseract.createWorker(['ara','eng'],1,{langPath:'https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_fast@main',gzip:false,cacheMethod:'write'});}
+    method='ocr';if(!workers[slot]){if(!await ocrLoadLib().then(()=>true))throw new Error('محرك OCR محتاج إنترنت أول مرة.');workers[slot]=await timed(Tesseract.createWorker(['ara','eng'],1,{langPath:'https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_fast@main',gzip:false,cacheMethod:'write'}));}
     const base=page.getViewport({scale:1}),scale=Math.min(p.scale,Math.sqrt(p.maxPixels/(base.width*base.height))),vp=page.getViewport({scale});
     cv=document.createElement('canvas');cv.width=Math.ceil(vp.width);cv.height=Math.ceil(vp.height);const ctx=cv.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);await page.render({canvasContext:ctx,viewport:vp}).promise;
-    const result=await (root.LocalOcrLines?LocalOcrLines.recognize(workers[slot],cv):workers[slot].recognize(cv));r.text=String(result&&result.data&&result.data.text||'').trim();
+    const result=await timed(root.LocalOcrLines?LocalOcrLines.recognize(workers[slot],cv):workers[slot].recognize(cv));r.text=String(result&&result.data&&result.data.text||'').trim();
    }
   }
   await o.onPage(i,r.text,method,emit());done.set(i,r.text);if(o.onProgress)await o.onProgress(emit());
@@ -57,7 +58,7 @@ async function execute(j){
  try{await idbAll();const linked=books.find(b=>b.pdfImport&&b.pdfImport.id===j.id);if(linked)j.bookId=linked.id;const f=await get('files',j.id);if(!f)throw new Error('الملف الأصلي مش محفوظ. اختاره من جديد.');const entries=await store('pages','readonly',s=>s.getAll()),rows=new Map(entries.filter(x=>x.job===j.id).map(x=>[x.page,x.text]));
  pdfjsLib.GlobalWorkerOptions.workerSrc='./vendor/pdfjs/pdf.worker.min.js';pdf=await pdfjsLib.getDocument({data:await f.file.arrayBuffer()}).promise;j.total=Math.min(pdf.numPages,MAX);j.capped=pdf.numPages>MAX;j.done=rows.size;j.eta=null;j.status='running';j.error='';await syncBook(j,rows);await put('jobs',j);status(j);
  const result=await run(pdf,{saved:[...rows],shouldStop:()=>active.stop,onPage:async(i,text,method)=>{if(method==='text'&&window.PdfText.brokenArabicEncoding(text))j.warning=true;await put('pages',{id:j.id+':'+i,job:j.id,page:i,text,method});rows.set(i,text);j.done=rows.size;await syncBook(j,rows);await put('jobs',j);},onProgress:async p=>{j.eta=p.eta;status(j);}});
- if(result.complete&&!j.bookId)throw new Error('الصفحات خلصت لكن مفيش نص قابل للقراءة. راجع جودة الملف أو جرّب نسخة نصية.');j.status=result.complete?'complete':'paused';j.eta=result.complete?0:null;await syncBook(j,rows);await put('jobs',j);status(j);if(result.complete)await store('files','readwrite',s=>s.delete(j.id));
+ if(result.complete&&!j.bookId)throw new Error('الصفحات خلصت لكن مفيش نص قابل للقراءة. راجع جودة الملف أو جرّب نسخة نصية.');j.status=result.complete?'complete':'paused';j.eta=result.complete?0:null;await syncBook(j,rows);await put('jobs',j);status(j);if(result.complete){if(j.bookId)await savePdfOriginal(j.bookId,f.file);await store('files','readwrite',s=>s.delete(j.id));}
  }catch(e){j.status='error';j.error=/[\u0600-\u06ff]/.test(e.message||'')?e.message:'الاستيراد توقف. الصفحات اللي اتحفظت موجودة، وفر مساحة أو اتأكد من الإنترنت ثم استكمل.';try{await put('jobs',j);}catch(_){}status(j);
  }finally{if(pdf)await pdf.destroy();active=null;}};
  if(navigator.locks)await navigator.locks.request('kutubi-pdf-import',{ifAvailable:true},async lock=>{if(lock)await locked();else appToast('الاستيراد شغال في تبويب تاني.');});else await locked();
