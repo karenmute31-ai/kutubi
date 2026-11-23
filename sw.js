@@ -1,5 +1,5 @@
 /* كُتُبِي — Service Worker: app-shell cache (offline shell only, لا بيخزّن مفاتيح ولا بيانات كتب) */
-const CACHE = "motarjem-v114-story-release-native-back-1";
+const CACHE = "kutubi-v115-insets-fresh-assets";
 const SHARE_CACHE = "motarjem-shared-v1"; /* ملفات جاية من هدف المشاركة — برّه كاش النسخ ومبتتمسحش مع التحديثات */
 const SHELL = ["./pdf-import.js","./app-navigation.js","./luxe-ui.css","./luxe-ui.js","./ocr-lines.js","./android-shell-tts.js","./gemini-tts.js","./cloudflare-tts.js","./eleven-owner-tts.js",
   "./",
@@ -37,7 +37,7 @@ self.addEventListener("install", (e) => {
   // لحد ما المستخدم يدوس «حدّث دلوقتي» في التطبيق فتوصلها رسالة SKIP_WAITING.
   // أول تثبيت خالص (مفيش نسخة قديمة) بيُفعّل تلقائيًا من غير ما يستنى.
   /* cache:"reload" = من الشبكة مباشرة: غير كده addAll بياخد نسخة من كاش المتصفح بحدود/رؤوس قديمة (CSP قديم بيفضل) */
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: "reload" })))));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: "reload" }))).then(()=>self.skipWaiting())));
 });
 self.addEventListener("message", (e) => {
   if (e.data && e.data.type === "SKIP_WAITING") self.skipWaiting();
@@ -70,19 +70,8 @@ self.addEventListener("fetch", (e) => {
   // طلبات الـ API (الترجمة) والصفحات الخارجية: شبكة مباشرة، مفيش كاش
   if (url.origin !== self.location.origin) return;
   if (e.request.method !== "GET") return;
-  /* Stale-While-Revalidate لأصول الشل: النسخة المتخزّنة بترد فورًا والشبكة بتحدّث الكاش في الخلفية.
-     ده مش بيكسر تدفق تحديث النسخ المتفق عليه: النسخة الجديدة بتوصل كـ Service Worker جديد
-     بيستنى موافقة المستخدم (رسالة SKIP_WAITING من بانر التحديث)، وكاشها منفصل باسم نسختها —
-     فمفيش أصول قديمة بتتسرّب بعد ما المستخدم يقبل التحديث */
-  e.respondWith(
-    caches.open(CACHE).then(async (cache) => {
-      const hit = await cache.match(e.request);
-      const net = fetch(e.request).then((res) => {
-        if (res && res.ok) cache.put(e.request, res.clone());
-        return res;
-      }).catch(() => hit);
-      return hit || net;
-    })
-  );
+  if (url.pathname.startsWith('/api/')) { e.respondWith(fetch(e.request)); return; }
+  e.respondWith(fetch(e.request,{cache:'no-cache'}).then(res=>{
+    if(res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));}return res;
+  }).catch(async()=>{const hit=await caches.match(e.request);if(hit)return hit;if(e.request.mode==='navigate')return caches.match('./index.html');return Response.error();}));
 });
-

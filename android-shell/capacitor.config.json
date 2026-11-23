@@ -3,11 +3,16 @@
   "appName": "كتبي",
   "webDir": "www",
   "server": {
-    "url": "https://kutubi-app.vercel.app/index.html?av=4",
+    "url": "https://kutubi-app.vercel.app/index.html?av=5",
     "cleartext": false
   },
   "android": {
     "allowMixedContent": false,
     "captureInput": true
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "disable"
+    }
   }
 }
