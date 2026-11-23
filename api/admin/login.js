@@ -10,7 +10,7 @@ async function adminRec(){
   const r=await fetch("https://api.vercel.com/v1/edge-config/"+ECID()+"/items",{headers:{Authorization:"Bearer "+WTOK()}});
   if(!r.ok) return null;
   const d=await r.json();
-  const it=(d.items||[]).find(x=>x.key==="kutubi_admin");
+  const it=(Array.isArray(d)?d:(d.items||[])).find(x=>x.key==="kutubi_admin");
   if(it&&it.value&&it.value.hash){cache={t:Date.now(),rec:it.value};return it.value;}
   const env=process.env.ADMIN_SECRET; if(!env) return null;
   const salt=crypto.randomBytes(8).toString("hex");

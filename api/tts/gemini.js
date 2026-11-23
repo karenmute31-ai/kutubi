@@ -3,7 +3,7 @@ async function ownerAuthorized(req){
  const token=String(req.headers.authorization||'').replace(/^Bearer /,'');const [exp,sig]=token.split('.');
  if(!/^\d+$/.test(exp||'')||Number(exp)<=Date.now()||Number(exp)>Date.now()+12*3600000||!sig)return false;
  if(!process.env.EDGE_CONFIG_ID||!process.env.EDGE_CONFIG_WRITE_TOKEN)return false;
- try{const r=await fetch('https://api.vercel.com/v1/edge-config/'+process.env.EDGE_CONFIG_ID+'/items',{headers:{Authorization:'Bearer '+process.env.EDGE_CONFIG_WRITE_TOKEN}});if(!r.ok)return false;const j=await r.json();const rec=(j.items||[]).find(x=>x.key==='kutubi_admin')?.value;if(!rec?.hash)return false;const good=crypto.createHmac('sha256',rec.hash).update(exp).digest('hex');return crypto.timingSafeEqual(Buffer.from(sig),Buffer.from(good));}catch{return false;}
+ try{const r=await fetch('https://api.vercel.com/v1/edge-config/'+process.env.EDGE_CONFIG_ID+'/items',{headers:{Authorization:'Bearer '+process.env.EDGE_CONFIG_WRITE_TOKEN}});if(!r.ok)return false;const j=await r.json();const rec=(Array.isArray(j)?j:(j.items||[])).find(x=>x.key==='kutubi_admin')?.value;if(!rec?.hash)return false;const good=crypto.createHmac('sha256',rec.hash).update(exp).digest('hex');return crypto.timingSafeEqual(Buffer.from(sig),Buffer.from(good));}catch{return false;}
 }
 const VOICES=['Zephyr','Puck','Charon','Kore','Fenrir','Leda','Orus','Aoede','Callirrhoe','Autonoe','Enceladus','Iapetus','Umbriel','Algieba','Despina','Erinome','Algenib','Rasalgethi','Laomedeia','Achernar','Alnilam','Schedar','Gacrux','Pulcherrima','Achird','Zubenelgenubi','Vindemiatrix','Sadachbia','Sadaltager','Sulafat'];
 const blocked='معاينة Gemini غير مفعلة: يلزم تحقق المالك من الحصة والخصوصية والقيود الإقليمية، وصلاحية المالك. لم يُرسل النص.';
