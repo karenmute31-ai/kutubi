@@ -395,32 +395,11 @@ function expandPresentationForms(t){
 }
 async function extractPDFWithOCR(buf, title){
   const pdf = await ocrOpenPdf(buf);
-  const layer = await ocrLayerText(pdf);
-  /* ترميز عربي مكسور من المصنع (خريطة حروف غلط جوه الملف): طبقة النص موجودة بس حروفها ضايعة،
-     فبنعامل الملف كأنه مصوّر ونروح للـ OCR اللي بيقرأ من الصورة — نفس كشف الراوي بالظبط */
-  const _pt = (typeof window !== "undefined" && window.PdfText) ? window.PdfText : null;
-  const layerBroken = !!(_pt && typeof _pt.brokenArabicEncoding === "function" && _pt.brokenArabicEncoding(expandPresentationForms(layer)));
-  if(!ocrLooksScanned(layer, pdf.numPages) && !layerBroken){
-    const pageLines = await ocrLayerPages(pdf);
-    if(!window.PdfText || typeof window.PdfText.stripRunningHeaders !== "function") return { text: expandPresentationForms(layer), ocr: null, pages: null, pageCount: pdf.numPages };
-    const cleaned = window.PdfText.stripRunningHeaders(pageLines);
-    const pages = cleaned.pages.map(lines=>expandPresentationForms(lines.join("\n")));
-    return { text: pages.join("\n\n"), ocr: null, pages: pages, pageCount: pdf.numPages };
-  }
-  if(typeof document === "undefined" || !document.getElementById("ocrPanel"))
-    throw new Error(layerBroken
-      ? "ترميز العربي في ملف الـPDF ده مكسور من مصدره — خريطة الحروف جوه الملف نفسه غلط، فأي برنامج استخراج نص هيطلّع منه نفس الحروف المبهدلة. الحل: نسخة نصية من الكتاب (الصق نصه أو ارفع TXT)."
-      : "الكتاب ده PDF مصوّر (صور من غير نص) ومفيش واجهة تعرّف ضوئي متاحة هنا.");
-  const res = await ocrPanelFlow(pdf, title);
-  return {
-    text: res.text,
-    ocr: {
-      engine: "tesseract-ara-eng", pages: pdf.numPages,
-      from: res.from, to: res.to, done: res.done,
-      chars: res.text.length, partial: !!res.partial, at: Date.now()
-    },
-    pages: null, pageCount: pdf.numPages
-  };
+  const pages=new Map();let ocrPages=0;
+  try{const result=await PdfImport.run(pdf,{onPage:async(i,text,method)=>{pages.set(i,text);if(method==='ocr')ocrPages++;}});
+   const ordered=[...pages].sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+   return {text:ordered.join("\n\n"),pages:ordered,pageCount:result.done,ocr:ocrPages?{engine:'tesseract-ara-eng',pages:ocrPages,done:result.done,partial:result.capped,at:Date.now()}:null};
+  }finally{await pdf.destroy();}
 }
 
 /* ---------- لوحة الـ OCR: نطاق الصفحات، تحذير الوقت للكتب الكبيرة، تقدم حي، إيقاف/استكمال/إلغاء ---------- */

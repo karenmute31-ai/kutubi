@@ -802,6 +802,7 @@ async function importBookFile(f){
   showTabMsg("#addMsg", "بيقرا الملف…");
   const MAX_BYTES = 5 * 1024 * 1024; /* 5 ميجابايت حد أقصى للملفات النصية */
   if(f.size > MAX_BYTES && !(f.type === "application/pdf" || /\.pdf$/i.test(f.name))) throw new Error("الملف كبير جداً ("+Math.round(f.size/1024/1024)+" ميجابايت). الحد الأقصى 5 ميجابايت.");
+  if(f.type === 'application/pdf' || /\.pdf$/i.test(f.name)){return PdfImport.start(f);}
   const buf = await readFileWithTimeout(f, 20000);
   let text = "";
   let encoding = "utf-8";
