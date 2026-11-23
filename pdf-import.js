@@ -15,7 +15,7 @@ async function run(pdf,opts){
    const list=await page.getOperatorList(),ops=pdfjsLib.OPS;
    const image=list.fnArray.some(x=>x===ops.paintImageXObject||x===ops.paintInlineImageXObject||x===ops.paintImageMaskXObject||x===ops.paintImageXObjectRepeat||x===ops.paintInlineImageXObjectGroup||x===ops.paintJpegXObject);
    if(image&&!r.text.trim()){
-    method='ocr';if(!workers[slot]){if(!await ocrLoadLib().then(()=>true))throw new Error('محرك OCR محتاج إنترنت أول مرة.');workers[slot]=await timed(Tesseract.createWorker(['ara','eng'],1,{langPath:'https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_fast@main',gzip:false,cacheMethod:'write'}));}
+    method='ocr';if(!workers[slot]){if(!await ocrLoadLib().then(()=>true))throw new Error('محرك OCR محتاج إنترنت أول مرة.');workers[slot]=await timed(Tesseract.createWorker(['ara','eng'],1,{workerPath:OCR_WORKER_URL,corePath:OCR_CORE_URL,langPath:OCR_LANG_URL,gzip:true,cacheMethod:'write'}));}
     const base=page.getViewport({scale:1}),scale=Math.min(p.scale,Math.sqrt(p.maxPixels/(base.width*base.height))),vp=page.getViewport({scale});
     cv=document.createElement('canvas');cv.width=Math.ceil(vp.width);cv.height=Math.ceil(vp.height);const ctx=cv.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,cv.width,cv.height);await page.render({canvasContext:ctx,viewport:vp}).promise;
     const result=await timed(root.LocalOcrLines?LocalOcrLines.recognize(workers[slot],cv):workers[slot].recognize(cv));r.text=String(result&&result.data&&result.data.text||'').trim();
