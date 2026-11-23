@@ -1,7 +1,7 @@
 /* كُتُبِي — Service Worker: app-shell cache (offline shell only, لا بيخزّن مفاتيح ولا بيانات كتب) */
-const CACHE = "kutubi-v115-insets-fresh-assets";
+const CACHE = "kutubi-v115-font-recovery-1";
 const SHARE_CACHE = "motarjem-shared-v1"; /* ملفات جاية من هدف المشاركة — برّه كاش النسخ ومبتتمسحش مع التحديثات */
-const SHELL = ["./pdf-import.js","./app-navigation.js","./luxe-ui.css","./luxe-ui.js","./ocr-lines.js","./android-shell-tts.js","./gemini-tts.js","./cloudflare-tts.js","./eleven-owner-tts.js",
+const SHELL = ["./pdf-font-repair.js","./vendor/pdf-font/pdf-lib.min.js","./vendor/pdf-font/opentype.min.js","./pdf-import.js","./app-navigation.js","./luxe-ui.css","./luxe-ui.js","./ocr-lines.js","./android-shell-tts.js","./gemini-tts.js","./cloudflare-tts.js","./eleven-owner-tts.js",
   "./",
   "./index.html",
   "./style.css",
