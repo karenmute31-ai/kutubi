@@ -3,7 +3,7 @@
   "appName": "كتبي",
   "webDir": "www",
   "server": {
-    "url": "https://kutubi-app.vercel.app/index.html?av=7",
+    "url": "https://kutubi-app.vercel.app/index.html?av=8",
     "cleartext": false
   },
   "android": {

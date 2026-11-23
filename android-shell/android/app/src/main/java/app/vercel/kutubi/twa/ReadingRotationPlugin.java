@@ -6,11 +6,11 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name="ReadingRotation")
 public class ReadingRotationPlugin extends Plugin {
- @PluginMethod public void setLocked(PluginCall call) {
-  boolean locked=Boolean.TRUE.equals(call.getBoolean("locked",false));
-  getActivity().runOnUiThread(()->{
-   getActivity().setRequestedOrientation(locked?ActivityInfo.SCREEN_ORIENTATION_LOCKED:ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR);
-   call.resolve();
-  });
+ @PluginMethod public void setMode(PluginCall call) {
+  String mode=call.getString("mode","auto");
+  int target;
+  switch(mode){case "portrait":target=ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT;break;case "landscape":target=ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE;break;case "current":target=ActivityInfo.SCREEN_ORIENTATION_LOCKED;break;default:target=ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR;}
+  final int orientation=target;
+  getActivity().runOnUiThread(()->{getActivity().setRequestedOrientation(orientation);call.resolve();});
  }
 }
